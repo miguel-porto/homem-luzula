@@ -7,7 +7,7 @@ import android.os.Parcelable;
  * Created by miguel on 04-10-2016.
  */
 
-public class TaxonObservation implements Parcelable {
+public class TaxonObservation implements Parcelable, Comparable<TaxonObservation> {
     private final String taxon;
     private String comment;
     private String abundance;
@@ -140,5 +140,10 @@ public class TaxonObservation implements Parcelable {
 
     public void setOrder(Integer order) {
         this.order = order;
+    }
+
+    @Override
+    public int compareTo(TaxonObservation o) {
+        return this.getTaxon().toLowerCase().compareTo(o.getTaxon().toLowerCase());
     }
 }

@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -251,7 +253,8 @@ public class SpeciesList implements Parcelable {
 
     public String concatSpecies(boolean abbreviate, Integer clipAfter) {
         StringBuilder sb = new StringBuilder();
-        List<TaxonObservation> tos = getTaxa();
+        List<TaxonObservation> tos = new ArrayList<>(getTaxa());
+        Collections.sort(tos);
         int i;
         int nsp = getNumberOfSpecies();
         String tmp;
