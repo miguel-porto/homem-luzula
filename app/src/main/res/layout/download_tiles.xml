@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:padding="10dp"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:text="Min zoom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:textAppearance="@style/floatingmenu" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_height="match_parent"
+            android:id="@+id/minzoomvalue"
+            android:layout_weight="1"
+            android:layout_width="60dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/floatingmenu" />
+
+        <SeekBar
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:progress="3"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:id="@+id/minZoom"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <TextView
+        android:text="Max zoom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView2"
+        android:textAppearance="@style/floatingmenu" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:id="@+id/maxzoomvalue"
+            android:gravity="center_vertical"
+            android:layout_weight="1"
+            android:textAppearance="@style/floatingmenu" />
+
+        <SeekBar
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:progress="3"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:id="@+id/maxZoom"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tile_number"
+        android:layout_marginTop="30dp"
+        android:textAppearance="@style/floatingmenu" />
+
+    <Button
+        android:text="Start download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:layout_marginTop="20dp"
+        android:id="@+id/start_download" />
+
+</LinearLayout>

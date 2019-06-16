@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="pt.flora_on.homemluzula">
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature android:name="android.hardware.location.gps" />
+
+    <application
+        android:name=".HomemLuzulaApp"
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainKeyboard"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen"
+            android:screenOrientation="portrait" />
+        <!-- android:theme="@style/FullscreenTheme" /> -->
+        <activity
+            android:name=".SpeciesChooser"
+            android:label="@string/title_activity_species_chooser" />
+        <!-- android:theme="@style/AppTheme.NoActionBar" /> -->
+        <activity
+            android:name=".MainMap"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ShowObservations"
+            android:label="@string/title_activity_species_list_show" />
+        <!-- android:theme="@style/AppTheme" /> -->
+
+        <activity
+            android:name=".ObservationDetails"
+            android:label="Detalhes da observação"
+            android:theme="@style/BigTextViews" />
+        <activity
+            android:name=".InventoryShow"
+            android:label="@string/title_activity_species_lists"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".DataSaver"
+            android:theme="@style/Translucent" />
+        <activity
+            android:name=".Activity_dashboard"
+            android:label="Acções"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings" />
+
+        <service
+            android:name=".geo.RecordTracklogService"
+            android:enabled="true"
+            android:exported="true"></service>
+    </application>
+
+</manifest>

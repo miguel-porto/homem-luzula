@@ -1,0 +1,425 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/entrance_page">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/loader">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/floraon_white1"
+            android:layout_marginRight="20dp"
+            android:id="@+id/imageView" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Carregando dados..."
+            android:textAlignment="center"
+            android:textSize="24sp" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"
+            android:indeterminate="true" />
+
+        <TextView
+            android:id="@+id/loadstatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:orientation="vertical"
+        android:id="@+id/main_map_interface"
+        tools:context="pt.flora_on.homemluzula.MainMap">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/mainmap"
+            android:layout_weight="1">
+
+            <org.osmdroid.views.MapView android:id="@+id/map"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:visibility="gone" />
+
+
+    <!--
+            <pt.flora_on.homemluzula.VectorMapView
+                android:id="@+id/themap"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:layerType="software" /> -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|left"
+                android:id="@+id/zoomlevel"
+                android:layout_weight="0" />
+
+            <TextView
+                android:text="esta app precisa das permissões pedidas para funcionar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="36sp"
+                android:gravity="center"
+                android:id="@+id/nopermissions"
+                android:visibility="gone" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_mira"
+                android:layout_gravity="center"
+                android:id="@+id/mira" />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#77000000" >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="start"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/showinventories"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:background="@android:color/transparent"
+                            app:srcCompat="@drawable/ic_menu_black_24dp" />
+
+                        <TextView
+                            android:id="@+id/statustext"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_vertical"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <ImageView
+                            android:id="@+id/add_location"
+                            android:layout_width="36dp"
+                            android:layout_height="28dp"
+                            android:layout_gravity="center"
+                            app:srcCompat="@drawable/ic_add_location_black_24dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="6dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/view_distance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:fontFamily="monospace"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/view_what"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:fontFamily="monospace"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/view_latitude"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/view_longitude"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <ImageButton
+                        android:id="@+id/show_tracklog"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="false"
+                        android:background="@android:color/transparent"
+                        android:cropToPadding="false"
+                        app:srcCompat="@drawable/ic_tracklog1" />
+
+                    <ImageButton
+                        android:id="@+id/show_layers"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="false"
+                        android:background="@android:color/transparent"
+                        android:cropToPadding="false"
+                        app:srcCompat="@drawable/ic_point" />
+
+                    <ImageView
+                        android:id="@+id/download_tiles"
+                        android:layout_width="36dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        app:srcCompat="@android:drawable/stat_sys_download" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/edit_label_box"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <pt.flora_on.homemluzula.EditTextBackEvent
+                        android:id="@+id/POILabel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ems="10"
+                        android:hint="Título do ponto"
+                        android:inputType="text|textPersonName"
+                        android:textSize="24sp"
+                        android:visibility="visible" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <Button
+                            style="@style/color_button"
+                            android:background="#ff0000"
+                            android:onClick="colorButtonClick" />
+
+                        <Button
+                            style="@style/color_button"
+                            android:background="#d500f9"
+                            android:onClick="colorButtonClick" />
+
+                        <Button
+                            style="@style/color_button"
+                            android:background="#008eff"
+                            android:onClick="colorButtonClick" />
+
+                        <Button
+                            style="@style/color_button"
+                            android:background="#FFFF00"
+                            android:onClick="colorButtonClick" />
+
+                        <Button
+                            style="@style/color_button"
+                            android:background="#38ce3e"
+                            android:onClick="colorButtonClick" />
+
+                        <Button
+                            style="@style/color_button"
+                            android:background="#ef6c00"
+                            android:onClick="colorButtonClick" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/tracklog_times"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:visibility="visible">
+
+                        <TextView
+                            android:id="@+id/tracklog_length"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:text="; de:" />
+
+                        <TextView
+                            android:id="@+id/tr_start"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="TextView" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0"
+                            android:text="até " />
+
+                        <TextView
+                            android:id="@+id/tr_end"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="TextView" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="0dp"
+                android:layout_gravity="bottom|left">
+
+                <FrameLayout
+                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/gps_seconds_wrap"
+                    android:clipChildren="true">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:id="@+id/gps_seconds" >
+
+                        <RadioGroup
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@+id/log5s"
+                            android:id="@+id/gps_seconds_group" >
+
+                                <RadioButton
+                                    android:text="OFF"
+                                    style="@style/floatingmenu"
+                                    android:tag="0"
+                                    android:id="@+id/nolog" />
+
+                                <RadioButton
+                                    android:text="1 s"
+                                    style="@style/floatingmenu"
+                                    android:tag="1"
+                                    android:id="@+id/log1s" />
+
+                                <RadioButton
+                                    android:text="2 s"
+                                    style="@style/floatingmenu"
+                                    android:tag="2"
+                                    android:id="@+id/log5s" />
+
+                                <RadioButton
+                                    android:text="3 s"
+                                    style="@style/floatingmenu"
+                                    android:tag="3"
+                                    android:id="@+id/log10s" />
+
+                                <RadioButton
+                                    android:text="5 s"
+                                    style="@style/floatingmenu"
+                                    android:tag="5"
+                                    android:id="@+id/log20s" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                </FrameLayout>
+
+                <ImageButton
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    app:srcCompat="@drawable/ic_gps_fixed_white_24dp"
+                    android:id="@+id/toggleGPS"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="6dp"
+                    android:background="@android:color/transparent" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_height="34dp"
+                app:srcCompat="@drawable/floraon_white1"
+                android:layout_gravity="bottom|right"
+                android:layout_width="120dp" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/bottombuttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@android:color/transparent"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/bottombutton_1"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingBottom="14dp"
+                android:paddingTop="14dp"
+                android:text="Continuar\nponto anterior"
+                android:textSize="16sp" />
+            <Button
+                android:id="@+id/bottombutton_2"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingBottom="14dp"
+                android:paddingTop="14dp"
+                android:text="Cortar\ntrack"
+                android:visibility="gone"
+                android:textSize="16sp" />
+            <Button
+                android:id="@+id/bottombutton_3"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="14dp"
+                android:paddingTop="14dp"
+                android:text="Novo ponto"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>

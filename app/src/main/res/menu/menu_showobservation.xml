@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="pt.flora_on.homemluzula.ShowObservations">
+    <!--<item
+        android:id="@+id/save_observations"
+        android:orderInCategory="100"
+        android:title="Save"
+        android:icon="@android:drawable/ic_menu_save"
+        app:showAsAction="always" />-->
+</menu>

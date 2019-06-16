@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:id="@+id/specbutlab"
+        android:layout_weight="1"
+        style="@style/titlespecies"
+        android:gravity="center_vertical"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white" >
+
+        <TextView
+            android:text="&#8942;"
+            style="@style/phenostate"
+            android:textSize="32sp"
+            android:id="@+id/but_details"
+            android:layout_width="40dp" />
+
+        <CheckBox
+            android:id="@+id/check_doubt"
+            style="@style/phenostate"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="DUV" />
+
+        <TextView
+            android:text="FLOR+\nDISPERS"
+            style="@style/phenostate"
+            android:id="@+id/but_flordisp" />
+
+        <TextView
+            android:text="DISPERS"
+            style="@style/phenostate"
+            android:id="@+id/but_dispers" />
+<!--
+        <TextView
+            android:text="DORM"
+            style="@style/phenostate"
+            android:id="@+id/but_dorm" />
+-->
+        <TextView
+            android:text="VEGET"
+            style="@style/phenostate"
+            android:id="@+id/but_veget" />
+
+        <TextView
+            android:text="FLOR"
+            style="@style/phenostate"
+            android:id="@+id/but_flor" />
+
+    </LinearLayout>
+
+</LinearLayout>

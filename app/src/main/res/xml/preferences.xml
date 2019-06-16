@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Tracklog">
+        <ListPreference
+            android:defaultValue="4"
+            android:entries="@array/pref_gps_mindist"
+            android:entryValues="@array/pref_gps_mindist"
+            android:key="pref_gps_mindist"
+            android:summary="%s"
+            android:title="Minimum tracklog distance" />
+
+        <SwitchPreference
+            android:summaryOn="Filtro de precisão activado"
+            android:summaryOff="Filtro de precisão desactivado"
+            android:switchTextOff="Activar filtro"
+            android:switchTextOn="Desactivar filtro"
+            android:defaultValue="true"
+            android:key="pref_gps_filter"
+            android:disableDependentsState="false"
+            android:title="Filtro de precisão"/>
+
+        <ListPreference
+            android:defaultValue="10"
+            android:entries="@array/pref_gps_precision"
+            android:entryValues="@array/pref_gps_precision"
+            android:key="pref_minprecision"
+            android:summary="registar tracklog apenas se a precisão for maior que %s m"
+            android:dependency="pref_gps_filter"
+            android:title="Minimum tracklog distance" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Display">
+        <ListPreference
+            android:defaultValue="8"
+            android:entries="@array/pref_sizes_label"
+            android:entryValues="@array/pref_sizes"
+            android:key="pref_poi_size"
+            android:summary="%s"
+            android:title="Size of POIs" />
+
+        <ListPreference
+            android:defaultValue="4"
+            android:entries="@array/pref_widths_label"
+            android:entryValues="@array/pref_widths"
+            android:key="pref_track_width"
+            android:summary="%s"
+            android:title="Espessura do tracklog" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Inventários">
+        <SwitchPreference
+            android:switchTextOff="Usar numeração sequencial"
+            android:switchTextOn="Não usar numeração"
+            android:defaultValue="true"
+            android:key="pref_inventorylabels"
+            android:disableDependentsState="false"
+            android:title="Numeração dos inventários"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Teclado de espécies">
+        <EditTextPreference
+            android:key="pref_maxnrspecies"
+            android:defaultValue="5"
+            android:title="Número máximo de espécies na lista"
+            android:inputType="number"/>
+
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/pref_gps_mindist"
+            android:entryValues="@array/pref_gps_mindist"
+            android:key="pref_ngenusletters"
+            android:summary="%s"
+            android:title="Nº de letras do género" />
+
+        <ListPreference
+            android:defaultValue="3"
+            android:entries="@array/pref_gps_mindist"
+            android:entryValues="@array/pref_gps_mindist"
+            android:key="pref_nspeciesletters"
+            android:summary="%s"
+            android:title="Nº de letras da espécie" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,0 +1,189 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@android:color/black</item>
+        <!--
+
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:background">#000000</item>
+        <item name="android:windowAnimationStyle">@null</item>-->
+    </style>
+
+    <style name="NoUiAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowNoDisplay">true</item>
+    </style>
+
+    <style name="Translucent" parent="AppTheme">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="background">@android:color/transparent</item>
+
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    </style>
+
+    <style name="WindowAnimationTransition">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="DialogStyle" parent="android:Theme.Holo.Dialog.NoActionBar">
+        <item name="android:windowTitleStyle">@style/DialogWindowTitle_Custom</item>
+    </style>
+
+    <style name="DialogWindowTitle_Custom" parent="@style/Base.DialogWindowTitle.AppCompat">
+        <item name="android:maxLines">1</item>
+        <item name="android:scrollHorizontally">true</item>
+        <item name="android:textAppearance">@style/TextAppearance_DialogWindowTitle</item>
+    </style>
+
+    <style name="TextAppearance_DialogWindowTitle" parent="@android:style/TextAppearance.Holo.DialogWindowTitle">
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!--<style name="FullscreenTheme" parent="AppTheme">-->
+    <!--<item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>-->
+    <!--<item name="android:windowActionBarOverlay">true</item>-->
+    <!--&lt;!&ndash;<item name="android:windowBackground">@null</item>&ndash;&gt;-->
+    <!--<item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>-->
+    <!--<item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>-->
+    <!--</style>-->
+
+    <!--<style name="FullscreenActionBarStyle" parent="Widget.AppCompat.ActionBar">-->
+    <!--<item name="android:background">@color/black_overlay</item>-->
+    <!--</style>-->
+
+    <!--<style name="AppTheme.NoActionBar" parent="AppTheme">-->
+    <!--<item name="windowActionBar">false</item>-->
+    <!--<item name="windowNoTitle">true</item>-->
+    <!--<item name="android:windowAnimationStyle">@null</item>-->
+    <!--</style>-->
+
+    <!--<style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />-->
+
+    <!--<style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />-->
+
+    <style name="BigTextViews" parent="AppTheme">
+        <item name="android:textViewStyle">@style/MyTextView</item>
+        <item name="android:checkboxStyle">@style/MyCheckbox</item>
+        <item name="android:editTextStyle">@style/MyEdittext</item>
+        <item name="android:spinnerDropDownItemStyle">@style/MyTextView</item>
+        <!--<item name="android:layout_marginTop">16dp</item>-->
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="MyTextView" parent="android:Widget.TextView">
+        <item name="android:textSize">22sp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="MyCheckbox" parent="android:Widget.CompoundButton.CheckBox">
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="MyEdittext" parent="android:Widget.EditText">
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="tecla" parent="@android:style/TextAppearance.Widget.TextView">
+        <item name="android:layout_width">65dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">46sp</item>
+        <item name="android:layout_gravity">fill_horizontal</item>
+        <item name="android:padding">2dp</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:background">@android:color/black</item>
+        <!--<item name="android:layout_columnWeight">1</item>-->
+    </style>
+
+    <style name="phenostate" parent="@android:style/TextAppearance.Widget.TextView">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginEnd">1dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">#111111</item>
+        <item name="android:padding">6dp</item>
+    </style>
+
+    <style name="floatingmenu" parent="@android:style/TextAppearance.Widget.TextView">
+        <item name="android:layout_width">60dp</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/logsec</item>
+        <item name="android:background">@drawable/circle_toggle</item>
+        <item name="android:layout_margin">3dp</item>
+        <item name="android:padding">6dp</item>
+        <item name="android:button">@android:color/transparent</item>
+    </style>
+
+    <style name="titlespecies" parent="@android:style/TextAppearance.Widget.TextView">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textStyle">italic</item>
+        <item name="android:padding">6dp</item>
+        <item name="android:background">@color/colorPrimaryDark</item>
+        <!--<item name="android:textColor">@android:color/holo_blue_light</item>-->
+    </style>
+
+    <style name="phenostate_compact" parent="@android:style/Widget.CompoundButton.RadioButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingLeft">3dp</item>
+        <item name="android:paddingRight">3dp</item>
+        <item name="android:enabled">false</item>
+        <item name="android:textColor">@color/logsec</item>
+        <item name="android:button">@android:color/transparent</item>
+    </style>
+
+    <style name="color_button" parent="@android:style/Widget.CompoundButton.RadioButton">
+        <item name="android:layout_width">28dp</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_margin">8dp</item>
+        <item name="android:enabled">true</item>
+        <item name="android:button">@android:color/transparent</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+<!--
+    <style name="Widget.TextView.ListSeparator" parent="@android:style/Widget.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="PreferenceListHeader" parent="Widget.TextView.ListSeparator">
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:paddingLeft">12dp</item>
+    </style>
+
+    <style name="Theme.Custom" parent="@android:style/Theme">
+        <item name="android:listSeparatorTextViewStyle">@style/PreferenceListHeader</item>
+    </style>
+    -->
+</resources>

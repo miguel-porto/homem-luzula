@@ -1,0 +1,370 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="pt.flora_on.homemluzula.MainKeyboard"
+    android:id="@+id/keyboard_page">
+
+    <!-- The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc. -->
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom|end"
+        android:gravity="bottom">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" >
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.v7.widget.Toolbar
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/colorPrimary"
+                    android:id="@+id/keyboard_toolbar" />
+
+                <TextView
+                    android:id="@+id/coordinates"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="8dp" />
+
+                <TextView
+                    android:text="(sem espécies)"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/showspecies"
+                    android:background="@drawable/edit_icon"
+                    android:textStyle="italic"
+                    android:textSize="13sp"
+                    android:padding="8dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:textColor="#ffffff"
+                    android:textAlignment="center"
+                    android:id="@+id/inputbuffer"
+                    android:textSize="80sp" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <RadioGroup
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/inputmode_fast"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:paddingBottom="16dp"
+                        android:paddingTop="16dp"
+                        android:text="RÁPIDO"
+                        android:textSize="16sp" />
+
+                    <RadioButton
+                        android:id="@+id/inputmode_genus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="16dp"
+                        android:paddingTop="16dp"
+                        android:text="GÉNERO"
+                        android:textSize="16sp" />
+
+                    <RadioButton
+                        android:id="@+id/inputmode_doubt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="16dp"
+                        android:paddingTop="16dp"
+                        android:text="DÚVIDA"
+                        android:textSize="16sp" />
+                </RadioGroup>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/delete_inventario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    app:backgroundTint="@android:color/holo_red_light"
+                    app:fabSize="mini"
+                    app:srcCompat="@android:drawable/ic_menu_delete" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/cancel_inventario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    app:backgroundTint="?attr/colorButtonNormal"
+                    app:fabSize="mini"
+                    app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+
+            </LinearLayout>
+
+            <GridLayout
+                android:id="@+id/keyboard"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:columnCount="4"
+                android:visibility="visible">
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="A" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="B" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="C" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="D" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="E" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="F" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="G" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="H" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="I" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="J" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="K" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="L" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="M" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="N" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="O" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="P" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="Q" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="R" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="S" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="T" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="U" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="V" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="W" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="X" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="Y" />
+
+                <TextView
+                    style="@style/tecla"
+                    android:text="Z" />
+
+                <TextView
+                    android:id="@+id/key_backspace"
+                    style="@style/tecla"
+                    android:text="&lt;" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/save_inventario"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:clickable="true"
+                    app:backgroundTint="@android:color/holo_green_dark"
+                    app:fabSize="mini"
+                    app:srcCompat="@android:drawable/ic_menu_save" />
+                <!--<TextView android:text="_" style="@style/tecla" android:textColor="@android:color/black" android:background="@android:drawable/ic_menu_camera"/>-->
+
+            </GridLayout>
+
+            <LinearLayout
+                android:id="@+id/freedescription"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <pt.flora_on.homemluzula.EditTextBackEvent
+                    android:id="@+id/freedescriptionedit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:hint="descreva a espécie"
+                    android:inputType="text" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/add_freedoubt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:layout_marginTop="12dp"
+                    android:clickable="true"
+                    app:backgroundTint="@android:color/holo_green_dark"
+                    app:fabSize="mini"
+                    app:srcCompat="@drawable/ic_add" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:id="@+id/help_keyboard"
+        android:visibility="gone"
+        android:background="@color/black_overlay" >
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:background="@color/colorPrimary"
+            android:padding="6dp"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:text="Como usar o registo rápido?"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="36sp" />
+
+            <TextView
+                android:text=""
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="italic"
+                android:id="@+id/comousar"
+                android:textSize="18sp" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/help_row1" >
+
+                <TextView
+                    android:text=""
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="italic"
+                    android:id="@+id/genus_tail"
+                    android:textSize="28sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/help_row2" >
+
+                <TextView
+                    android:text=""
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="italic"
+                    android:id="@+id/spec_tail"
+                    android:textSize="28sp" />
+
+            </LinearLayout>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:id="@+id/gotit"
+                android:text="Entendi" />
+        </LinearLayout>
+
+    </FrameLayout>
+
+</FrameLayout>
