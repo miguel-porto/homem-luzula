@@ -234,17 +234,25 @@ public class SpeciesList implements Parcelable {
                 break;
 
             case "lvf":
-                for(TaxonObservation obs : taxa) {
+                if(taxa.size() == 0) {
                     sb.append(this.getGpsCode()).append("\t")
-                            .append(this.latitude).append("\t").append(this.longitude).append("\t").append(this.day)
-                            .append("/").append(this.month).append("/").append(this.year).append("\t")
-                            .append(obs.getTaxon()).append("\t").append(obs.getPhenoState().toString())
-                            .append("\t").append(obs.getConfidence().equals(Constants.Confidence.CERTAIN) ? "CERTAIN" : "DOUBTFUL")
-                            .append("\t").append(obs.getAbundance() == null ? "" : obs.getAbundance())
-                            .append("\t").append(obs.getAbundanceType() == Constants.AbundanceType.NO_DATA ? "" : obs.getAbundanceType().toString())
-                            .append("\t").append(obs.getComment() == null ? "" : obs.getComment());
+                            .append(this.latitude).append("\t").append(this.longitude).append("\t").append(this.day == null ? "?" : day)
+                            .append("/").append(this.month == null ? "?" : month).append("/").append(this.year == null ? "?" : year);
                     file.println(sb.toString());
                     sb.setLength(0);
+                } else {
+                    for (TaxonObservation obs : taxa) {
+                        sb.append(this.getGpsCode()).append("\t")
+                                .append(this.latitude).append("\t").append(this.longitude).append("\t").append(this.day == null ? "?" : day)
+                                .append("/").append(this.month == null ? "?" : month).append("/").append(this.year == null ? "?" : year);
+                        sb.append("\t").append(obs.getTaxon()).append("\t").append(obs.getPhenoState().toString())
+                                .append("\t").append(obs.getConfidence().equals(Constants.Confidence.CERTAIN) ? "CERTAIN" : "DOUBTFUL")
+                                .append("\t").append(obs.getAbundance() == null ? "" : obs.getAbundance())
+                                .append("\t").append(obs.getAbundanceType() == Constants.AbundanceType.NO_DATA ? "" : obs.getAbundanceType().toString())
+                                .append("\t").append(obs.getComment() == null ? "" : obs.getComment());
+                        file.println(sb.toString());
+                        sb.setLength(0);
+                    }
                 }
                 break;
         }
