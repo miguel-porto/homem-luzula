@@ -1,6 +1,7 @@
 package pt.flora_on.homemluzula.geo;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -19,9 +20,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Toast;
 
@@ -105,7 +104,7 @@ public class RecordTracklogService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    @TargetApi(Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationChannel androidChannel = new NotificationChannel("pt.floraon.homemluzula",
                 "Homem Luzula", NotificationManager.IMPORTANCE_DEFAULT);
