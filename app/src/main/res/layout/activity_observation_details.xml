@@ -99,17 +99,40 @@
         </LinearLayout>
     </ScrollView>
 
-    <android.support.design.widget.FloatingActionButton
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        app:fabSize="mini"
-        app:srcCompat="@android:drawable/ic_menu_save"
-        android:layout_gravity="bottom|right"
-        android:id="@+id/save_obs_details"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="8dp"
-        app:backgroundTint="@android:color/holo_green_dark" />
+        android:gravity="right"
+        android:orientation="horizontal">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/delete_taxon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="24dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_red_light"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/ic_menu_delete"
+            tools:visibility="invisible" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/save_obs_details"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp"
+            android:clickable="true"
+            app:backgroundTint="@android:color/holo_green_dark"
+            app:fabSize="mini"
+            app:srcCompat="@android:drawable/ic_menu_save" />
+
+    </LinearLayout>
     <!--
         <android.support.v7.widget.Toolbar
             android:layout_width="match_parent"

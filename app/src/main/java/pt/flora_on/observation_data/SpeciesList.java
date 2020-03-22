@@ -32,6 +32,7 @@ public class SpeciesList implements Parcelable {
     private List<String> authors = new ArrayList<>();
     private ArrayList<TaxonObservation> taxa = new ArrayList<>();
     private UUID uuid;
+    private boolean singleSpecies = false;
     private transient Integer maxOrder;
 
     public SpeciesList() {
@@ -99,6 +100,14 @@ public class SpeciesList implements Parcelable {
     }
 
     public UUID getUuid() { return uuid;}
+
+    public boolean isSingleSpecies() {
+        return singleSpecies;
+    }
+
+    public void setSingleSpecies(boolean singleSpecies) {
+        this.singleSpecies = singleSpecies;
+    }
 
     public void setYear(Integer year) {this.year = year;}
     public void setMonth(Integer month) {this.month = month;}
@@ -168,6 +177,7 @@ public class SpeciesList implements Parcelable {
         privNotes = in.readString();
         authors = in.createStringArrayList();
         taxa = in.createTypedArrayList(TaxonObservation.CREATOR);
+        singleSpecies = in.readByte() != 0;
     }
 
     @Override
@@ -190,6 +200,7 @@ public class SpeciesList implements Parcelable {
         dest.writeString(privNotes);
         dest.writeStringList(authors);
         dest.writeTypedList(taxa);
+        dest.writeByte((byte) (singleSpecies ? 1 : 0));
     }
 
     public static final Creator<SpeciesList> CREATOR = new Creator<SpeciesList>() {
@@ -236,15 +247,25 @@ public class SpeciesList implements Parcelable {
             case "lvf":
                 if(taxa.size() == 0) {
                     sb.append(this.getGpsCode()).append("\t")
-                            .append(this.latitude).append("\t").append(this.longitude).append("\t").append(this.day == null ? "?" : day)
-                            .append("/").append(this.month == null ? "?" : month).append("/").append(this.year == null ? "?" : year);
+                            .append(this.latitude).append("\t").append(this.longitude).append("\t")
+                            .append(this.day == null ? "?" : String.format("%02d", day)).append("/")
+                            .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
+                            .append(this.year == null ? "?" : year).append("\t")
+                            .append(this.year == null ? "?" : year).append("/")
+                            .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
+                            .append(this.day == null ? "?" : String.format("%02d", day));
                     file.println(sb.toString());
                     sb.setLength(0);
                 } else {
                     for (TaxonObservation obs : taxa) {
                         sb.append(this.getGpsCode()).append("\t")
-                                .append(this.latitude).append("\t").append(this.longitude).append("\t").append(this.day == null ? "?" : day)
-                                .append("/").append(this.month == null ? "?" : month).append("/").append(this.year == null ? "?" : year);
+                                .append(this.latitude).append("\t").append(this.longitude).append("\t")
+                                .append(this.day == null ? "?" : String.format("%02d", day)).append("/")
+                                .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
+                                .append(this.year == null ? "?" : year).append("\t")
+                                .append(this.year == null ? "?" : year).append("/")
+                                .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
+                                .append(this.day == null ? "?" : String.format("%02d", day));
                         sb.append("\t").append(obs.getTaxon()).append("\t").append(obs.getPhenoState().toString())
                                 .append("\t").append(obs.getConfidence().equals(Constants.Confidence.CERTAIN) ? "CERTAIN" : "DOUBTFUL")
                                 .append("\t").append(obs.getAbundance() == null ? "" : obs.getAbundance())

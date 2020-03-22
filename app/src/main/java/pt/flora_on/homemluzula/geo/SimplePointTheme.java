@@ -46,7 +46,9 @@ public class SimplePointTheme implements SimpleFastPointOverlay.PointAdapter {
         String[] line;
         while((tmp = ir.readLine()) != null) {
             line = tmp.split(",");
-            pts.add(new StyledLabelledGeoPoint(Double.parseDouble(line[0]), Double.parseDouble(line[1])));
+            double lat, lng;
+            if((lat = Double.parseDouble(line[0])) > -85 && lat < 85 && (lng = Double.parseDouble(line[1])) > -180 && lng < 180)
+                pts.add(new StyledLabelledGeoPoint(lat, lng));
         }
         ir.close();
         out.setPointsList(pts);

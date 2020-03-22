@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -39,6 +40,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.SeekBar;
@@ -80,11 +82,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
 import pt.flora_on.homemluzula.geo.RecordTracklogService;
 import pt.flora_on.homemluzula.geo.SimplePointOverlayWithTracklog;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
+import pt.flora_on.observation_data.Constants;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.TaxonObservation;
@@ -93,8 +97,9 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private static final int UI_ANIMATION_DELAY = 300;
     public static final int GET_SPECIESLIST = 190;
     public static final int REPLACE_SPECIESLIST = 191;
-    public static final int UNSAVED_NOTIFICATION = 6774;
     public static final int CLEAR_TRACKLOG = 192;
+    public static final int EDIT_OBSERVATION = 193;
+    public static final int UNSAVED_NOTIFICATION = 6774;
     public static final int DASHBOARD = 1;
     public static Checklist checklist;
     public static SimplePointTheme basePointTheme, otherPointTheme;
@@ -126,6 +131,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private enum BUTTONLAYOUT {CONTINUE_LAST, EDIT_INVENTORY, DELETE_POI, DELETE_TRACK};
     private SharedPreferences preferences;
     private Intent GPSIntent;
+    private final int quickMarkId = 54654;
     /**
      * Set to true when starting internal activity, so the onStop method does not save anything.
      */
@@ -340,11 +346,21 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     }
 
     public void openSpeciesList(int index) {
-        Intent intent = new Intent(MainMap.this, MainKeyboard.class);
-        intent.putExtra("specieslist", DataSaver.allData.getSpeciesLists().get(index));
-        intent.putExtra("index", index);
-        internalNavigation = true;
-        startActivityForResult(intent, REPLACE_SPECIESLIST);
+        SpeciesList sl = DataSaver.allData.getSpeciesLists().get(index);
+        if(sl.isSingleSpecies()) {
+            Intent intent = new Intent(this, ObservationDetails.class);
+            intent.putExtra("taxon", sl.getTaxa().get(0));
+            intent.putExtra("fill_fields", true);
+            intent.putExtra("showDelete", true);
+            intent.putExtra("index", index);
+            startActivityForResult(intent, EDIT_OBSERVATION);
+        } else {
+            Intent intent = new Intent(MainMap.this, MainKeyboard.class);
+            intent.putExtra("specieslist", sl);
+            intent.putExtra("index", index);
+            internalNavigation = true;
+            startActivityForResult(intent, REPLACE_SPECIESLIST);
+        }
     }
 
     private void setRecordTracklog(Boolean value) {
@@ -498,6 +514,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
         updateStatusBar();
         refreshFrequencies();
+
+        createQuickAccessButtons();
 
         /**
          * New inventory in the target location (center of screen)
@@ -825,7 +843,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         org.osmdroid.tileprovider.tilesource.bing.BingMapTileSource bing = new org.osmdroid.tileprovider.tilesource.bing.BingMapTileSource(null);
         bing.setStyle(BingMapTileSource.IMAGERYSET_AERIALWITHLABELS);
 
-        theMap = (MapView) findViewById(R.id.map);
+        theMap = findViewById(R.id.map);
         theMap.setMultiTouchControls(true);
         theMap.setFlingEnabled(false);
 /*
@@ -1273,7 +1291,7 @@ try {
                     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED ||
+//                    ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(this, Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{
@@ -1284,9 +1302,11 @@ try {
                         , Manifest.permission.ACCESS_NETWORK_STATE
                         , Manifest.permission.INTERNET
                         , Manifest.permission.ACCESS_COARSE_LOCATION
-                        , Manifest.permission.FOREGROUND_SERVICE
                         , Manifest.permission.VIBRATE
                 }, 23);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 23);
+                }
                 // no permissions, do nothing, wait for permission callback
             } else
                 new InitialLoad().execute();
@@ -1376,6 +1396,7 @@ try {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         SpeciesList sList = null;
+        int index;
         if(data != null)
             sList = data.getParcelableExtra("specieslist");
         File invdir = new File(System.getenv("EXTERNAL_STORAGE"), "homemluzula");
@@ -1390,31 +1411,43 @@ try {
                 else
                     Toast.makeText(getApplicationContext(), "Some error saving inventory.", Toast.LENGTH_SHORT).show();
 
-/*
-                if(!invdir.exists())
-                    invdir.mkdir();
-
-                File newinv = new File(invdir, sList.getUuid().toString() + ".json");
-                try {
-                    newinv.createNewFile();
-                    FileWriter fw = new FileWriter(newinv);
-                    fw.append(new Gson().toJson(sList));
-                    fw.close();
-                    Toast.makeText(getApplicationContext(), "Saved inventory.", Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-*/
-
                 //sfpo.addPoint(new GeoPoint(sList.getLatitude(), sList.getLongitude()));
                 if(inventoryLayer != null) inventoryLayer.setSelectedPoint(DataSaver.allData.getSpeciesLists().size() - 1);
                 theMap.invalidate();
                 setButtonLayout(BUTTONLAYOUT.CONTINUE_LAST);
                 break;
 
+            case EDIT_OBSERVATION:
+                if (resultCode != RESULT_OK) return;
+                index = data == null ? -1 : data.getIntExtra("index", -1);
+                if(index < 0) new AlertDialog.Builder(this).setTitle("Error").setCancelable(false).setPositiveButton(android.R.string.yes, null).setIcon(android.R.drawable.ic_dialog_alert)
+                        .setMessage("Erro substituindo o inventário").show();
+                else {
+                    String uuid = DataSaver.allData.getSpeciesList(index).getUuid().toString();
+                    if(data.hasExtra("delete")) {
+                        File repinv = new File(invdir, uuid + ".json");
+                        repinv.delete();
+                        DataSaver.allData.deleteSpeciesList(index);
+                        if(inventoryLayer != null && inventoryLayer.getSelectedPoint() >= DataSaver.allData.size())
+                            inventoryLayer.setSelectedPoint(DataSaver.allData.size() - 1);
+                        theMap.invalidate();
+                    } else {
+                        TaxonObservation obs = data.getParcelableExtra("observation");
+                        sList = DataSaver.allData.getSpeciesList(index);
+                        sList.getTaxa().set(0, obs);
+                        if (Inventories.saveInventoryToDisk(sList, uuid))
+                            Toast.makeText(getApplicationContext(), "Saved inventory.", Toast.LENGTH_SHORT).show();
+                        else
+                            Toast.makeText(getApplicationContext(), "Some error saving inventory.", Toast.LENGTH_SHORT).show();
+
+                        DataSaver.allData.replaceSpeciesList(sList, index);
+                    }
+                }
+                break;
+
             case REPLACE_SPECIESLIST:
                 if (resultCode != RESULT_OK) return;
-                int index = data.getIntExtra("index", -1);
+                index = data == null ? -1 : data.getIntExtra("index", -1);
                 if(index < 0) new AlertDialog.Builder(this).setTitle("Error").setCancelable(false).setPositiveButton(android.R.string.yes, null).setIcon(android.R.drawable.ic_dialog_alert)
                         .setMessage("Erro substituindo o inventário").show();
                 else {
@@ -1433,18 +1466,6 @@ try {
                         else
                             Toast.makeText(getApplicationContext(), "Some error saving inventory.", Toast.LENGTH_SHORT).show();
 
-/*
-                        repinv.delete();
-                        try {
-                            repinv.createNewFile();
-                            FileWriter fw = new FileWriter(repinv);
-                            fw.append(new Gson().toJson(sList));
-                            fw.close();
-                            Toast.makeText(getApplicationContext(), "Saved inventory.", Toast.LENGTH_SHORT).show();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-*/
                         DataSaver.allData.replaceSpeciesList(sList, index);
                     }
                 }
@@ -1566,6 +1587,37 @@ try {
 
             case R.id.start_download:
                 updateEstimate(true);
+                break;
+
+            case quickMarkId:
+            case quickMarkId + 1:
+            case quickMarkId + 2:
+            case quickMarkId + 3:
+                if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions( MainMap.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
+                }
+                final FastPointMark locationListener = new FastPointMark();
+
+                LocationFixedCallback cb = new LocationFixedCallback() {
+                    @Override
+                    public void finished(float latitude, float longitude) {
+                        locationManager.removeUpdates(locationListener);
+                        Intent data = new Intent();
+                        SpeciesList sl = new SpeciesList();
+                        sl.setSingleSpecies(true);
+                        sl.setNow();
+                        sl.setLocation(latitude, longitude);
+                        TaxonObservation tObs = (TaxonObservation) view.getTag();
+                        sl.addObservation(tObs);
+                        ((Button) view).setText(tObs.getTaxonCapital());
+
+                        data.putExtra("specieslist", sl);
+                        MainMap.this.onActivityResult(GET_SPECIESLIST, RESULT_OK, data);
+                    }
+                };
+                locationListener.setCallback(cb);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+                ((Button) view).setText("waiting GPS...");
                 break;
         }
     }
@@ -1856,4 +1908,47 @@ try {
         }
     }
 
+    public void createQuickAccessButtons() {
+        LinearLayout v = findViewById(R.id.main_map_interface);
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+//        buttonParams.setMargins(0, 0,0,0);
+
+        LinearLayout.LayoutParams linearParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        // Create LinearLayout
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.HORIZONTAL);
+//        linearParams.setMargins(0, 0, 0, 0);
+//        ll.setLayoutParams(linearParams);
+//        ll.setPadding(0, 0, 0, 0);
+
+        TaxonObservation[] spp = new TaxonObservation[] {
+                new TaxonObservation("Linaria algarviana", null),
+                new TaxonObservation("Linaria munbyana", null)
+//                new TaxonObservation("Linaria algarviana", Constants.PhenologicalState.DISPERSION)
+        };
+        int counter = 0;
+        for(TaxonObservation sp : spp) {
+            final Button btn = new Button(this);
+            // Give button an ID
+            btn.setId(quickMarkId + counter);
+            btn.setText(sp.getTaxon());
+            btn.setTag(sp);
+
+            // set the layoutParams on the button
+//            btn.setLayoutParams(buttonParams);
+//            btn.setPadding(0, 0, 0, 0);
+
+            counter++;
+
+            // Set click listener for button
+            btn.setOnClickListener(this);
+            ll.addView(btn, buttonParams);
+        }
+
+        v.addView(ll, 1, linearParams);
+
+    }
 }

@@ -43,6 +43,21 @@ public class ObservationDetails extends AppCompatActivity {
         observation = getIntent().getParcelableExtra("taxon");
         setTitle(observation.getTaxonCapital());
 
+        if(getIntent().hasExtra("showDelete")) {
+            findViewById(R.id.delete_taxon).setVisibility(View.VISIBLE);
+            findViewById(R.id.delete_taxon).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent data = new Intent();
+                    data.putExtra("delete", true);
+                    if(getIntent().hasExtra("index"))
+                        data.putExtra("index", getIntent().getIntExtra("index", -1));
+                    setResult(Activity.RESULT_OK, data);
+                    finish();
+                }
+            });
+        } else
+            findViewById(R.id.delete_taxon).setVisibility(View.INVISIBLE);
         // save details
         findViewById(R.id.save_obs_details).setOnClickListener(new View.OnClickListener() {
             @Override

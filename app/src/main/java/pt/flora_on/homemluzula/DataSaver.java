@@ -212,7 +212,7 @@ public class DataSaver extends AppCompatActivity {
         chk = new File(extStoreDir, "/dados-lvf.txt");
         try {
             bw = new PrintWriter(new FileWriter(chk, false));
-            bw.println("code\tlatitude\tlongitude\tdate\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcomment");
+            bw.println("code\tlatitude\tlongitude\tdate\tdateYMD\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcomment");
             for(SpeciesList sList : allData.getSpeciesLists()) {
                 sList.toCSV(bw, "lvf");
             }
