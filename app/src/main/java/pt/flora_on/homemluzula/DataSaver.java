@@ -4,9 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -17,7 +15,6 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -33,7 +30,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
+import java.util.List;
 
+import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
@@ -43,6 +42,16 @@ public class DataSaver extends AppCompatActivity {
     public static SimplePointTheme POIPointTheme;
     public static Inventories allData;
     public static Tracklog tracklog;
+    public static List<LineLayer> layers;
+    private static Integer selectedLayer = null;
+
+    public static Integer getSelectedLayer() {
+        return selectedLayer;
+    }
+
+    public static void setSelectedLayer(Integer selectedLayer) {
+        DataSaver.selectedLayer = selectedLayer;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,48 +76,9 @@ public class DataSaver extends AppCompatActivity {
             allData.setChanged(getIntent().getBooleanExtra("changed", true));
         }
 
-        if(getIntent().hasExtra("tracklog")) {
-            tracklog = getIntent().getParcelableExtra("tracklog");
-        }
-
 //        Toast.makeText(this, "Tracklog desactivado." + (allData==null) +","+(POItheme==null), Toast.LENGTH_SHORT).show();
         if(allData != null || POIPointTheme != null || tracklog != null) {
-//            if(mNotificationManager != null)
-//                mNotificationManager.cancel(MainMap.UNSAVED_NOTIFICATION);
-
-            if("ask".equals(getIntent().getAction())) {
-                final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(DataSaver.this);
-                final Tracklog mTracklog = tracklog;
-                builder.setTitle("Existem dados não gravados!")
-                        .setMessage("Tem a certeza que quer descartar as alterações?")
-                        .setCancelable(false)
-                        .setIcon(R.drawable.ic_folha)
-                        .setNegativeButton("Gravar", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                new SaveAndExport(DataSaver.this).execute(mTracklog);
-                            }
-                        })
-                        .setPositiveButton("Descartar", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                SharedPreferences prefs = getSharedPreferences("datastate", MODE_PRIVATE);
-                                SharedPreferences.Editor edit = prefs.edit();
-                                edit.putBoolean("changed", false);
-                                edit.commit();
-                                finish();
-//                                finishAffinity();
-                            }
-                        });
-
-                final android.support.v7.app.AlertDialog alert = builder.create();
-                alert.show();
-            } else if("immediate".equals(getIntent().getAction())) {
-                saveEverythingSilently();
-                Toast.makeText(getApplicationContext(), "Autosaved.", Toast.LENGTH_SHORT).show();
-                finish();
-            } else
-                new SaveAndExport(DataSaver.this).execute(tracklog);
+            new SaveAndExport(DataSaver.this).execute();
         } else
             finish();
 //            finishAffinity();
@@ -193,6 +163,22 @@ public class DataSaver extends AppCompatActivity {
             }
         }
 
+
+        if(layers != null && layers.size() > 0) {
+            File file = new File(invdir, "layers.bin");
+            if (file.exists()) file.delete();
+            try {
+                file.createNewFile();
+                FileOutputStream fout = new FileOutputStream(file);
+                ObjectOutputStream oos = new ObjectOutputStream(fout);
+                oos.writeObject(layers);
+                oos.close();
+            } catch (IOException e) {
+                sb.append("layers.bin: ").append(e.getMessage()).append("\n");
+                nErrors++;
+            }
+        }
+
         // export Flora-On text file
         //File chk = new File(extStore + "/dados-floraon.txt");
         File chk = new File(extStoreDir, "dados-floraon.txt");
@@ -251,7 +237,7 @@ public class DataSaver extends AppCompatActivity {
     /**
      * Save everything and quit, with UI waiting
      */
-    private class SaveAndExport extends AsyncTask<Object, Void, Void> {
+    private class SaveAndExport extends AsyncTask<Void, Void, Void> {
         private ProgressDialog dialog;
         private WeakReference<DataSaver> dataSaverWeakReference;
 
@@ -267,7 +253,7 @@ public class DataSaver extends AppCompatActivity {
             dialog = ProgressDialog.show(activity, "Gravando", "Um momento...", true);
         }
 
-        protected Void doInBackground(Object... params) {
+        protected Void doInBackground(Void... voids) {
             saveEverythingSilently();
             return null;
         }

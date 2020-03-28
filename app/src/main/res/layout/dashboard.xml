@@ -109,6 +109,42 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="Layers"
+        android:textColor="@android:color/holo_blue_light"
+        android:textSize="20sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Formato Geojson (apenas LINESTRING e POLYGON)" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/importlayer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Importar" />
+
+        <Button
+            android:id="@+id/removelayers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Apagar todas" />
+
+    </LinearLayout>
+
     <Space
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

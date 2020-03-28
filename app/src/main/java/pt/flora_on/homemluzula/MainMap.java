@@ -14,7 +14,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -63,7 +62,9 @@ import org.osmdroid.tileprovider.tilesource.bing.BingMapTileSource;
 import org.osmdroid.util.BoundingBox;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.TileSystem;
+import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
+import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.simplefastpoint.LabelledGeoPoint;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlayOptions;
@@ -78,17 +79,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
 import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
+import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.RecordTracklogService;
 import pt.flora_on.homemluzula.geo.SimplePointOverlayWithTracklog;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
-import pt.flora_on.observation_data.Constants;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.TaxonObservation;
@@ -99,6 +102,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     public static final int REPLACE_SPECIESLIST = 191;
     public static final int CLEAR_TRACKLOG = 192;
     public static final int EDIT_OBSERVATION = 193;
+    public static final int CLEAR_ALLLAYERS = 194;
     public static final int UNSAVED_NOTIFICATION = 6774;
     public static final int DASHBOARD = 1;
     public static Checklist checklist;
@@ -120,6 +124,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private SimpleFastPointOverlay POIPointLayer;   // this is an interactive simple point layer (only coordinates)
     static public SimplePointOverlayWithTracklog inventoryLayer;  // this is the real inventory layer
     protected FolderOverlay trackLogOverlay = new FolderOverlay();
+    protected FolderOverlay layersOverlay = new FolderOverlay();
     static public boolean lockOnCurrentLocation = true;
     static public boolean recordTracklog = false;
     static public boolean breakTrackAtNextFix = false;
@@ -128,7 +133,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     static public AppCompatActivity mainActivity;
     private GeoPoint finger1, finger2;
     private long finger1Time;
-    private enum BUTTONLAYOUT {CONTINUE_LAST, EDIT_INVENTORY, DELETE_POI, DELETE_TRACK};
+    private enum BUTTONLAYOUT {CONTINUE_LAST, EDIT_INVENTORY, DELETE_POI, DELETE_TRACK, DELETE_LAYER};
     private SharedPreferences preferences;
     private Intent GPSIntent;
     private final int quickMarkId = 54654;
@@ -143,22 +148,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         buttonLayouts.put(BUTTONLAYOUT.EDIT_INVENTORY, new String[] {"Editar ponto\n%.4f %.4f", "Nova\ntrack", "Novo ponto"});
         buttonLayouts.put(BUTTONLAYOUT.DELETE_POI, new String[] {"Apagar\nPOI", "Nova\ntrack", "Novo ponto"});
         buttonLayouts.put(BUTTONLAYOUT.DELETE_TRACK, new String[] {"Apagar\ntrack", "Cortar\ntrack", "Novo ponto"});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_LAYER, new String[] {"Apagar\nlayer", "Novo ponto"});
     }
-/*
-    Handler autoSaveHandler = new Handler();
-    Runnable autoSave = new Runnable() {
-        @Override
-        public void run() {
-            autoSaveHandler.removeCallbacksAndMessages(null);
-            if(DataSaver.allData.isChanged()) {
-                Intent saveIntent = new Intent(MainMap.this, DataSaver.class);
-                saveIntent.putExtra("changed", DataSaver.allData.isChanged());
-//                            saveIntent.setAction("immediate");
-                startActivity(saveIntent);
-            }
-        }
-    };
-*/
 
     @Override
     protected void onPause() {
@@ -228,6 +219,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         }
     }
 */
+
+    public FolderOverlay getLayersOverlay() {
+        return this.layersOverlay;
+    }
 
     private final Runnable mHideGPSRunnable = new Runnable() {
         @Override
@@ -341,6 +336,11 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
         if(DataSaver.tracklog.getSelectedTrack() != null) {
             DataSaver.tracklog.setColor(DataSaver.tracklog.getSelectedTrack(), color);
+            theMap.invalidate();
+        }
+
+        if(DataSaver.getSelectedLayer() != null && DataSaver.layers.get(DataSaver.getSelectedLayer()) != null) {
+            DataSaver.layers.get(DataSaver.getSelectedLayer()).setColor(color);
             theMap.invalidate();
         }
     }
@@ -485,7 +485,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 theMap.getController().zoomIn();
                 return true;
 
-            case KeyEvent.KEYCODE_BACK:
+            case KeyEvent.KEYCODE_BACK:     // app exit!
                 if(checkGPSPermission()) {
                     isGPSOn = false;
                     stopService(GPSIntent);
@@ -553,6 +553,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 POIPointLayer.setSelectedPoint(DataSaver.POIPointTheme.size() > 0 ? DataSaver.POIPointTheme.size() - 1 : null);
                 inventoryLayer.setSelectedPoint(null);
                 DataSaver.tracklog.setSelectedTrack(null);
+                DataSaver.setSelectedLayer(null);
                 showPOIEditBox();
                 ((EditText) findViewById(R.id.POILabel)).setText("");
                 theMap.invalidate();
@@ -672,6 +673,47 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                             final android.support.v7.app.AlertDialog alert = builder.create();
                             alert.show();
                         }
+                        break;
+
+                    case DELETE_LAYER:
+                        if(DataSaver.getSelectedLayer() == null) break;
+                        LineLayer layer = DataSaver.layers.get(DataSaver.getSelectedLayer());
+                        if(layer == null) break;
+                        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                        builder.setMessage("Quer apagar esta layer?")
+                                .setCancelable(true)
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    @Override
+                                    public void onCancel(DialogInterface dialogInterface) {
+                                        dialogInterface.dismiss();
+                                        mHideToolbars.run();
+                                    }
+                                })
+                                .setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                        mHideToolbars.run();
+                                    }
+                                })
+                                .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
+                                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                        DataSaver.layers.remove(layer);
+
+                                        for(Polyline pl : layer.map.values()) {
+                                            layer.getOverlay().remove(pl);
+                                        }
+
+                                        DataSaver.setSelectedLayer(null);
+                                        findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                                        theMap.invalidate();
+                                        mHideToolbars.run();
+                                    }
+                                });
+                        final android.support.v7.app.AlertDialog alert = builder.create();
+                        alert.show();
+
                         break;
                 }
             }
@@ -808,6 +850,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                                 .setLabel(label);
                     } else if(DataSaver.tracklog.getSelectedTrack() != null) {
                         DataSaver.tracklog.setLabel(DataSaver.tracklog.getSelectedTrack(), label);
+                    } else if(DataSaver.getSelectedLayer() != null && DataSaver.layers.get(DataSaver.getSelectedLayer()) != null) {
+                        DataSaver.layers.get(DataSaver.getSelectedLayer()).setLayerName(label);
                     }
                     findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -853,7 +897,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         theMap.setTileSource(bing);
 
         theMap.setMaxZoomLevel(19.9);
-        theMap.setBuiltInZoomControls(false);
+        theMap.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         Configuration.getInstance().setCacheMapTileOvershoot((short) 100);
 
 /*
@@ -960,6 +1004,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         tmp1.setColor(Color.parseColor("#ff7700"));
 
         theMap.getOverlays().add(trackLogOverlay);
+        theMap.getOverlays().add(layersOverlay);
 
         SimpleFastPointOverlayOptions opt;
         opt = SimpleFastPointOverlayOptions.getDefaultStyle()
@@ -1010,6 +1055,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 StyledLabelledGeoPoint sgp = (StyledLabelledGeoPoint) points.get(integer);
                 inventoryLayer.setSelectedPoint(null);
                 DataSaver.tracklog.setSelectedTrack(null);
+                DataSaver.setSelectedLayer(null);
                 showPOIEditBox();
                 ((EditText) findViewById(R.id.POILabel)).setText(((LabelledGeoPoint) points.get(integer)).getLabel());
                 prevSelectedPoint = sgp;
@@ -1042,6 +1088,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 //                if(!inventoryLayer.isEnabled()) return;
                 POIPointLayer.setSelectedPoint(null);
                 DataSaver.tracklog.setSelectedTrack(null);
+                DataSaver.setSelectedLayer(null);
                 findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                 setButtonLayout(BUTTONLAYOUT.EDIT_INVENTORY, new Float[] {DataSaver.allData.getSpeciesLists().get(point).getLatitude()
                    , DataSaver.allData.getSpeciesLists().get(point).getLongitude()});
@@ -1108,8 +1155,15 @@ try {
     private void showTrackEditBox() {
         setButtonLayout(BUTTONLAYOUT.DELETE_TRACK);
         ((EditText) findViewById(R.id.POILabel)).setHint("título da track");
-        findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
         findViewById(R.id.tracklog_times).setVisibility(View.VISIBLE);
+        findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
+    }
+
+    private void showLayerEditBox() {
+        setButtonLayout(BUTTONLAYOUT.DELETE_LAYER);
+        ((EditText) findViewById(R.id.POILabel)).setHint("título da layer");
+        findViewById(R.id.tracklog_times).setVisibility(View.INVISIBLE);
+        findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
     }
 
     private void setButtonLayout(BUTTONLAYOUT layout) {
@@ -1118,14 +1172,18 @@ try {
 
     private void setButtonLayout(BUTTONLAYOUT layout, Object o) {
         if(layout != null) {
+            String[] buttonNames = buttonLayouts.get(layout);
             if (layout == BUTTONLAYOUT.EDIT_INVENTORY) {
                 Float[] tmp = (Float[]) o;
                 ((Button) findViewById(R.id.bottombutton_1)).setText(
-                        String.format(Locale.getDefault(), buttonLayouts.get(layout)[0], tmp[0], tmp[1]));
+                        String.format(Locale.getDefault(), buttonNames[0], tmp[0], tmp[1]));
             } else
-                ((Button) findViewById(R.id.bottombutton_1)).setText(buttonLayouts.get(layout)[0]);
-            ((Button) findViewById(R.id.bottombutton_2)).setText(buttonLayouts.get(layout)[1]);
-            ((Button) findViewById(R.id.bottombutton_3)).setText(buttonLayouts.get(layout)[2]);
+                ((Button) findViewById(R.id.bottombutton_1)).setText(buttonNames[0]);
+
+            if(buttonNames.length > 1)
+                ((Button) findViewById(R.id.bottombutton_2)).setText(buttonNames[1]);
+            if(buttonNames.length > 2)
+                ((Button) findViewById(R.id.bottombutton_3)).setText(buttonNames[2]);
             findViewById(R.id.bottombuttons).setTag(layout);
         }
 //        if(buttonLayouts.get(layout)[1] == null)
@@ -1399,7 +1457,8 @@ try {
         int index;
         if(data != null)
             sList = data.getParcelableExtra("specieslist");
-        File invdir = new File(System.getenv("EXTERNAL_STORAGE"), "homemluzula");
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        File invdir = new File(extStoreDir, "homemluzula");
 
         switch (requestCode) {
             case GET_SPECIESLIST:
@@ -1472,16 +1531,28 @@ try {
                 break;
 
             case DASHBOARD:
-                if(resultCode == CLEAR_TRACKLOG) {
-                    theMap.getOverlays().remove(trackLogOverlay);
-                    DataSaver.tracklog.clear();
-                    lastLocation = null;
-                    trackLogOverlay = new FolderOverlay();
-                    theMap.getOverlays().add(trackLogOverlay);
-                    DataSaver.tracklog.setOverlay(trackLogOverlay);
-                    File file = new File(getFilesDir(), "tracklog.bin");
-                    if (file.exists()) file.delete();
-                    theMap.invalidate();
+                switch(resultCode) {
+                    case CLEAR_TRACKLOG:
+                        theMap.getOverlays().remove(trackLogOverlay);
+                        DataSaver.tracklog.clear();
+                        lastLocation = null;
+                        trackLogOverlay = new FolderOverlay();
+                        theMap.getOverlays().add(trackLogOverlay);
+                        DataSaver.tracklog.setOverlay(trackLogOverlay);
+                        File file = new File(invdir, "tracklog.bin");
+                        if (file.exists()) file.delete();
+                        theMap.invalidate();
+                        break;
+
+                    case CLEAR_ALLLAYERS:
+                        theMap.getOverlays().remove(layersOverlay);
+                        DataSaver.layers.clear();
+                        layersOverlay = new FolderOverlay();
+                        theMap.getOverlays().add(layersOverlay);
+                        File file1 = new File(invdir, "layers.bin");
+                        if (file1.exists()) file1.delete();
+                        theMap.invalidate();
+                        break;
                 }
                 break;
         }
@@ -1685,11 +1756,10 @@ try {
                 DataSaver.tracklog = new Tracklog(trackLogOverlay);
             else {
                 try {
-                    fin = new FileInputStream(file);    //System.getenv("EXTERNAL_STORAGE") + "/tracklog.bin");
+                    fin = new FileInputStream(file);
                     ObjectInputStream ois = new ObjectInputStream(fin);
                     DataSaver.tracklog = (Tracklog) ois.readObject();
                     fin.close();
-
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -1702,6 +1772,7 @@ try {
                     public void onClick(View view) {
                         POIPointLayer.setSelectedPoint(null);
                         inventoryLayer.setSelectedPoint(null);
+                        DataSaver.setSelectedLayer(null);
                         theMap.invalidate();
                         ((EditText) findViewById(R.id.POILabel)).setText(
                                 DataSaver.tracklog.getLabel(DataSaver.tracklog.getSelectedTrack())
@@ -1716,7 +1787,44 @@ try {
                         showTrackEditBox();
                     }
                 });
+            }
 
+            // Read layers
+            file = new File(invdir, "layers.bin");
+            if(!file.exists())
+                DataSaver.layers = new ArrayList<>();
+            else {
+                try {
+                    fin = new FileInputStream(file);
+                    ObjectInputStream ois = new ObjectInputStream(fin);
+                    DataSaver.layers = (ArrayList<LineLayer>) ois.readObject();
+                    fin.close();
+                } catch (IOException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                if(DataSaver.layers == null) DataSaver.layers = new ArrayList<>();
+
+//                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
+                for(Tracklog tl : DataSaver.layers) {
+                    tl.setOverlay(layersOverlay);
+                    tl.refresh();
+
+                    tl.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            POIPointLayer.setSelectedPoint(null);
+                            inventoryLayer.setSelectedPoint(null);
+                            DataSaver.setSelectedLayer(DataSaver.layers.indexOf(tl));
+                            theMap.invalidate();
+                            ((EditText) findViewById(R.id.POILabel)).setText(
+                                    DataSaver.layers.get(DataSaver.getSelectedLayer()).getLayerName()
+                            );
+                            showLayerEditBox();
+                        }
+                    });
+
+                }
             }
 
             // Read all inventory data
@@ -1934,13 +2042,12 @@ try {
             final Button btn = new Button(this);
             // Give button an ID
             btn.setId(quickMarkId + counter);
-            btn.setText(sp.getTaxon());
+            btn.setText(sp.getTaxon().replace(" ", "\n"));
             btn.setTag(sp);
 
             // set the layoutParams on the button
 //            btn.setLayoutParams(buttonParams);
 //            btn.setPadding(0, 0, 0, 0);
-
             counter++;
 
             // Set click listener for button

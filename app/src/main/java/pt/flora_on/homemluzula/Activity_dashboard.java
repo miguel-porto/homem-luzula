@@ -21,6 +21,7 @@ import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
 import com.github.filosganga.geogson.model.Feature;
 import com.github.filosganga.geogson.model.FeatureCollection;
 import com.github.filosganga.geogson.model.LineString;
+import com.github.filosganga.geogson.model.positions.AreaPositions;
 import com.github.filosganga.geogson.model.positions.LinearPositions;
 import com.github.filosganga.geogson.model.positions.SinglePosition;
 import com.google.gson.Gson;
@@ -31,11 +32,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,11 +47,15 @@ import java.util.List;
 import java.util.Locale;
 
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
+import pt.flora_on.homemluzula.geo.Layer;
+import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 
+import static pt.flora_on.homemluzula.MainMap.CLEAR_ALLLAYERS;
 import static pt.flora_on.homemluzula.MainMap.CLEAR_TRACKLOG;
+import static pt.flora_on.homemluzula.MainMap.mainActivity;
 
 /**
  * Created by miguel on 22-04-2018.
@@ -63,6 +65,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
     private SharedPreferences prefs;
     private static final int OPEN_GEOJSON = 42;
     private static final int OPEN_POINTLIST = 43;
+    private static final int OPEN_GEOJSONASLAYER = 44;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +84,8 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         findViewById(R.id.deletetracks).setOnClickListener(this);
         findViewById(R.id.importtracks).setOnClickListener(this);
         findViewById(R.id.importinventories).setOnClickListener(this);
+        findViewById(R.id.importlayer).setOnClickListener(this);
+        findViewById(R.id.removelayers).setOnClickListener(this);
         ((EditText) findViewById(R.id.inventory_prefix)).setText(ip);
         ((EditText) findViewById(R.id.inventory_zeropad)).setText(((Integer) zp).toString());
     }
@@ -130,6 +135,40 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("*/*");
                 startActivityForResult(intent, OPEN_GEOJSON);
+                break;
+
+            case R.id.importlayer:
+                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                startActivityForResult(intent, OPEN_GEOJSONASLAYER);
+                break;
+
+            case R.id.removelayers:
+                final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+                builder.setMessage("Quer apagar todas as layers?")
+                        .setCancelable(true)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+                                dialogInterface.dismiss();
+                            }
+                        })
+                        .setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        })
+                        .setPositiveButton("Sim, apagar tudo", new DialogInterface.OnClickListener() {
+                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                setResult(CLEAR_ALLLAYERS);
+                                finish();
+                            }
+                        });
+                final android.support.v7.app.AlertDialog alert = builder.create();
+                alert.show();
                 break;
 
             case R.id.exporttracks:
@@ -221,8 +260,8 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 break;
 
             case R.id.deletetracks:
-                final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
-                builder.setMessage("Quer apagar todos os tracklogs?")
+                final android.support.v7.app.AlertDialog.Builder builder2 = new android.support.v7.app.AlertDialog.Builder(this);
+                builder2.setMessage("Quer apagar todos os tracklogs?")
                         .setCancelable(true)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -243,8 +282,8 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                 finish();
                             }
                         });
-                final android.support.v7.app.AlertDialog alert = builder.create();
-                alert.show();
+                final android.support.v7.app.AlertDialog alert2 = builder2.create();
+                alert2.show();
 
                 break;
 
@@ -297,62 +336,88 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                     break;
 
                 case OPEN_GEOJSON:
-                    String extStore = System.getenv("EXTERNAL_STORAGE");
-                    if (resultData != null) {
-                        uri = resultData.getData();
-                        if(uri == null) return;
-                        InputStream inputStream = null;
-                        try {
-                            inputStream = getContentResolver().openInputStream(uri);
-                        } catch(FileNotFoundException e) {
-                            Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        if(inputStream == null) return;
-                        InputStreamReader chk = new InputStreamReader(inputStream);
+                case OPEN_GEOJSONASLAYER:
+                    if (resultData == null || resultData.getData() == null) break;
 
-//            File chk = new File(extStore + "/a.geojson");
-                        DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
-                        Gson gson = new GsonBuilder()
-                                .registerTypeAdapterFactory(new GeometryAdapterFactory())
-                                .create();
-                        FeatureCollection fc;
-                        try {
-                            fc = gson.fromJson(chk, FeatureCollection.class);
-                            chk.close();
-                        } catch (IOException | IllegalArgumentException e) {
-                            Toast.makeText(this, "Ficheiro geojson inválido.", Toast.LENGTH_SHORT).show();
-                            e.printStackTrace();
-                            return;
-                        }
-                        int counter = 0;
-                        if (fc != null) {
-                            for (Feature f : fc.features()) {
-                                if (!f.geometry().type().getValue().toUpperCase().equals("LINESTRING"))
-                                    continue;
-                                List<SinglePosition> sps = ((LinearPositions) f.geometry().positions()).children();
-                                Date st = null, et = null;
-                                try {
-                                    if (f.properties().get("starttime") != null && !f.properties().get("starttime").isJsonNull())
-                                        st = df.parse(f.properties().get("starttime").getAsString());
-                                    if (f.properties().get("endtime") != null && !f.properties().get("endtime").isJsonNull())
-                                        et = df.parse(f.properties().get("endtime").getAsString());
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                                for (int i = 0; i < sps.size(); i++) {
-                                    SinglePosition sp = sps.get(i);
-                                    DataSaver.tracklog.add(new GeoTimePoint(sp.lat(), sp.lon()
-                                            , (i == 0 && st != null) ? st.getTime()
-                                            : ((i == sps.size() - 1 && et != null) ? et.getTime() : 0)), i == 0);
-                                }
-                                counter++;
-                            }
-                        }
-                        Toast.makeText(this, counter + " tracklogs importados do ficheiro.", Toast.LENGTH_SHORT).show();
+                    Layer tl;
+                    if(requestCode == OPEN_GEOJSONASLAYER) {
+                        LineLayer tmp = new LineLayer(((MainMap) mainActivity).getLayersOverlay());
+                        DataSaver.layers.add(tmp);
+                        tmp.setSolidLayer(true);
+                        tmp.setLayerName(resultData.getData().getLastPathSegment());
+                        tl = tmp;
+                    } else {
+                        tl = DataSaver.tracklog;
                     }
+
+                    uri = resultData.getData();
+                    if(uri == null) return;
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = getContentResolver().openInputStream(uri);
+                    } catch(FileNotFoundException e) {
+                        Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if(inputStream == null) return;
+                    InputStreamReader chk = new InputStreamReader(inputStream);
+
+                    DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
+                    Gson gson = new GsonBuilder()
+                            .registerTypeAdapterFactory(new GeometryAdapterFactory())
+                            .create();
+                    FeatureCollection fc;
+                    try {
+                        fc = gson.fromJson(chk, FeatureCollection.class);
+                        chk.close();
+                    } catch (IOException | IllegalArgumentException e) {
+                        Toast.makeText(this, "Ficheiro geojson inválido.", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                        return;
+                    }
+                    int counter = 0;
+                    if (fc != null) {
+                        for (Feature f : fc.features()) {
+                            Date st = null, et = null;
+                            try {
+                                if (f.properties().get("starttime") != null && !f.properties().get("starttime").isJsonNull())
+                                    st = df.parse(f.properties().get("starttime").getAsString());
+                                if (f.properties().get("endtime") != null && !f.properties().get("endtime").isJsonNull())
+                                    et = df.parse(f.properties().get("endtime").getAsString());
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+
+                            switch(f.geometry().type().getValue().toUpperCase()) {
+                                case "POLYGON":
+                                case "MULTILINESTRING":
+                                    for(LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
+                                        addLineStringToTracklog(lp, tl, st, et);
+                                    }
+                                    break;
+
+                                case "LINESTRING":
+                                    addLineStringToTracklog((LinearPositions) f.geometry().positions(),
+                                            tl, st, et);
+                                    break;
+                            }
+                            counter++;
+                        }
+                    }
+                    Toast.makeText(this, counter + " tracklogs importados do ficheiro.", Toast.LENGTH_SHORT).show();
+
                     break;
             }
+        }
+    }
+
+    private void addLineStringToTracklog(LinearPositions lps, Layer tracklog, Date startTime, Date endTime) {
+        List<SinglePosition> sps = lps.children();
+        for (int i = 0; i < sps.size(); i++) {
+            SinglePosition sp = sps.get(i);
+            tracklog.add(new GeoTimePoint(sp.lat(), sp.lon()
+                    , (i == 0 && startTime != null) ? startTime.getTime()
+                    : ((i == sps.size() - 1 && endTime != null) ? endTime.getTime() : 0)), i == 0);
         }
     }
 }

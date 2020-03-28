@@ -1,46 +1,40 @@
 package pt.flora_on.homemluzula.geo;
 
-import android.app.Application;
 import android.graphics.Color;
 import android.location.Location;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.Polyline;
-import org.osmdroid.views.overlay.infowindow.BasicInfoWindow;
-import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow;
-import org.osmdroid.views.overlay.milestones.MilestoneManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import pt.flora_on.homemluzula.HomemLuzulaApp;
-import pt.flora_on.homemluzula.MainMap;
 
-public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
+public class Tracklog implements Iterable<Tracklog.Segment>, Serializable, Layer {
     private List<Segment> tracklog = new ArrayList<>();
     private transient FolderOverlay folder;
     private transient Segment selectedSegment;
-    private transient View.OnClickListener clickListener;
-    private transient Map<Segment, Polyline> map;
-    private transient Integer TRACKLOGWIDTH;
+    transient View.OnClickListener clickListener;
+    public transient Map<Segment, Polyline> map;
+    transient Integer TRACKLOGWIDTH;
 
     public Tracklog() {
         this.TRACKLOGWIDTH =
-                Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4"));
+                Integer.parseInt(Objects.requireNonNull(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4")));
     }
 
     public Tracklog(FolderOverlay folder) {
@@ -67,6 +61,10 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
         this.folder = ovr;
     }
 
+    public FolderOverlay getOverlay() {
+        return this.folder;
+    }
+
     public void setOnClickListener(View.OnClickListener clickListener) {
         this.clickListener = clickListener;
     }
@@ -81,6 +79,7 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
         return tmp.get(tmp.size() - 1);
     }
 
+    @Override
     public void add(GeoTimePoint point, boolean breakPath) {
         Segment tmp;
         Polyline pl;
@@ -98,6 +97,7 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
         tmp.add(point);
     }
 
+    @Override
     public void add(Location point, boolean breakPath) {
         this.add(new GeoTimePoint(point), breakPath);
     }
@@ -117,17 +117,17 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
         }
     }
 
-    private Polyline createPolylineFromPoints(Segment plist) {
+    Polyline createPolylineFromPoints(Segment plist) {
         Polyline pl = new SensitivePolyline();
         pl.setOnClickListener(new clickPolyline());
 //            pl.getPaint().setPathEffect(new DashPathEffect(new float[]{6f, 6f}, 0f));
 
         if(plist == null || plist.getColor() == null)
-            pl.setColor(Color.YELLOW);
+            pl.getOutlinePaint().setColor(Color.YELLOW);
         else
-            pl.setColor(plist.getColor());
+            pl.getOutlinePaint().setColor(plist.getColor());
 
-        pl.setWidth(TRACKLOGWIDTH);
+        pl.getOutlinePaint().setStrokeWidth(TRACKLOGWIDTH);
         if(plist != null) {
             for (GeoTimePoint gtp : plist)
                 pl.addPoint(gtp);
@@ -175,7 +175,7 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
         return this.map.get(selectedSegment);
     }
 
-    public void setSelectedSegment(Segment segment) {
+    void setSelectedSegment(Segment segment) {
         if (selectedSegment != null) {
             Polyline selectedPolyline = map.get(selectedSegment);
             if(selectedPolyline != null) {
@@ -188,18 +188,18 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
                 }
 
                 if(seg == null || seg.getColor() == null)
-                    selectedPolyline.setColor(Color.YELLOW);
+                    selectedPolyline.getOutlinePaint().setColor(Color.YELLOW);
                 else
-                    selectedPolyline.setColor(seg.getColor());
-                selectedPolyline.setWidth(TRACKLOGWIDTH);
+                    selectedPolyline.getOutlinePaint().setColor(seg.getColor());
+                selectedPolyline.getOutlinePaint().setStrokeWidth(TRACKLOGWIDTH);
             }
         }
         if(segment != null) {
             this.selectedSegment = segment;
             Polyline pl = map.get(selectedSegment);
             if(pl != null) {
-                pl.setColor(Color.RED);
-                pl.setWidth(TRACKLOGWIDTH + 4);
+                pl.getOutlinePaint().setColor(Color.RED);
+                pl.getOutlinePaint().setStrokeWidth(TRACKLOGWIDTH + 4);
             } else
                 Log.w("tracklog", "setSelectedSegment: some error fetching track");
         } else {
@@ -219,7 +219,8 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
 
     public void setColor(int i, int color) {
         if(i < 0 || i >= this.tracklog.size()) return;
-        this.map.get(this.tracklog.get(i)).setColor(color);
+        Polyline pl = this.map.get(this.tracklog.get(i));
+        if(pl != null) pl.getOutlinePaint().setColor(color);
         this.tracklog.get(i).setColor(color);
     }
 
@@ -294,11 +295,11 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable {
         }
     }
 
-    public class Segment extends ArrayList<GeoTimePoint> {
+    public static class Segment extends ArrayList<GeoTimePoint> {
         private String title;
         private Integer color;
 
-        public void setTitle(String title) {
+        void setTitle(String title) {
             this.title = title;
         }
 
