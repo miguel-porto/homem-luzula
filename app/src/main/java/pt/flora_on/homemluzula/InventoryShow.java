@@ -26,7 +26,7 @@ public class InventoryShow extends AppCompatActivity {
         mRecyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        InventoryAdapter adapter = new InventoryAdapter(this, DataSaver.allData, new RecyclerViewItemListener() {
+        InventoryAdapter adapter = new InventoryAdapter(this, DataManager.allData, new RecyclerViewItemListener() {
             @Override
             public void onClick(View v, int position) {
 /*
@@ -38,7 +38,7 @@ public class InventoryShow extends AppCompatActivity {
 
                 Intent intent = new Intent(InventoryShow.this, ShowObservations.class);
                 clickedSpeciesList = position;
-                intent.putExtra("specieslist", DataSaver.allData.getSpeciesList(position));
+                intent.putExtra("specieslist", DataManager.allData.getSpeciesList(position));
                 intent.putExtra("index", position);
                 intent.putExtra("showaddbutton", true);
                 startActivityForResult(intent, MainKeyboard.UPDATE_OBSERVATIONS);
@@ -53,7 +53,7 @@ public class InventoryShow extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         TextView tv;
         if (resultCode != RESULT_OK) return;
-        String uuid = DataSaver.allData.getSpeciesList(clickedSpeciesList).getUuid().toString();
+        String uuid = DataManager.allData.getSpeciesList(clickedSpeciesList).getUuid().toString();
 //        File invdir = new File(System.getenv("EXTERNAL_STORAGE"), "homemluzula");
 //        File repinv = new File(invdir, uuid + ".json");
         switch(requestCode) {
@@ -77,7 +77,7 @@ public class InventoryShow extends AppCompatActivity {
                     e.printStackTrace();
                 }
 */
-                DataSaver.allData.replaceSpeciesList(updated, clickedSpeciesList);
+                DataManager.allData.replaceSpeciesList(updated, clickedSpeciesList);
                 //MainMap.allData.getSpeciesList(clickedSpeciesList).replaceTaxa(updated);
                 mRecyclerView.getAdapter().notifyItemChanged(clickedSpeciesList);
                 break;

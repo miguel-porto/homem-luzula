@@ -260,6 +260,11 @@
                             android:background="#ef6c00"
                             android:onClick="colorButtonClick" />
 
+                        <Button
+                            style="@style/color_button"
+                            android:background="#0000ff"
+                            android:onClick="colorButtonClick" />
+
                     </LinearLayout>
 
                     <LinearLayout

@@ -38,7 +38,7 @@ import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 
-public class DataSaver extends AppCompatActivity {
+public class DataManager extends AppCompatActivity {
     public static SimplePointTheme POIPointTheme;
     public static Inventories allData;
     public static Tracklog tracklog;
@@ -50,7 +50,7 @@ public class DataSaver extends AppCompatActivity {
     }
 
     public static void setSelectedLayer(Integer selectedLayer) {
-        DataSaver.selectedLayer = selectedLayer;
+        DataManager.selectedLayer = selectedLayer;
     }
 
     @Override
@@ -78,7 +78,7 @@ public class DataSaver extends AppCompatActivity {
 
 //        Toast.makeText(this, "Tracklog desactivado." + (allData==null) +","+(POItheme==null), Toast.LENGTH_SHORT).show();
         if(allData != null || POIPointTheme != null || tracklog != null) {
-            new SaveAndExport(DataSaver.this).execute();
+            new SaveAndExport(DataManager.this).execute();
         } else
             finish();
 //            finishAffinity();
@@ -239,16 +239,16 @@ public class DataSaver extends AppCompatActivity {
      */
     private class SaveAndExport extends AsyncTask<Void, Void, Void> {
         private ProgressDialog dialog;
-        private WeakReference<DataSaver> dataSaverWeakReference;
+        private WeakReference<DataManager> dataSaverWeakReference;
 
-        SaveAndExport(DataSaver context) {
+        SaveAndExport(DataManager context) {
             dataSaverWeakReference = new WeakReference<>(context);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            DataSaver activity = dataSaverWeakReference.get();
+            DataManager activity = dataSaverWeakReference.get();
             if (activity == null || activity.isFinishing()) return;
             dialog = ProgressDialog.show(activity, "Gravando", "Um momento...", true);
         }

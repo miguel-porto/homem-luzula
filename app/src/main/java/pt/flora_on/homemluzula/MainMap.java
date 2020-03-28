@@ -81,7 +81,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
@@ -317,7 +316,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     public void colorButtonClick(View v) {
         int color = ((ColorDrawable) ((Button) v).getBackground()).getColor();
         if(POIPointLayer.getSelectedPoint() != null) {
-            StyledLabelledGeoPoint sgp = DataSaver.POIPointTheme.getPointsList().get(POIPointLayer.getSelectedPoint());
+            StyledLabelledGeoPoint sgp = DataManager.POIPointTheme.getPointsList().get(POIPointLayer.getSelectedPoint());
             int colTxt = (color == Color.parseColor("#ff0000") ? Color.WHITE : color);
             Paint tmp = new Paint();
             Paint tmp1 = new Paint();
@@ -334,19 +333,19 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             theMap.invalidate();
         }
 
-        if(DataSaver.tracklog.getSelectedTrack() != null) {
-            DataSaver.tracklog.setColor(DataSaver.tracklog.getSelectedTrack(), color);
+        if(DataManager.tracklog.getSelectedTrack() != null) {
+            DataManager.tracklog.setColor(DataManager.tracklog.getSelectedTrack(), color);
             theMap.invalidate();
         }
 
-        if(DataSaver.getSelectedLayer() != null && DataSaver.layers.get(DataSaver.getSelectedLayer()) != null) {
-            DataSaver.layers.get(DataSaver.getSelectedLayer()).setColor(color);
+        if(DataManager.getSelectedLayer() != null && DataManager.layers.get(DataManager.getSelectedLayer()) != null) {
+            DataManager.layers.get(DataManager.getSelectedLayer()).setColor(color);
             theMap.invalidate();
         }
     }
 
     public void openSpeciesList(int index) {
-        SpeciesList sl = DataSaver.allData.getSpeciesLists().get(index);
+        SpeciesList sl = DataManager.allData.getSpeciesLists().get(index);
         if(sl.isSingleSpecies()) {
             Intent intent = new Intent(this, ObservationDetails.class);
             intent.putExtra("taxon", sl.getTaxa().get(0));
@@ -400,8 +399,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             mToggleTracklogIcon.run();
 //            Toast.makeText(MainMap.this, "Tracklog activado.", Toast.LENGTH_SHORT).show();
             showCutTrackButton = true;
-            inventoryLayer.setSelectedPoint(DataSaver.allData.size() - 1);
-            DataSaver.tracklog.setSelectedTrack(null);
+            inventoryLayer.setSelectedPoint(DataManager.allData.size() - 1);
+            DataManager.tracklog.setSelectedTrack(null);
             setButtonLayout(BUTTONLAYOUT.CONTINUE_LAST);
             mRecordingTracklog.postDelayed(hideCutTrackButton, 10000);
         }
@@ -461,7 +460,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         int count;
         String tName;
         frequencies.clear();
-        for(SpeciesList sl : DataSaver.allData.getSpeciesLists()) {
+        for(SpeciesList sl : DataManager.allData.getSpeciesLists()) {
             for(TaxonObservation t : sl.getTaxa()) {
                 tName = t.getTaxon().toLowerCase();
                 count = frequencies.containsKey(tName) ? frequencies.get(tName) : 0;
@@ -492,8 +491,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 //                    locationManager.removeUpdates(tracklogListener);
 //                    locationManager.removeUpdates(fastWaypointListener);
                 }
-                Intent saveIntent = new Intent(MainMap.this, DataSaver.class);
-                saveIntent.putExtra("changed", DataSaver.POIPointTheme.isChanged());
+                Intent saveIntent = new Intent(MainMap.this, DataManager.class);
+                saveIntent.putExtra("changed", DataManager.POIPointTheme.isChanged());
 //                            saveIntent.setAction("immediate");
                 startActivity(saveIntent);
                 finish();
@@ -548,12 +547,12 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             public void onClick(View view) {
                 // fast mark the point
                 IGeoPoint center = theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
-                DataSaver.POIPointTheme.add(new StyledLabelledGeoPoint(center.getLatitude(), center.getLongitude(), null));
-                DataSaver.POIPointTheme.setChanged(true);
-                POIPointLayer.setSelectedPoint(DataSaver.POIPointTheme.size() > 0 ? DataSaver.POIPointTheme.size() - 1 : null);
+                DataManager.POIPointTheme.add(new StyledLabelledGeoPoint(center.getLatitude(), center.getLongitude(), null));
+                DataManager.POIPointTheme.setChanged(true);
+                POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
                 inventoryLayer.setSelectedPoint(null);
-                DataSaver.tracklog.setSelectedTrack(null);
-                DataSaver.setSelectedLayer(null);
+                DataManager.tracklog.setSelectedTrack(null);
+                DataManager.setSelectedLayer(null);
                 showPOIEditBox();
                 ((EditText) findViewById(R.id.POILabel)).setText("");
                 theMap.invalidate();
@@ -599,7 +598,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             @Override
             public void onClick(View view) {
                 if(getButtonLayout() == BUTTONLAYOUT.DELETE_TRACK) {
-                    if(DataSaver.tracklog.cutNearestSegmentAt(theMap.getMapCenter(), true)) {
+                    if(DataManager.tracklog.cutNearestSegmentAt(theMap.getMapCenter(), true)) {
                         Toast.makeText(MainMap.this, "Track cortado no vértice mais próximo do centro.", Toast.LENGTH_SHORT).show();
                         theMap.invalidate();
                     }
@@ -619,7 +618,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             public void onClick(View v) {
                 boolean noInvSel = inventoryLayer == null || inventoryLayer.getSelectedPoint() == null;
                 boolean noPOISel = POIPointLayer == null || POIPointLayer.getSelectedPoint() == null;
-                boolean noTrackSel = DataSaver.tracklog == null || DataSaver.tracklog.getSelectedTrack() == null;
+                boolean noTrackSel = DataManager.tracklog == null || DataManager.tracklog.getSelectedTrack() == null;
 
                 switch(getButtonLayout()) {
                     case EDIT_INVENTORY:
@@ -632,9 +631,9 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
                     case DELETE_POI:
                         if(!noPOISel) {
-                            DataSaver.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
-                            DataSaver.POIPointTheme.setChanged(true);
-                            POIPointLayer.setSelectedPoint(DataSaver.POIPointTheme.size() > 0 ? DataSaver.POIPointTheme.size() - 1 : null);
+                            DataManager.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
+                            DataManager.POIPointTheme.setChanged(true);
+                            POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
                             findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                             theMap.invalidate();
                         }
@@ -642,7 +641,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
                     case DELETE_TRACK:
                         if(!noTrackSel) {
-                            theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataSaver.tracklog.getSelectedPolyline().getPoints()), true);
+                            theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataManager.tracklog.getSelectedPolyline().getPoints()), true);
                             final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
                             builder.setMessage("Quer apagar este segmento?")
                                     .setCancelable(true)
@@ -663,8 +662,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                                     })
                                     .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
                                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                            DataSaver.tracklog.deleteTrack(DataSaver.tracklog.getSelectedTrack());
-                                            DataSaver.tracklog.setSelectedTrack(DataSaver.tracklog.size() > 0 ? DataSaver.tracklog.size() - 1 : null);
+                                            DataManager.tracklog.deleteTrack(DataManager.tracklog.getSelectedTrack());
+                                            DataManager.tracklog.setSelectedTrack(DataManager.tracklog.size() > 0 ? DataManager.tracklog.size() - 1 : null);
                                             findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                                             theMap.invalidate();
                                             mHideToolbars.run();
@@ -676,8 +675,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                         break;
 
                     case DELETE_LAYER:
-                        if(DataSaver.getSelectedLayer() == null) break;
-                        LineLayer layer = DataSaver.layers.get(DataSaver.getSelectedLayer());
+                        if(DataManager.getSelectedLayer() == null) break;
+                        LineLayer layer = DataManager.layers.get(DataManager.getSelectedLayer());
                         if(layer == null) break;
                         final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
                         builder.setMessage("Quer apagar esta layer?")
@@ -697,15 +696,15 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                                         mHideToolbars.run();
                                     }
                                 })
-                                .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
+                                .setPositiveButton("Sim, apagar layer", new DialogInterface.OnClickListener() {
                                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                        DataSaver.layers.remove(layer);
+                                        DataManager.layers.remove(layer);
 
                                         for(Polyline pl : layer.map.values()) {
                                             layer.getOverlay().remove(pl);
                                         }
 
-                                        DataSaver.setSelectedLayer(null);
+                                        DataManager.setSelectedLayer(null);
                                         findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                                         theMap.invalidate();
                                         mHideToolbars.run();
@@ -846,12 +845,12 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if(actionId == EditorInfo.IME_ACTION_DONE) {
                     String label = ((EditText) findViewById(R.id.POILabel)).getText().toString();
                     if(POIPointLayer.getSelectedPoint() != null) {
-                        ((LabelledGeoPoint) DataSaver.POIPointTheme.get(POIPointLayer.getSelectedPoint()))
+                        ((LabelledGeoPoint) DataManager.POIPointTheme.get(POIPointLayer.getSelectedPoint()))
                                 .setLabel(label);
-                    } else if(DataSaver.tracklog.getSelectedTrack() != null) {
-                        DataSaver.tracklog.setLabel(DataSaver.tracklog.getSelectedTrack(), label);
-                    } else if(DataSaver.getSelectedLayer() != null && DataSaver.layers.get(DataSaver.getSelectedLayer()) != null) {
-                        DataSaver.layers.get(DataSaver.getSelectedLayer()).setLayerName(label);
+                    } else if(DataManager.tracklog.getSelectedTrack() != null) {
+                        DataManager.tracklog.setLabel(DataManager.tracklog.getSelectedTrack(), label);
+                    } else if(DataManager.getSelectedLayer() != null && DataManager.layers.get(DataManager.getSelectedLayer()) != null) {
+                        DataManager.layers.get(DataManager.getSelectedLayer()).setLayerName(label);
                     }
                     findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -1048,14 +1047,14 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 .setSymbol(SimpleFastPointOverlayOptions.Shape.SQUARE)
                 .setMinZoomShowLabels(6)
                 .setAlgorithm(SimpleFastPointOverlayOptions.RenderingAlgorithm.MEDIUM_OPTIMIZATION);
-        POIPointLayer = new SimpleFastPointOverlay(DataSaver.POIPointTheme, opt);
+        POIPointLayer = new SimpleFastPointOverlay(DataManager.POIPointTheme, opt);
         POIPointLayer.setOnClickListener(new SimpleFastPointOverlay.OnClickListener() {
             @Override
             public void onClick(SimpleFastPointOverlay.PointAdapter points, Integer integer) {
                 StyledLabelledGeoPoint sgp = (StyledLabelledGeoPoint) points.get(integer);
                 inventoryLayer.setSelectedPoint(null);
-                DataSaver.tracklog.setSelectedTrack(null);
-                DataSaver.setSelectedLayer(null);
+                DataManager.tracklog.setSelectedTrack(null);
+                DataManager.setSelectedLayer(null);
                 showPOIEditBox();
                 ((EditText) findViewById(R.id.POILabel)).setText(((LabelledGeoPoint) points.get(integer)).getLabel());
                 prevSelectedPoint = sgp;
@@ -1078,8 +1077,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 .setPointStyle(tmp1).setTextStyle(tmp2)
                 .setAlgorithm(SimpleFastPointOverlayOptions.RenderingAlgorithm.MEDIUM_OPTIMIZATION)
                 .setRadius(8f);
-        inventoryLayer = new SimplePointOverlayWithTracklog(DataSaver.allData, opt);
-        if(DataSaver.allData.size() > 0) inventoryLayer.setSelectedPoint(DataSaver.allData.size() - 1);
+        inventoryLayer = new SimplePointOverlayWithTracklog(DataManager.allData, opt);
+        if(DataManager.allData.size() > 0) inventoryLayer.setSelectedPoint(DataManager.allData.size() - 1);
 //        inventoryLayer.setTracklogObject(DataSaver.tracklog);
         inventoryLayer.setYouAreHereDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.seta2, null));
         inventoryLayer.setOnClickListener(new SimplePointOverlayWithTracklog.OnClickListener() {
@@ -1087,11 +1086,11 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             public void onClick(SimpleFastPointOverlay.PointAdapter points, Integer point) {
 //                if(!inventoryLayer.isEnabled()) return;
                 POIPointLayer.setSelectedPoint(null);
-                DataSaver.tracklog.setSelectedTrack(null);
-                DataSaver.setSelectedLayer(null);
+                DataManager.tracklog.setSelectedTrack(null);
+                DataManager.setSelectedLayer(null);
                 findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                setButtonLayout(BUTTONLAYOUT.EDIT_INVENTORY, new Float[] {DataSaver.allData.getSpeciesLists().get(point).getLatitude()
-                   , DataSaver.allData.getSpeciesLists().get(point).getLongitude()});
+                setButtonLayout(BUTTONLAYOUT.EDIT_INVENTORY, new Float[] {DataManager.allData.getSpeciesLists().get(point).getLatitude()
+                   , DataManager.allData.getSpeciesLists().get(point).getLongitude()});
             }
         });
         theMap.getOverlays().add(inventoryLayer);
@@ -1444,7 +1443,7 @@ try {
     }
 
     private void updateStatusBar() {
-        ((TextView) findViewById(R.id.statustext)).setText(String.format(Locale.getDefault(), "%d inv.", DataSaver.allData.getSpeciesLists().size()));
+        ((TextView) findViewById(R.id.statustext)).setText(String.format(Locale.getDefault(), "%d inv.", DataManager.allData.getSpeciesLists().size()));
     }
 
     private int getTracklogInterval() {
@@ -1463,7 +1462,7 @@ try {
         switch (requestCode) {
             case GET_SPECIESLIST:
                 if (resultCode != RESULT_OK) return;
-                DataSaver.allData.addSpeciesList(sList);
+                DataManager.allData.addSpeciesList(sList);
 
                 if(Inventories.saveInventoryToDisk(sList, sList.getUuid().toString()))
                     Toast.makeText(getApplicationContext(), "Saved inventory.", Toast.LENGTH_SHORT).show();
@@ -1471,7 +1470,7 @@ try {
                     Toast.makeText(getApplicationContext(), "Some error saving inventory.", Toast.LENGTH_SHORT).show();
 
                 //sfpo.addPoint(new GeoPoint(sList.getLatitude(), sList.getLongitude()));
-                if(inventoryLayer != null) inventoryLayer.setSelectedPoint(DataSaver.allData.getSpeciesLists().size() - 1);
+                if(inventoryLayer != null) inventoryLayer.setSelectedPoint(DataManager.allData.getSpeciesLists().size() - 1);
                 theMap.invalidate();
                 setButtonLayout(BUTTONLAYOUT.CONTINUE_LAST);
                 break;
@@ -1482,24 +1481,24 @@ try {
                 if(index < 0) new AlertDialog.Builder(this).setTitle("Error").setCancelable(false).setPositiveButton(android.R.string.yes, null).setIcon(android.R.drawable.ic_dialog_alert)
                         .setMessage("Erro substituindo o inventário").show();
                 else {
-                    String uuid = DataSaver.allData.getSpeciesList(index).getUuid().toString();
+                    String uuid = DataManager.allData.getSpeciesList(index).getUuid().toString();
                     if(data.hasExtra("delete")) {
                         File repinv = new File(invdir, uuid + ".json");
                         repinv.delete();
-                        DataSaver.allData.deleteSpeciesList(index);
-                        if(inventoryLayer != null && inventoryLayer.getSelectedPoint() >= DataSaver.allData.size())
-                            inventoryLayer.setSelectedPoint(DataSaver.allData.size() - 1);
+                        DataManager.allData.deleteSpeciesList(index);
+                        if(inventoryLayer != null && inventoryLayer.getSelectedPoint() >= DataManager.allData.size())
+                            inventoryLayer.setSelectedPoint(DataManager.allData.size() - 1);
                         theMap.invalidate();
                     } else {
                         TaxonObservation obs = data.getParcelableExtra("observation");
-                        sList = DataSaver.allData.getSpeciesList(index);
+                        sList = DataManager.allData.getSpeciesList(index);
                         sList.getTaxa().set(0, obs);
                         if (Inventories.saveInventoryToDisk(sList, uuid))
                             Toast.makeText(getApplicationContext(), "Saved inventory.", Toast.LENGTH_SHORT).show();
                         else
                             Toast.makeText(getApplicationContext(), "Some error saving inventory.", Toast.LENGTH_SHORT).show();
 
-                        DataSaver.allData.replaceSpeciesList(sList, index);
+                        DataManager.allData.replaceSpeciesList(sList, index);
                     }
                 }
                 break;
@@ -1510,13 +1509,13 @@ try {
                 if(index < 0) new AlertDialog.Builder(this).setTitle("Error").setCancelable(false).setPositiveButton(android.R.string.yes, null).setIcon(android.R.drawable.ic_dialog_alert)
                         .setMessage("Erro substituindo o inventário").show();
                 else {
-                    String uuid = DataSaver.allData.getSpeciesList(index).getUuid().toString();
+                    String uuid = DataManager.allData.getSpeciesList(index).getUuid().toString();
                     if(data.hasExtra("delete")) {
                         File repinv = new File(invdir, uuid + ".json");
                         repinv.delete();
-                        DataSaver.allData.deleteSpeciesList(index);
-                        if(inventoryLayer != null && inventoryLayer.getSelectedPoint() >= DataSaver.allData.size())
-                            inventoryLayer.setSelectedPoint(DataSaver.allData.size() - 1);
+                        DataManager.allData.deleteSpeciesList(index);
+                        if(inventoryLayer != null && inventoryLayer.getSelectedPoint() >= DataManager.allData.size())
+                            inventoryLayer.setSelectedPoint(DataManager.allData.size() - 1);
                         //sfpo.removePoint(index);
                         theMap.invalidate();
                     } else {
@@ -1525,7 +1524,7 @@ try {
                         else
                             Toast.makeText(getApplicationContext(), "Some error saving inventory.", Toast.LENGTH_SHORT).show();
 
-                        DataSaver.allData.replaceSpeciesList(sList, index);
+                        DataManager.allData.replaceSpeciesList(sList, index);
                     }
                 }
                 break;
@@ -1534,11 +1533,11 @@ try {
                 switch(resultCode) {
                     case CLEAR_TRACKLOG:
                         theMap.getOverlays().remove(trackLogOverlay);
-                        DataSaver.tracklog.clear();
+                        DataManager.tracklog.clear();
                         lastLocation = null;
                         trackLogOverlay = new FolderOverlay();
                         theMap.getOverlays().add(trackLogOverlay);
-                        DataSaver.tracklog.setOverlay(trackLogOverlay);
+                        DataManager.tracklog.setOverlay(trackLogOverlay);
                         File file = new File(invdir, "tracklog.bin");
                         if (file.exists()) file.delete();
                         theMap.invalidate();
@@ -1546,7 +1545,7 @@ try {
 
                     case CLEAR_ALLLAYERS:
                         theMap.getOverlays().remove(layersOverlay);
-                        DataSaver.layers.clear();
+                        DataManager.layers.clear();
                         layersOverlay = new FolderOverlay();
                         theMap.getOverlays().add(layersOverlay);
                         File file1 = new File(invdir, "layers.bin");
@@ -1753,37 +1752,37 @@ try {
             FileInputStream fin;
             File file = new File(invdir, "tracklog.bin");
             if(!file.exists())
-                DataSaver.tracklog = new Tracklog(trackLogOverlay);
+                DataManager.tracklog = new Tracklog(trackLogOverlay);
             else {
                 try {
                     fin = new FileInputStream(file);
                     ObjectInputStream ois = new ObjectInputStream(fin);
-                    DataSaver.tracklog = (Tracklog) ois.readObject();
+                    DataManager.tracklog = (Tracklog) ois.readObject();
                     fin.close();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
-                if(DataSaver.tracklog == null) DataSaver.tracklog = new Tracklog(trackLogOverlay);
-                DataSaver.tracklog.setOverlay(trackLogOverlay);
-                DataSaver.tracklog.refresh();
+                if(DataManager.tracklog == null) DataManager.tracklog = new Tracklog(trackLogOverlay);
+                DataManager.tracklog.setOverlay(trackLogOverlay);
+                DataManager.tracklog.refresh();
 
-                DataSaver.tracklog.setOnClickListener(new View.OnClickListener() {
+                DataManager.tracklog.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         POIPointLayer.setSelectedPoint(null);
                         inventoryLayer.setSelectedPoint(null);
-                        DataSaver.setSelectedLayer(null);
+                        DataManager.setSelectedLayer(null);
                         theMap.invalidate();
                         ((EditText) findViewById(R.id.POILabel)).setText(
-                                DataSaver.tracklog.getLabel(DataSaver.tracklog.getSelectedTrack())
+                                DataManager.tracklog.getLabel(DataManager.tracklog.getSelectedTrack())
                         );
                         DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
-                        long t = DataSaver.tracklog.getSelectedSegment().get(0).getTime();
+                        long t = DataManager.tracklog.getSelectedSegment().get(0).getTime();
                         ((TextView) findViewById(R.id.tr_start)).setText(t == 0 ? "-" : df.format(t));
-                        t = DataSaver.tracklog.getSelectedSegment().get(DataSaver.tracklog.getSelectedSegment().size() - 1).getTime();
+                        t = DataManager.tracklog.getSelectedSegment().get(DataManager.tracklog.getSelectedSegment().size() - 1).getTime();
                         ((TextView) findViewById(R.id.tr_end)).setText(t == 0 ? "-" : df.format(t));
                         ((TextView) findViewById(R.id.tracklog_length)).setText(formatDistance(
-                                DataSaver.tracklog.getLength(DataSaver.tracklog.getSelectedTrack())));
+                                DataManager.tracklog.getLength(DataManager.tracklog.getSelectedTrack())));
                         showTrackEditBox();
                     }
                 });
@@ -1792,21 +1791,21 @@ try {
             // Read layers
             file = new File(invdir, "layers.bin");
             if(!file.exists())
-                DataSaver.layers = new ArrayList<>();
+                DataManager.layers = new ArrayList<>();
             else {
                 try {
                     fin = new FileInputStream(file);
                     ObjectInputStream ois = new ObjectInputStream(fin);
-                    DataSaver.layers = (ArrayList<LineLayer>) ois.readObject();
+                    DataManager.layers = (ArrayList<LineLayer>) ois.readObject();
                     fin.close();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
 
-                if(DataSaver.layers == null) DataSaver.layers = new ArrayList<>();
+                if(DataManager.layers == null) DataManager.layers = new ArrayList<>();
 
 //                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
-                for(Tracklog tl : DataSaver.layers) {
+                for(Tracklog tl : DataManager.layers) {
                     tl.setOverlay(layersOverlay);
                     tl.refresh();
 
@@ -1815,10 +1814,10 @@ try {
                         public void onClick(View view) {
                             POIPointLayer.setSelectedPoint(null);
                             inventoryLayer.setSelectedPoint(null);
-                            DataSaver.setSelectedLayer(DataSaver.layers.indexOf(tl));
+                            DataManager.setSelectedLayer(DataManager.layers.indexOf(tl));
                             theMap.invalidate();
                             ((EditText) findViewById(R.id.POILabel)).setText(
-                                    DataSaver.layers.get(DataSaver.getSelectedLayer()).getLayerName()
+                                    DataManager.layers.get(DataManager.getSelectedLayer()).getLayerName()
                             );
                             showLayerEditBox();
                         }
@@ -1846,7 +1845,7 @@ try {
 */
 
             // Read from directory
-            DataSaver.allData = new Inventories();
+            DataManager.allData = new Inventories();
             int counter = 0;
             if(invdir.exists()) {
                 for (File inv : invdir.listFiles(new FilenameFilter() {
@@ -1858,7 +1857,7 @@ try {
 
                     try {
                         data = new FileReader(inv);
-                        DataSaver.allData.addSpeciesList(gs.fromJson(data, SpeciesList.class));
+                        DataManager.allData.addSpeciesList(gs.fromJson(data, SpeciesList.class));
                         data.close();
                         counter++;
                     } catch (IOException e) {
@@ -1876,7 +1875,7 @@ try {
             /**
              * Whenever data is changed, issue a notification for unsaved changes
              */
-            DataSaver.allData.setOnChangedListener(new Inventories.OnChangedListener() {
+            DataManager.allData.setOnChangedListener(new Inventories.OnChangedListener() {
                 @Override
                 public void onChange() {
 /*                    SharedPreferences prefs = getSharedPreferences("datastate", MODE_PRIVATE);
@@ -1944,11 +1943,11 @@ try {
             // Read POI theme
             try {
 //                DataSaver.POIPointTheme = SimplePointTheme.fromJSON(new FileInputStream(extStore + "/POI.json"), false);
-                DataSaver.POIPointTheme = SimplePointTheme.fromXYLabelColor(new FileInputStream(new File(extStoreDir, "/POI.txt")));
+                DataManager.POIPointTheme = SimplePointTheme.fromXYLabelColor(new FileInputStream(new File(extStoreDir, "/POI.txt")));
             } catch (IOException e) {
-                DataSaver.POIPointTheme = new SimplePointTheme();
+                DataManager.POIPointTheme = new SimplePointTheme();
             }
-            DataSaver.POIPointTheme.setChanged(false);
+            DataManager.POIPointTheme.setChanged(false);
 //            POIPointTheme.syncronizeGeoPoints();
             return null;
         }

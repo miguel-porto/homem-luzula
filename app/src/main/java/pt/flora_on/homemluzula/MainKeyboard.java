@@ -41,7 +41,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import java.util.List;
 import java.util.Locale;
@@ -270,7 +269,7 @@ public class MainKeyboard extends AppCompatActivity {
             speciesList.setNow();
             speciesList.setLocation(coordinates[0], coordinates[1]);
             if(autonumber)
-                speciesList.setSerialNumber(DataSaver.allData.getNextSerial(), ip, zp);
+                speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
         } else {    // fetch GPS location
             if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
                 startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -280,7 +279,7 @@ public class MainKeyboard extends AppCompatActivity {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
             speciesList.setNow();
             if(autonumber)
-                speciesList.setSerialNumber(DataSaver.allData.getNextSerial(), ip, zp);
+                speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
         }
 
         toolbar.setOnClickListener(view -> {    // change inventory code

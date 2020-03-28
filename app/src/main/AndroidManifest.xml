@@ -61,7 +61,7 @@
             android:label="@string/title_activity_species_lists"
             android:theme="@style/AppTheme" />
         <activity
-            android:name=".DataSaver"
+            android:name=".DataManager"
             android:theme="@style/Translucent" />
         <activity
             android:name=".Activity_dashboard"

@@ -192,7 +192,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 List<Feature> ftrs = new ArrayList<>();
                 LineString lstr;
                 LinearPositions.Builder lposi;
-                for(Tracklog.Segment gtpl : DataSaver.tracklog) {
+                for(Tracklog.Segment gtpl : DataManager.tracklog) {
                     if(gtpl.size() < 2) continue;
                     lposi = LinearPositions.builder();
 
@@ -327,7 +327,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             SpeciesList sl = new SpeciesList();
                             sl.setGpsCode(rec.get(0));
                             sl.setLocation(Float.parseFloat(rec.get(1)), Float.parseFloat(rec.get(2)));
-                            DataSaver.allData.addSpeciesList(sl);
+                            DataManager.allData.addSpeciesList(sl);
                             if(Inventories.saveInventoryToDisk(sl, sl.getUuid().toString()))
                                 counter ++;
                         }
@@ -342,12 +342,17 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                     Layer tl;
                     if(requestCode == OPEN_GEOJSONASLAYER) {
                         LineLayer tmp = new LineLayer(((MainMap) mainActivity).getLayersOverlay());
-                        DataSaver.layers.add(tmp);
+                        DataManager.layers.add(tmp);
                         tmp.setSolidLayer(true);
-                        tmp.setLayerName(resultData.getData().getLastPathSegment());
+                        String result = resultData.getData().getPath();
+                        int cut = result.lastIndexOf('/');
+                        if (cut != -1) {
+                            result = result.substring(cut + 1);
+                        }
+                        tmp.setLayerName(result);
                         tl = tmp;
                     } else {
-                        tl = DataSaver.tracklog;
+                        tl = DataManager.tracklog;
                     }
 
                     uri = resultData.getData();
@@ -404,7 +409,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             counter++;
                         }
                     }
-                    Toast.makeText(this, counter + " tracklogs importados do ficheiro.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, counter + " linhas importados do ficheiro.", Toast.LENGTH_SHORT).show();
 
                     break;
             }

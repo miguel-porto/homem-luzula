@@ -26,7 +26,7 @@ import android.widget.Toast;
 
 import org.osmdroid.util.GeoPoint;
 
-import pt.flora_on.homemluzula.DataSaver;
+import pt.flora_on.homemluzula.DataManager;
 import pt.flora_on.homemluzula.MainMap;
 import pt.flora_on.homemluzula.R;
 
@@ -45,17 +45,17 @@ public class RecordTracklogService extends Service {
             if(MainMap.recordTracklog) {
                 GeoPoint pt2;
                 Double dist;
-                GeoTimePoint lastRecordedLocation = DataSaver.tracklog.getLastLocation();
+                GeoTimePoint lastRecordedLocation = DataManager.tracklog.getLastLocation();
                 if (lastRecordedLocation != null) {
                     pt2 = new GeoPoint(location);
                     dist = lastRecordedLocation.distanceToAsDouble(pt2);
                     if(dist >= tracklogMinDist && (!tracklogPrecisionFilter || location.getAccuracy() <= precisionFilter)) {
-                        DataSaver.tracklog.add(location, dist > 100 | MainMap.breakTrackAtNextFix);
+                        DataManager.tracklog.add(location, dist > 100 | MainMap.breakTrackAtNextFix);
                         if(MainMap.breakTrackAtNextFix)
                             MainMap.breakTrackAtNextFix = false;
                     }
                 } else {
-                    DataSaver.tracklog.add(location, true);
+                    DataManager.tracklog.add(location, true);
                 }
                 //location.getElapsedRealtimeNanos() - lastLocation.getElapsedRealtimeNanos() > (long) getTracklogInterval() * 6 * 1000000000L
 
