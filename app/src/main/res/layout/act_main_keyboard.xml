@@ -120,7 +120,8 @@
                     android:clickable="true"
                     app:backgroundTint="@android:color/holo_red_light"
                     app:fabSize="mini"
-                    app:srcCompat="@android:drawable/ic_menu_delete" />
+                    app:srcCompat="@android:drawable/ic_menu_delete"
+                    android:focusable="true" />
 
                 <android.support.design.widget.FloatingActionButton
                     android:id="@+id/cancel_inventario"
@@ -131,7 +132,8 @@
                     android:clickable="true"
                     app:backgroundTint="?attr/colorButtonNormal"
                     app:fabSize="mini"
-                    app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+                    app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
+                    android:focusable="true" />
 
             </LinearLayout>
 
@@ -259,7 +261,8 @@
                     android:clickable="true"
                     app:backgroundTint="@android:color/holo_green_dark"
                     app:fabSize="mini"
-                    app:srcCompat="@android:drawable/ic_menu_save" />
+                    app:srcCompat="@android:drawable/ic_menu_save"
+                    android:focusable="true" />
                 <!--<TextView android:text="_" style="@style/tecla" android:textColor="@android:color/black" android:background="@android:drawable/ic_menu_camera"/>-->
 
             </GridLayout>
