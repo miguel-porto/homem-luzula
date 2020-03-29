@@ -2,14 +2,24 @@ package pt.flora_on.homemluzula;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.prefs.Preferences;
 
 import pt.flora_on.observation_data.Constants;
 import pt.flora_on.observation_data.TaxonObservation;
@@ -43,6 +53,14 @@ public class ObservationDetails extends AppCompatActivity {
         observation = getIntent().getParcelableExtra("taxon");
         setTitle(observation.getTaxonCapital());
 
+        // check if it is pinned
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
+        Set<String> pinned = preferences.getStringSet("pinnedTaxa", new HashSet<String>());
+        if(pinned != null && pinned.contains(observation.getTaxon())) {
+            ((FloatingActionButton) findViewById(R.id.pin_taxon)).setImageResource(R.drawable.ic_star_black_24dp);
+            findViewById(R.id.pin_taxon).setTag("pinned");
+        }
+
         if(getIntent().hasExtra("showDelete")) {
             findViewById(R.id.delete_taxon).setVisibility(View.VISIBLE);
             findViewById(R.id.delete_taxon).setOnClickListener(new View.OnClickListener() {
@@ -58,6 +76,31 @@ public class ObservationDetails extends AppCompatActivity {
             });
         } else
             findViewById(R.id.delete_taxon).setVisibility(View.INVISIBLE);
+
+        findViewById(R.id.pin_taxon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
+                Set<String> pinned = new HashSet<String>(preferences.getStringSet("pinnedTaxa", new HashSet<String>()));
+
+                if(Objects.equals(view.getTag(), "pinned")) {
+                    pinned.remove(observation.getTaxon());
+                    ((FloatingActionButton) findViewById(R.id.pin_taxon)).setImageResource(R.drawable.ic_star_border_black_24dp);
+                    view.setTag(null);
+                } else {
+                    if(pinned.size() == 4) {
+                        Toast.makeText(ObservationDetails.this, "No more than 4 pinned species allowed", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    pinned.add(observation.getTaxon());
+                    ((FloatingActionButton) findViewById(R.id.pin_taxon)).setImageResource(R.drawable.ic_star_black_24dp);
+                    view.setTag("pinned");
+                }
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putStringSet("pinnedTaxa", pinned);
+                editor.apply();
+            }
+        });
         // save details
         findViewById(R.id.save_obs_details).setOnClickListener(new View.OnClickListener() {
             @Override

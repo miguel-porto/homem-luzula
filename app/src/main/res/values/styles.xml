@@ -141,6 +141,13 @@
         <!--<item name="android:textColor">@android:color/holo_blue_light</item>-->
     </style>
 
+    <style name="textseparator">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@android:color/holo_blue_light</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+    </style>
+
     <style name="phenostate_compact" parent="@android:style/Widget.CompoundButton.RadioButton">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">match_parent</item>
@@ -170,20 +177,24 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:gravity">center_vertical</item>
     </style>
 
     <style name="PreferenceListHeader" parent="Widget.TextView.ListSeparator">
-        <item name="android:textColor">@android:color/holo_blue_light</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:background">#000000</item>
         <item name="android:paddingTop">6dp</item>
         <item name="android:paddingBottom">6dp</item>
         <item name="android:paddingLeft">12dp</item>
     </style>
 
-    <style name="Theme.Custom" parent="@android:style/Theme">
+    <style name="PreferenceScreen" parent="android:Theme.NoTitleBar">
         <item name="android:listSeparatorTextViewStyle">@style/PreferenceListHeader</item>
+        <item name="android:background">#000000</item>
     </style>
     -->
+
 </resources>

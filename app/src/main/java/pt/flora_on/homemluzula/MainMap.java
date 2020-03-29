@@ -81,8 +81,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
@@ -136,6 +139,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private SharedPreferences preferences;
     private Intent GPSIntent;
     private final int quickMarkId = 54654;
+    private final int quickMarkToolbar = 54653;
     /**
      * Set to true when starting internal activity, so the onStop method does not save anything.
      */
@@ -511,10 +515,9 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         checklist.setNFirst(Integer.parseInt(preferences.getString("pref_ngenusletters", "1")));
         checklist.setNLast(Integer.parseInt(preferences.getString("pref_nspeciesletters", "3")));
 
+        createQuickAccessButtons();
         updateStatusBar();
         refreshFrequencies();
-
-        createQuickAccessButtons();
 
         /**
          * New inventory in the target location (center of screen)
@@ -561,7 +564,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
         findViewById(R.id.add_location).setOnClickListener(fastMark);
         findViewById(R.id.mira).setOnClickListener(fastPOI);
-        findViewById(R.id.download_tiles).setOnClickListener(this);
+//        findViewById(R.id.download_tiles).setOnClickListener(this);
 
         /**
          * New inventory from GPS
@@ -748,7 +751,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         });
 
         /**
-         * Toggle layer visibility
+         * Toggle base waypoint layers visibility
          */
         findViewById(R.id.show_layers).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -760,16 +763,35 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if((boolean) tb.getTag()) {
                     tb.setImageResource(R.drawable.ic_point);
                     otherPointLayer.setEnabled(true);
-//                    inventoryLayer.setEnabled(true);
                     basePointLayer.setEnabled(true);
                     theMap.invalidate();
                 } else {
                     tb.setImageResource(R.drawable.ic_nopoint);
                     otherPointLayer.setEnabled(false);
-//                    inventoryLayer.setEnabled(false);
                     basePointLayer.setEnabled(false);
                     theMap.invalidate();
                 }
+            }
+        });
+
+        /**
+         * Toggle inventory layer visibility
+         */
+        findViewById(R.id.show_inventories).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ImageButton tb = (ImageButton) v;
+                if(tb.getTag() == null) tb.setTag(true);
+                tb.setTag(!((boolean) tb.getTag()));
+
+                if((boolean) tb.getTag()) {
+                    tb.setImageResource(R.drawable.ic_square);
+                    inventoryLayer.setEnabled(true);
+                } else {
+                    tb.setImageResource(R.drawable.ic_square_no);
+                    inventoryLayer.setEnabled(false);
+                }
+                theMap.invalidate();
             }
         });
 
@@ -787,6 +809,24 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     trackLogOverlay.setEnabled(true);
                 } else {
                     trackLogOverlay.setEnabled(false);
+                }
+                theMap.invalidate();
+            }
+        });
+
+        findViewById(R.id.show_veclayers).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ImageButton tb = (ImageButton) v;
+                if(tb.getTag() == null) tb.setTag(true);
+                tb.setTag(!((boolean) tb.getTag()));
+
+                if((boolean) tb.getTag()) {
+                    tb.setImageResource(R.drawable.ic_layers);
+                    layersOverlay.setEnabled(true);
+                } else {
+                    tb.setImageResource(R.drawable.ic_layers_no);
+                    layersOverlay.setEnabled(false);
                 }
                 theMap.invalidate();
             }
@@ -1573,6 +1613,7 @@ try {
     public void onResume() {
         super.onResume();
         hide();
+        createQuickAccessButtons();
         if(!recordTracklog && isGPSOn) {
             switchOnLocationUpdates(getTracklogInterval());
         }
@@ -1615,6 +1656,7 @@ try {
     @Override
     public void onClick(View view) {
         switch(view.getId()) {
+/*
             case R.id.download_tiles:
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainMap.this);
 
@@ -1625,17 +1667,21 @@ try {
                 zoom_min.setMax((int) theMap.getMaxZoomLevel());
                 zoom_min.setProgress((int) theMap.getZoomLevel());
                 zoom_max.setProgress((int) theMap.getZoomLevel());
-                /*zoom_min.setProgress((int) theMap.getZoomLevelDouble());
-                zoom_max.setProgress((int) theMap.getZoomLevelDouble());*/
+                */
+/*zoom_min.setProgress((int) theMap.getZoomLevelDouble());
+                zoom_max.setProgress((int) theMap.getZoomLevelDouble());*//*
+
                 zoom_min.setOnSeekBarChangeListener(this);
                 zoom_max.setOnSeekBarChangeListener(this);
 
                 ((TextView) downloadPromptView.findViewById(R.id.maxzoomvalue)).setText(theMap.getZoomLevel() + "");
                 ((TextView) downloadPromptView.findViewById(R.id.minzoomvalue)).setText(theMap.getZoomLevel() + "");
+*/
 /*
                 ((TextView) downloadPromptView.findViewById(R.id.maxzoomvalue)).setText(theMap.getZoomLevelDouble() + "");
                 ((TextView) downloadPromptView.findViewById(R.id.minzoomvalue)).setText(theMap.getZoomLevelDouble() + "");
-*/
+*//*
+
 
                 downloadPromptView.findViewById(R.id.start_download).setOnClickListener(this);
                 builder.setView(downloadPromptView);
@@ -1654,6 +1700,7 @@ try {
                 downloadPrompt.show();
                 updateEstimate(false);
                 break;
+*/
 
             case R.id.start_download:
                 updateEstimate(true);
@@ -1679,7 +1726,7 @@ try {
                         sl.setLocation(latitude, longitude);
                         TaxonObservation tObs = (TaxonObservation) view.getTag();
                         sl.addObservation(tObs);
-                        ((Button) view).setText(tObs.getTaxonCapital());
+                        ((Button) view).setText(tObs.getTaxonCapital().replace(" ", "\n"));
 
                         data.putExtra("specieslist", sl);
                         MainMap.this.onActivityResult(GET_SPECIESLIST, RESULT_OK, data);
@@ -1687,7 +1734,7 @@ try {
                 };
                 locationListener.setCallback(cb);
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
-                ((Button) view).setText("waiting GPS...");
+                ((Button) view).setText("waiting\nGPS...");
                 break;
         }
     }
@@ -2016,32 +2063,45 @@ try {
     }
 
     public void createQuickAccessButtons() {
-        LinearLayout v = findViewById(R.id.main_map_interface);
+        LinearLayout v = null;
+        LinearLayout pinnedToolbar = findViewById(quickMarkToolbar);
+        if(pinnedToolbar == null) {
+            v = findViewById(R.id.main_map_interface);
+            pinnedToolbar = new LinearLayout(this);
+            pinnedToolbar.setId(quickMarkToolbar);
+            pinnedToolbar.setOrientation(LinearLayout.HORIZONTAL);
+        } else
+            pinnedToolbar.removeAllViews();
+
         LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
+                0, LinearLayout.LayoutParams.MATCH_PARENT, 1);
 //        buttonParams.setMargins(0, 0,0,0);
 
         LinearLayout.LayoutParams linearParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
         // Create LinearLayout
-        LinearLayout ll = new LinearLayout(this);
-        ll.setOrientation(LinearLayout.HORIZONTAL);
 //        linearParams.setMargins(0, 0, 0, 0);
 //        ll.setLayoutParams(linearParams);
 //        ll.setPadding(0, 0, 0, 0);
 
+/*
         TaxonObservation[] spp = new TaxonObservation[] {
                 new TaxonObservation("Linaria algarviana", null),
                 new TaxonObservation("Linaria munbyana", null)
 //                new TaxonObservation("Linaria algarviana", Constants.PhenologicalState.DISPERSION)
         };
+*/
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
+        Set<String> pinned = preferences.getStringSet("pinnedTaxa", new HashSet<String>());
         int counter = 0;
-        for(TaxonObservation sp : spp) {
+        for (String spname : pinned) {
+            TaxonObservation sp = new TaxonObservation(spname, null);
             final Button btn = new Button(this);
             // Give button an ID
             btn.setId(quickMarkId + counter);
             btn.setText(sp.getTaxon().replace(" ", "\n"));
+            btn.setTextSize(16);
             btn.setTag(sp);
 
             // set the layoutParams on the button
@@ -2051,10 +2111,11 @@ try {
 
             // Set click listener for button
             btn.setOnClickListener(this);
-            ll.addView(btn, buttonParams);
+            pinnedToolbar.addView(btn, buttonParams);
         }
 
-        v.addView(ll, 1, linearParams);
+        if(v != null)
+            v.addView(pinnedToolbar, 1, linearParams);
 
     }
 }

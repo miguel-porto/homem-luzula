@@ -43,6 +43,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -86,6 +87,8 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         findViewById(R.id.importinventories).setOnClickListener(this);
         findViewById(R.id.importlayer).setOnClickListener(this);
         findViewById(R.id.removelayers).setOnClickListener(this);
+        findViewById(R.id.clear_pinned_species).setOnClickListener(this);
+
         ((EditText) findViewById(R.id.inventory_prefix)).setText(ip);
         ((EditText) findViewById(R.id.inventory_zeropad)).setText(((Integer) zp).toString());
     }
@@ -142,6 +145,11 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("*/*");
                 startActivityForResult(intent, OPEN_GEOJSONASLAYER);
+                break;
+
+            case R.id.clear_pinned_species:
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
+                preferences.edit().putStringSet("pinnedTaxa", new HashSet<>()).apply();
                 break;
 
             case R.id.removelayers:
