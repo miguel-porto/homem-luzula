@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="carregando_dados">Carregando dados...</string>
+    <string name="app_name">Homem Luzula</string>
+    <string name="title_activity_species_chooser">Escolha uma espécie</string>
+    <string name="novo_ponto">Novo ponto</string>
+    <string name="cortar_ntrack">Cortar\ntrack</string>
+    <string name="continuar_nponto_anterior">Continuar\nponto anterior</string>
+    <string name="title_activity_species_list_show">Espécies registadas</string>
+    <string name="action_settings">Definições</string>
+    <string name="title_activity_settings">Definições</string>
+    <string name="edit_inventory">Editar ponto\n%.4f %.4f</string>
+</resources>

@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:title="Tracklog">
+        android:title="Tracklog"
+        android:layout="@layout/preference_category">
         <ListPreference
             android:defaultValue="4"
             android:entries="@array/pref_gps_mindist"
             android:entryValues="@array/pref_gps_mindist"
             android:key="pref_gps_mindist"
-            android:summary="%s"
+            android:summary="Espaçamento mínimo entre pontos do tracklog: %s m"
             android:title="Minimum tracklog distance" />
 
         <SwitchPreference
@@ -25,13 +26,14 @@
             android:entries="@array/pref_gps_precision"
             android:entryValues="@array/pref_gps_precision"
             android:key="pref_minprecision"
-            android:summary="registar tracklog apenas se a precisão for maior que %s m"
+            android:summary="Registar ponto de tracklog apenas se a precisão for melhor do que %s m"
             android:dependency="pref_gps_filter"
-            android:title="Minimum tracklog distance" />
+            android:title="Precisão do tracklog" />
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Display">
+        android:title="Display"
+        android:layout="@layout/preference_category">
         <ListPreference
             android:defaultValue="8"
             android:entries="@array/pref_sizes_label"
@@ -50,7 +52,8 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Inventários">
+        android:title="Inventários"
+        android:layout="@layout/preference_category">
         <SwitchPreference
             android:switchTextOff="Usar numeração sequencial"
             android:switchTextOn="Não usar numeração"
@@ -58,10 +61,20 @@
             android:key="pref_inventorylabels"
             android:disableDependentsState="false"
             android:title="Numeração dos inventários"/>
+
+        <ListPreference
+            android:defaultValue="6"
+            android:entries="@array/pref_gps_minprecision"
+            android:entryValues="@array/pref_gps_minprecision"
+            android:key="pref_gps_minprecision"
+            android:summary="Marcar ponto GPS assim que a precisão for melhor que %s metros"
+            android:title="Precisão mínima dos pontos GPS" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Teclado de espécies">
+        android:title="Teclado de espécies"
+        android:layout="@layout/preference_category">
         <EditTextPreference
             android:key="pref_maxnrspecies"
             android:defaultValue="5"

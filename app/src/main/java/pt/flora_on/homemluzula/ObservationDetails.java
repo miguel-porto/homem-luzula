@@ -84,7 +84,7 @@ public class ObservationDetails extends AppCompatActivity {
                 Set<String> pinned = new HashSet<String>(preferences.getStringSet("pinnedTaxa", new HashSet<String>()));
 
                 if(Objects.equals(view.getTag(), "pinned")) {
-                    pinned.remove(observation.getTaxon());
+                    pinned.remove(observation.getTaxon().toLowerCase());
                     ((FloatingActionButton) findViewById(R.id.pin_taxon)).setImageResource(R.drawable.ic_star_border_black_24dp);
                     view.setTag(null);
                 } else {
@@ -92,7 +92,7 @@ public class ObservationDetails extends AppCompatActivity {
                         Toast.makeText(ObservationDetails.this, "No more than 4 pinned species allowed", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    pinned.add(observation.getTaxon());
+                    pinned.add(observation.getTaxon().toLowerCase());
                     ((FloatingActionButton) findViewById(R.id.pin_taxon)).setImageResource(R.drawable.ic_star_black_24dp);
                     view.setTag("pinned");
                 }

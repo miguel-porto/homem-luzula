@@ -21,7 +21,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Carregando dados..."
+            android:text="@string/carregando_dados"
             android:textAlignment="center"
             android:textSize="24sp" />
 
@@ -424,7 +424,7 @@
                 android:layout_height="match_parent"
                 android:paddingBottom="14dp"
                 android:paddingTop="14dp"
-                android:text="Continuar\nponto anterior"
+                android:text="@string/continuar_nponto_anterior"
                 android:textSize="16sp" />
             <Button
                 android:id="@+id/bottombutton_2"
@@ -432,7 +432,7 @@
                 android:layout_height="match_parent"
                 android:paddingBottom="14dp"
                 android:paddingTop="14dp"
-                android:text="Cortar\ntrack"
+                android:text="@string/cortar_ntrack"
                 android:visibility="gone"
                 android:textSize="16sp" />
             <Button
@@ -442,7 +442,7 @@
                 android:layout_height="match_parent"
                 android:paddingBottom="14dp"
                 android:paddingTop="14dp"
-                android:text="Novo ponto"
+                android:text="@string/novo_ponto"
                 android:textSize="16sp" />
         </LinearLayout>
 

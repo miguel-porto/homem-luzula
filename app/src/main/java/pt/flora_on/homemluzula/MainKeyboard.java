@@ -44,6 +44,7 @@ import android.widget.Toast;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Random;
 
 import pt.flora_on.observation_data.SpeciesList;
@@ -222,9 +223,11 @@ public class MainKeyboard extends AppCompatActivity {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Intent intent = getIntent();
         final Float[] coordinates = new Float[2];
+        int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
 
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
+
                 if(ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions( MainKeyboard.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
                 }
@@ -233,7 +236,7 @@ public class MainKeyboard extends AppCompatActivity {
                 coordinates[0] = (float) location.getLatitude();
                 coordinates[1] = (float) location.getLongitude();
                 speciesList.setLocation(coordinates[0], coordinates[1]);
-                if(location.getAccuracy() < 6) {
+                if(location.getAccuracy() < minGPSPrecision) {
                     locationManager.removeUpdates(this);
 
                     setTitle();

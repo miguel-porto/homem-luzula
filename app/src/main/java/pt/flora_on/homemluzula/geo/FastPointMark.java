@@ -11,6 +11,11 @@ import pt.flora_on.homemluzula.LocationFixedCallback;
  */
 public class FastPointMark implements LocationListener {
     private LocationFixedCallback callback = null;
+    private int minPrecision;
+
+    public FastPointMark(int minPrecision) {
+        this.minPrecision = minPrecision;
+    }
 
     public void setCallback(LocationFixedCallback callback) {
         this.callback = callback;
@@ -18,7 +23,7 @@ public class FastPointMark implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-        if(location.getAccuracy() < 6) {
+        if(location.getAccuracy() < minPrecision) {
             if(this.callback != null)
                 this.callback.finished((float) location.getLatitude(), (float) location.getLongitude());
         }

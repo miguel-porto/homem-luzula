@@ -85,6 +85,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import pt.flora_on.homemluzula.geo.FastPointMark;
@@ -145,14 +146,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
      */
     private boolean internalNavigation;
     private StyledLabelledGeoPoint prevSelectedPoint = null;
-    private static final Map<BUTTONLAYOUT, String[]> buttonLayouts = new HashMap<>();
-    static {
-        buttonLayouts.put(BUTTONLAYOUT.CONTINUE_LAST, new String[] {"Continuar\nponto anterior", "Nova\ntrack", "Novo ponto"});
-        buttonLayouts.put(BUTTONLAYOUT.EDIT_INVENTORY, new String[] {"Editar ponto\n%.4f %.4f", "Nova\ntrack", "Novo ponto"});
-        buttonLayouts.put(BUTTONLAYOUT.DELETE_POI, new String[] {"Apagar\nPOI", "Nova\ntrack", "Novo ponto"});
-        buttonLayouts.put(BUTTONLAYOUT.DELETE_TRACK, new String[] {"Apagar\ntrack", "Cortar\ntrack", "Novo ponto"});
-        buttonLayouts.put(BUTTONLAYOUT.DELETE_LAYER, new String[] {"Apagar\nlayer", "Novo ponto"});
-    }
+    private final Map<BUTTONLAYOUT, String[]> buttonLayouts = new HashMap<>();
 
     @Override
     protected void onPause() {
@@ -1321,6 +1315,12 @@ try {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        buttonLayouts.put(BUTTONLAYOUT.CONTINUE_LAST, new String[] {getString(R.string.continuar_nponto_anterior), "Nova\ntrack", getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.EDIT_INVENTORY, new String[] {getString(R.string.edit_inventory), "Nova\ntrack", getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_POI, new String[] {"Apagar\nPOI", "Nova\ntrack", getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_TRACK, new String[] {"Apagar\ntrack", "Cortar\ntrack", getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_LAYER, new String[] {"Apagar\nlayer", getString(R.string.novo_ponto)});
+
         preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
         IConfigurationProvider config = Configuration.getInstance();
         config.setUserAgentValue(BuildConfig.APPLICATION_ID);
@@ -1713,7 +1713,8 @@ try {
                 if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions( MainMap.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
                 }
-                final FastPointMark locationListener = new FastPointMark();
+                int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
+                final FastPointMark locationListener = new FastPointMark(minGPSPrecision);
 
                 LocationFixedCallback cb = new LocationFixedCallback() {
                     @Override

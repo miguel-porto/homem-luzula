@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Homem Luzula</string>
+    <string name="carregando_dados">Loading data...</string>
+    <string name="title_activity_species_chooser">Choose a species</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_species_list_show">Recorded species</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="digite_a_letra_do_genero_e_as_da_especie_ou_infrataxon">type the 1st letter of the genus and the %d first of the species (or infrataxon)</string>
+    <string name="novo_ponto">New inventory</string>
+    <string name="cortar_ntrack">Cut\ntrack</string>
+    <string name="continuar_nponto_anterior">Continue\ninventory</string>
+    <string name="edit_inventory">Edit inventory\n%.4f %.4f</string>
+</resources>
