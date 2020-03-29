@@ -6,22 +6,30 @@
 
 ## What is this app for?
 
-For conducting floristic surveys (species inventories) as fast as you can.
-This app is optimized for greatly speeding up and simplifying field data collection, in the form of species lists with
+For conducting **floristic surveys** (species inventories) **as fast as you can**.
+
+## But how?
+
+This app is optimized for **greatly speeding up** and simplifying **field data collection**, in the form of species lists with
 ID, abundance, phenological state and other data.
 
-Species are recorded by tapping its abbreviation (4 letters). The abbreviation is looked up in the user defined checklist
-and matching species are displayed for selection. For example, "sarv" will match *Stachys arvensis*,
-*Sinapis arvensis*, among others. Phenological state and ID uncertainty can be directly specified with one tap.
+Species are recorded by tapping its abbreviation (4 letters or less). The abbreviation is looked up in the user
+defined checklist and matching species are displayed for selection. For example, "sarv" will match *Stachys arvensis*,
+*Sinapis arvensis*, among a few others, depending on the reference checklist.
+Phenological state and ID uncertainty can be directly specified with one tap.
 
-Further, you can pin some species in a quick access toolbar, so you can record their occurrence (species, date and coordinates)
+Further, you can **pin some species in a quick access toolbar**, so you can record their occurrence (species, date and coordinates)
 with a single tap. This is useful when you're conducting a fine scale occurrence map of a few species.
 
-Data is output as CSV text tables, that can easily be uploaded to any database.
+Full **GPS navigation over aerial imagery** is integrated, and **GIS vector layers can be added** (e.g. for displaying
+the limits of the study area, a grid, etc.).
 
-## What is this app **not** for?
+Data is output as CSV text tables, that can easily be uploaded to any database. Tracklog is exported in GeoJson format,
+compatible with GIS software.
 
-Not for identifying species in the field. This app assumes you already know the species that you are inventorying.
+## What is this app not for?
+
+**Not for** identifying species in the field. This app assumes you already know the species that you are inventorying.
 This app is for serious field work at high speed.
 
 ## Highlights
@@ -32,4 +40,5 @@ This app is for serious field work at high speed.
 * Records the tracklog
 * Imports vector layers from GIS
 * Very easy handling of vector layers
+
 
