@@ -11,4 +11,12 @@
     <string name="cortar_ntrack">Cut\ntrack</string>
     <string name="continuar_nponto_anterior">Continue\ninventory</string>
     <string name="edit_inventory">Edit inventory\n%.4f %.4f</string>
+    <string name="ate">to</string>
+    <string name="apagar_poi">Delete\nPOI</string>
+    <string name="new_track">New\ntrack</string>
+    <string name="delete_track">Delete\ntrack</string>
+    <string name="delete_layer">Delete\nlayer</string>
+    <string name="cut_track">Cut\ntrack</string>
+    <string name="tracklogs">TrackLogs</string>
+    <string name="exportar">Export</string>
 </resources>

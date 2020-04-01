@@ -16,9 +16,10 @@
 
         <TextView
             android:id="@+id/textView3"
+            android:focusable="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TrackLogs"
+            android:text="@string/tracklogs"
             style="@style/textseparator" />
 
     <LinearLayout
@@ -32,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:focusable="true"
-            android:text="Exportar" />
+            android:text="@string/exportar" />
 
         <Button
             android:id="@+id/importtracks"
@@ -51,6 +52,45 @@
     </LinearLayout>
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Layers"
+        style="@style/textseparator" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Formato Geojson (apenas LINESTRING, MULTILINESTRING e POLYGON)" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/importlayer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Adicionar" />
+
+        <Button
+            android:id="@+id/removelayers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Apagar todas" />
+
+    </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layer_manager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"></LinearLayout>
+
+            <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Inventários"
@@ -107,40 +147,6 @@
             android:ems="10"
             android:hint="nº dígitos"
             android:inputType="number" />
-
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Layers"
-        style="@style/textseparator" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Formato Geojson (apenas LINESTRING, MULTILINESTRING e POLYGON)" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center|center_vertical"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/importlayer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Adicionar" />
-
-        <Button
-            android:id="@+id/removelayers"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Apagar todas" />
-
     </LinearLayout>
 
     <TextView

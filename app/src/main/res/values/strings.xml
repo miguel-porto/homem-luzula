@@ -16,6 +16,11 @@
     <string name="novo_ponto">Novo ponto</string>
     <string name="cortar_ntrack">Cortar\ntrack</string>
     <string name="continuar_nponto_anterior">Continuar\nponto anterior</string>
+    <string name="apagar_poi">Apagar\nPOI</string>
+    <string name="new_track">Nova\ntrack</string>
+    <string name="delete_track">Apagar\ntrack</string>
+    <string name="delete_layer">Apagar\nlayer</string>
+    <string name="cut_track">Cortar\ntrack</string>
 
     <!-- Strings related to Settings -->
 
@@ -68,5 +73,8 @@
         <item>Grosso</item>
     </string-array>
     <string name="edit_inventory">Editar ponto\n%.4f %.4f</string>
+    <string name="ate">até</string>
+    <string name="tracklogs">TrackLogs</string>
+    <string name="exportar">Exportar</string>
 
 </resources>

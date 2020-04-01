@@ -15,8 +15,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:srcCompat="@drawable/floraon_white1"
-            android:layout_marginRight="20dp"
-            android:id="@+id/imageView" />
+            android:layout_marginEnd="20dp"
+            android:id="@+id/imageView"
+            android:contentDescription="Logo" />
 
         <TextView
             android:layout_width="match_parent"
@@ -70,7 +71,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom|left"
+                android:layout_gravity="bottom|start"
                 android:id="@+id/zoomlevel"
                 android:layout_weight="0" />
 
@@ -310,21 +311,19 @@
                             android:id="@+id/tr_start"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="TextView" />
+                            android:layout_weight="1" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="0"
-                            android:text="até " />
+                            android:text="@string/ate" />
 
                         <TextView
                             android:id="@+id/tr_end"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="TextView" />
+                            android:layout_weight="1" />
 
                     </LinearLayout>
 
@@ -405,7 +404,7 @@
             <ImageView
                 android:layout_height="34dp"
                 app:srcCompat="@drawable/floraon_white1"
-                android:layout_gravity="bottom|right"
+                android:layout_gravity="bottom|end"
                 android:layout_width="120dp" />
 
         </FrameLayout>

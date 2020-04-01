@@ -14,7 +14,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
@@ -31,6 +34,7 @@ import com.google.gson.JsonPrimitive;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.osmdroid.views.overlay.FolderOverlay;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -62,7 +66,7 @@ import static pt.flora_on.homemluzula.MainMap.mainActivity;
  * Created by miguel on 22-04-2018.
  */
 
-public class Activity_dashboard extends AppCompatActivity implements Button.OnClickListener {
+public class Activity_dashboard extends AppCompatActivity implements Button.OnClickListener, CompoundButton.OnCheckedChangeListener {
     private SharedPreferences prefs;
     private static final int OPEN_GEOJSON = 42;
     private static final int OPEN_POINTLIST = 43;
@@ -91,6 +95,22 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
         ((EditText) findViewById(R.id.inventory_prefix)).setText(ip);
         ((EditText) findViewById(R.id.inventory_zeropad)).setText(((Integer) zp).toString());
+
+        refreshLayerList();
+    }
+
+    private void refreshLayerList() {
+        LinearLayout layerManager = ((LinearLayout) findViewById(R.id.layer_manager));
+        layerManager.removeAllViews();
+        for(LineLayer ll : DataManager.layers) {
+            final CheckBox cb = new CheckBox(this);
+            cb.setText(ll.getLayerName());
+            cb.setChecked(ll.getOverlay().isEnabled());
+            cb.setTextSize(18);
+            cb.setOnCheckedChangeListener(this);
+            cb.setTag(ll);
+            layerManager.addView(cb);
+        }
     }
 
     @Override
@@ -349,7 +369,9 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
                     Layer tl;
                     if(requestCode == OPEN_GEOJSONASLAYER) {
-                        LineLayer tmp = new LineLayer(((MainMap) mainActivity).getLayersOverlay());
+                        FolderOverlay fo = new FolderOverlay();
+                        ((MainMap) mainActivity).getLayersOverlay().add(fo);
+                        LineLayer tmp = new LineLayer(fo);
                         DataManager.layers.add(tmp);
                         tmp.setSolidLayer(true);
                         String result = resultData.getData().getPath();
@@ -418,7 +440,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                         }
                     }
                     Toast.makeText(this, counter + " linhas importados do ficheiro.", Toast.LENGTH_SHORT).show();
-
+                    refreshLayerList();
                     break;
             }
         }
@@ -432,5 +454,11 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                     , (i == 0 && startTime != null) ? startTime.getTime()
                     : ((i == sps.size() - 1 && endTime != null) ? endTime.getTime() : 0)), i == 0);
         }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+        final LineLayer ll = (LineLayer) compoundButton.getTag();
+        ll.getOverlay().setEnabled(compoundButton.isChecked());
     }
 }

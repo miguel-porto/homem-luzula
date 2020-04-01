@@ -10,4 +10,13 @@
     <string name="action_settings">Definições</string>
     <string name="title_activity_settings">Definições</string>
     <string name="edit_inventory">Editar ponto\n%.4f %.4f</string>
+    <string name="ate">até</string>
+    <string name="apagar_poi">Apagar\nPOI</string>
+    <string name="new_track">Nova\ntrack</string>
+    <string name="delete_track">Apagar\ntrack</string>
+    <string name="delete_layer">Apagar\nlayer</string>
+    <string name="cut_track">Cortar\ntrack</string>
+    <string name="tracklogs">TrackLogs</string>
+    <string name="exportar">Exportar</string>
+    <string name="digite_a_letra_do_genero_e_as_da_especie_ou_infrataxon">digite a 1ª letra do género e as %d primeiras da espécie (ou infrataxon)</string>
 </resources>

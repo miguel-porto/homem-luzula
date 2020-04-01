@@ -82,7 +82,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -1315,11 +1314,11 @@ try {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        buttonLayouts.put(BUTTONLAYOUT.CONTINUE_LAST, new String[] {getString(R.string.continuar_nponto_anterior), "Nova\ntrack", getString(R.string.novo_ponto)});
-        buttonLayouts.put(BUTTONLAYOUT.EDIT_INVENTORY, new String[] {getString(R.string.edit_inventory), "Nova\ntrack", getString(R.string.novo_ponto)});
-        buttonLayouts.put(BUTTONLAYOUT.DELETE_POI, new String[] {"Apagar\nPOI", "Nova\ntrack", getString(R.string.novo_ponto)});
-        buttonLayouts.put(BUTTONLAYOUT.DELETE_TRACK, new String[] {"Apagar\ntrack", "Cortar\ntrack", getString(R.string.novo_ponto)});
-        buttonLayouts.put(BUTTONLAYOUT.DELETE_LAYER, new String[] {"Apagar\nlayer", getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.CONTINUE_LAST, new String[] {getString(R.string.continuar_nponto_anterior), getString(R.string.new_track), getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.EDIT_INVENTORY, new String[] {getString(R.string.edit_inventory), getString(R.string.new_track), getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_POI, new String[] {getString(R.string.apagar_poi), getString(R.string.new_track), getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_TRACK, new String[] {getString(R.string.delete_track), getString(R.string.cut_track), getString(R.string.novo_ponto)});
+        buttonLayouts.put(BUTTONLAYOUT.DELETE_LAYER, new String[] {getString(R.string.delete_layer), getString(R.string.novo_ponto)});
 
         preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
         IConfigurationProvider config = Configuration.getInstance();
@@ -1854,7 +1853,10 @@ try {
 
 //                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
                 for(Tracklog tl : DataManager.layers) {
-                    tl.setOverlay(layersOverlay);
+                    FolderOverlay fo = new FolderOverlay();
+                    layersOverlay.add(fo);
+
+                    tl.setOverlay(fo);
                     tl.refresh();
 
                     tl.setOnClickListener(new View.OnClickListener() {
