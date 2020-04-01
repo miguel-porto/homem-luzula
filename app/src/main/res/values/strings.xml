@@ -76,5 +76,10 @@
     <string name="ate">até</string>
     <string name="tracklogs">TrackLogs</string>
     <string name="exportar">Exportar</string>
+    <string name="abundancia">abundância</string>
+    <string name="espontaneidade">espontaneidade</string>
+    <string name="formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon">Formato Geojson (apenas LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON)</string>
+    <string name="apagar_todos">Apagar todos</string>
+    <string name="adicionar">Adicionar</string>
 
 </resources>

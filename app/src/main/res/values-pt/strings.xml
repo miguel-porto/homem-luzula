@@ -19,4 +19,9 @@
     <string name="tracklogs">TrackLogs</string>
     <string name="exportar">Exportar</string>
     <string name="digite_a_letra_do_genero_e_as_da_especie_ou_infrataxon">digite a 1ª letra do género e as %d primeiras da espécie (ou infrataxon)</string>
+    <string name="abundancia">abundância</string>
+    <string name="espontaneidade">espontaneidade</string>
+    <string name="formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon">Formato Geojson (apenas LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON)</string>
+    <string name="apagar_todos">Apagar todos</string>
+    <string name="adicionar">Adicionar</string>
 </resources>

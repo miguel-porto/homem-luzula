@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/spi_naturstate"
                 android:layout_weight="1"
-                android:hint="espontaneidade" />
+                android:hint="@string/espontaneidade" />
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
@@ -56,7 +56,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/text_abundance"
-                    android:hint="abundância" />
+                    android:inputType="numberDecimal"
+                    android:hint="@string/abundancia" />
+
             </android.support.design.widget.TextInputLayout>
 
             <pt.flora_on.homemluzula.ClickToSelectEditText

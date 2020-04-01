@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Apagar todos" />
+            android:text="@string/apagar_todos" />
 
     </LinearLayout>
 
@@ -60,7 +60,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Formato Geojson (apenas LINESTRING, MULTILINESTRING e POLYGON)" />
+        android:text="@string/formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -73,7 +73,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Adicionar" />
+            android:text="@string/adicionar" />
 
         <Button
             android:id="@+id/removelayers"

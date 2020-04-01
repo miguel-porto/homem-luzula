@@ -26,6 +26,7 @@ import com.github.filosganga.geogson.model.FeatureCollection;
 import com.github.filosganga.geogson.model.LineString;
 import com.github.filosganga.geogson.model.positions.AreaPositions;
 import com.github.filosganga.geogson.model.positions.LinearPositions;
+import com.github.filosganga.geogson.model.positions.MultiDimensionalPositions;
 import com.github.filosganga.geogson.model.positions.SinglePosition;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -424,6 +425,14 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             }
 
                             switch(f.geometry().type().getValue().toUpperCase()) {
+                                case "MULTIPOLYGON":
+                                    for(AreaPositions ap : ((MultiDimensionalPositions) f.geometry().positions()).children()) {
+                                        for(LinearPositions lp : ap.children()) {
+                                            addLineStringToTracklog(lp, tl, st, et);
+                                        }
+                                    }
+                                    break;
+
                                 case "POLYGON":
                                 case "MULTILINESTRING":
                                     for(LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
