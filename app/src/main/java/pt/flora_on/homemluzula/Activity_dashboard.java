@@ -18,6 +18,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.filosganga.geogson.gson.GeometryAdapterFactory;
@@ -97,6 +98,18 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         ((EditText) findViewById(R.id.inventory_prefix)).setText(ip);
         ((EditText) findViewById(R.id.inventory_zeropad)).setText(((Integer) zp).toString());
 
+        /*
+         * Show list of inventories
+         */
+        findViewById(R.id.statustext).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(Activity_dashboard.this, InventoryShow.class));
+            }
+        });
+
+        ((TextView) findViewById(R.id.statustext)).setText(String.format(Locale.getDefault(), getString(R.string.n_inventoryies),
+                DataManager.allData.getSpeciesLists().size()));
         refreshLayerList();
     }
 
@@ -106,7 +119,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         for(LineLayer ll : DataManager.layers) {
             final CheckBox cb = new CheckBox(this);
             cb.setText(ll.getLayerName());
-            cb.setChecked(ll.getOverlay().isEnabled());
+            cb.setChecked(ll.isVisible());
             cb.setTextSize(18);
             cb.setOnCheckedChangeListener(this);
             cb.setTag(ll);
@@ -374,7 +387,6 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                         ((MainMap) mainActivity).getLayersOverlay().add(fo);
                         LineLayer tmp = new LineLayer(fo);
                         DataManager.layers.add(tmp);
-                        tmp.setSolidLayer(true);
                         String result = resultData.getData().getPath();
                         int cut = result.lastIndexOf('/');
                         if (cut != -1) {
@@ -468,6 +480,6 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
         final LineLayer ll = (LineLayer) compoundButton.getTag();
-        ll.getOverlay().setEnabled(compoundButton.isChecked());
+        ll.setVisible(compoundButton.isChecked());
     }
 }

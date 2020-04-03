@@ -92,6 +92,7 @@
                 android:id="@+id/mira" />
 
             <LinearLayout
+                android:id="@+id/topbar"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -115,6 +116,7 @@
                             android:background="@android:color/transparent"
                             app:srcCompat="@drawable/ic_menu_black_24dp" />
 
+<!--
                         <TextView
                             android:id="@+id/statustext"
                             android:layout_width="wrap_content"
@@ -122,6 +124,7 @@
                             android:gravity="center_vertical"
                             android:textColor="@android:color/white"
                             android:textSize="18sp" />
+-->
 
                         <ImageView
                             android:id="@+id/add_location"
@@ -210,6 +213,16 @@
                         app:srcCompat="@drawable/ic_point" />
 
                     <ImageButton
+                        android:id="@+id/show_POI"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="false"
+                        android:background="@android:color/transparent"
+                        android:cropToPadding="false"
+                        app:srcCompat="@drawable/ic_redsquare" />
+
+                    <ImageButton
                         android:id="@+id/show_inventories"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
@@ -218,7 +231,8 @@
                         android:background="@android:color/transparent"
                         android:cropToPadding="false"
                         app:srcCompat="@drawable/ic_square" />
-<!--
+
+                    <!--
                     <ImageView
                         android:id="@+id/download_tiles"
                         android:layout_width="36dp"
@@ -226,107 +240,6 @@
                         android:layout_gravity="center"
                         app:srcCompat="@android:drawable/stat_sys_download" />
 -->
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/edit_label_box"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:visibility="gone">
-
-                    <pt.flora_on.homemluzula.EditTextBackEvent
-                        android:id="@+id/POILabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ems="10"
-                        android:hint="Título do ponto"
-                        android:inputType="text|textPersonName"
-                        android:textSize="24sp"
-                        android:visibility="visible" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="end"
-                        android:orientation="horizontal">
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#ff0000"
-                            android:onClick="colorButtonClick" />
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#d500f9"
-                            android:onClick="colorButtonClick" />
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#008eff"
-                            android:onClick="colorButtonClick" />
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#FFFF00"
-                            android:onClick="colorButtonClick" />
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#38ce3e"
-                            android:onClick="colorButtonClick" />
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#ef6c00"
-                            android:onClick="colorButtonClick" />
-
-                        <Button
-                            style="@style/color_button"
-                            android:background="#0000ff"
-                            android:onClick="colorButtonClick" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/tracklog_times"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal"
-                        android:visibility="visible">
-
-                        <TextView
-                            android:id="@+id/tracklog_length"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="0" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="0"
-                            android:text="; de:" />
-
-                        <TextView
-                            android:id="@+id/tr_start"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="0"
-                            android:text="@string/ate" />
-
-                        <TextView
-                            android:id="@+id/tr_end"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1" />
-
-                    </LinearLayout>
-
                 </LinearLayout>
 
             </LinearLayout>

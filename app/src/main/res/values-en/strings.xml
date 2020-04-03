@@ -24,4 +24,5 @@
     <string name="formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon">Geojson format (only LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON)</string>
     <string name="apagar_todos">Delete all</string>
     <string name="adicionar">Add</string>
+    <string name="n_inventoryies">%d inventories</string>
 </resources>

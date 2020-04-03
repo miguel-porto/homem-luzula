@@ -21,6 +21,7 @@
     <string name="delete_track">Apagar\ntrack</string>
     <string name="delete_layer">Apagar\nlayer</string>
     <string name="cut_track">Cortar\ntrack</string>
+    <string name="n_inventoryies">%d inventários</string>
 
     <!-- Strings related to Settings -->
 
@@ -81,5 +82,6 @@
     <string name="formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon">Formato Geojson (apenas LINESTRING, MULTILINESTRING, POLYGON, MULTIPOLYGON)</string>
     <string name="apagar_todos">Apagar todos</string>
     <string name="adicionar">Adicionar</string>
+    <string name="t_tulo_do_ponto">Título do ponto</string>
 
 </resources>

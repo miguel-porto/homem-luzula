@@ -90,13 +90,22 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"></LinearLayout>
 
-            <TextView
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Inventários"
         style="@style/textseparator" />
 
-    <LinearLayout
+
+            <TextView
+                android:id="@+id/statustext"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:textSize="18sp"
+                android:text="lista" />
+
+            <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center|center_vertical"

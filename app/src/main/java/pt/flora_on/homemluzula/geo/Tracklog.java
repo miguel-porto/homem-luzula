@@ -26,7 +26,7 @@ import pt.flora_on.homemluzula.HomemLuzulaApp;
 
 public class Tracklog implements Iterable<Tracklog.Segment>, Serializable, Layer {
     private List<Segment> tracklog = new ArrayList<>();
-    private transient FolderOverlay folder;
+    transient FolderOverlay folder;
     private transient Segment selectedSegment;
     transient View.OnClickListener clickListener;
     public transient Map<Segment, Polyline> map;

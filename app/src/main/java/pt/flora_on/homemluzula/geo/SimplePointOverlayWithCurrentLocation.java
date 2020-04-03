@@ -29,7 +29,7 @@ import pt.flora_on.homemluzula.MainMap;
  * Created by Miguel Porto on 12-10-2016.
  */
 
-public class SimplePointOverlayWithTracklog extends SimpleFastPointOverlay {
+public class SimplePointOverlayWithCurrentLocation extends SimpleFastPointOverlay {
 //    private Tracklog mTracklog = new Tracklog();
     private Location currentLocation;
     private Drawable youAreHere;
@@ -40,7 +40,7 @@ public class SimplePointOverlayWithTracklog extends SimpleFastPointOverlay {
     private final Paint mDistanceLineMarkers = new Paint();
     private GeoPoint mPt1, mPt2;
 
-    public SimplePointOverlayWithTracklog(PointAdapter pointList, SimpleFastPointOverlayOptions style) {
+    public SimplePointOverlayWithCurrentLocation(PointAdapter pointList, SimpleFastPointOverlayOptions style) {
         super(pointList, style);
         mDistanceLinePaint.setStrokeWidth(12);
         mDistanceLinePaint.setColor(Color.CYAN);

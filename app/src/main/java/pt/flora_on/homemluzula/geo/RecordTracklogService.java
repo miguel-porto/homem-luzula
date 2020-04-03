@@ -41,7 +41,7 @@ public class RecordTracklogService extends Service {
             if (MainMap.theMap == null || MainMap.inventoryLayer == null) return;
 
             //IGeoPoint tmp = new GeoPoint(location.getLatitude()+ (float) Math.random()*0.1f, location.getLongitude() + (float) Math.random()*0.1f);
-            MainMap.inventoryLayer.setCurrentLocation(location);
+            MainMap.currentLocationLayer.setCurrentLocation(location);
             if(MainMap.recordTracklog) {
                 GeoPoint pt2;
                 Double dist;

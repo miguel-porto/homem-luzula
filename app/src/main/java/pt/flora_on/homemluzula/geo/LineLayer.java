@@ -1,6 +1,7 @@
 package pt.flora_on.homemluzula.geo;
 
 import android.graphics.Color;
+import android.graphics.Paint;
 
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -11,8 +12,10 @@ import java.io.Serializable;
 
 public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, Serializable, Layer {
     private Integer color = Color.YELLOW;
+    private float width = 2;
     private String layerName;
-    private boolean solidLayer = false;     // true: don't select individual polyylines but the whole layer
+    private boolean solidLayer = true;     // true: don't select individual polylines but the whole layer
+    private boolean visible = true;
 
     public LineLayer(FolderOverlay folder) {
         super(folder);
@@ -24,6 +27,31 @@ public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, S
 
     public void setLayerName(String layerName) {
         this.layerName = layerName;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public void setWidth(float width) {
+        this.width = width;
+        for(Polyline pl : this.map.values()) {
+            if(pl != null) pl.getOutlinePaint().setStrokeWidth(width);
+        }
+    }
+
+    public void setOverlay(FolderOverlay ovr) {
+        this.folder = ovr;
+        ovr.setEnabled(this.visible);
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+        this.getOverlay().setEnabled(visible);
     }
 
     public void setSolidLayer(boolean solidLayer) {
@@ -45,7 +73,9 @@ public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, S
         else
             pl.getOutlinePaint().setColor(plist.getColor());
 
-        pl.getOutlinePaint().setStrokeWidth(TRACKLOGWIDTH);
+        pl.getOutlinePaint().setStrokeWidth(this.width);
+        pl.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
+        pl.getOutlinePaint().setShadowLayer(30, 0, 0, Color.BLACK);
         if(plist != null) {
             for (GeoTimePoint gtp : plist)
                 pl.addPoint(gtp);
@@ -61,7 +91,6 @@ public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, S
         this.color = color;
         for(Polyline pl : this.map.values()) {
             if(pl != null) pl.getOutlinePaint().setColor(color);
-//            this.tracklog.get(i).setColor(color);
         }
     }
 

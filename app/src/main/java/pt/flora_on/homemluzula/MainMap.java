@@ -91,7 +91,7 @@ import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
 import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.RecordTracklogService;
-import pt.flora_on.homemluzula.geo.SimplePointOverlayWithTracklog;
+import pt.flora_on.homemluzula.geo.SimplePointOverlayWithCurrentLocation;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
@@ -121,12 +121,15 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     static public GeoTimePoint lastLocation;
     private LocationManager locationManager;
     //private VectorMapView map;
+
     static public MapView theMap;
     private SimpleFastPointOverlay basePointLayer, otherPointLayer;  // this is a static point layer to display underneath
     private SimpleFastPointOverlay POIPointLayer;   // this is an interactive simple point layer (only coordinates)
-    static public SimplePointOverlayWithTracklog inventoryLayer;  // this is the real inventory layer
+    static public SimpleFastPointOverlay inventoryLayer;  // this is the real inventory layer
+    static public SimplePointOverlayWithCurrentLocation currentLocationLayer;  // this is the real inventory layer
     protected FolderOverlay trackLogOverlay = new FolderOverlay();
     protected FolderOverlay layersOverlay = new FolderOverlay();
+
     static public boolean lockOnCurrentLocation = true;
     static public boolean recordTracklog = false;
     static public boolean breakTrackAtNextFix = false;
@@ -508,6 +511,11 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         checklist.setNFirst(Integer.parseInt(preferences.getString("pref_ngenusletters", "1")));
         checklist.setNLast(Integer.parseInt(preferences.getString("pref_nspeciesletters", "3")));
 
+        View bar = findViewById(R.id.edit_label_box);
+        if(bar == null) {
+            getLayoutInflater().inflate(R.layout.edit_properties, findViewById(R.id.topbar));
+
+        }
         createQuickAccessButtons();
         updateStatusBar();
         refreshFrequencies();
@@ -571,16 +579,6 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
-        /**
-         * Show list of inventories
-         */
-        View.OnClickListener tmp = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                internalNavigation = true;
-                startActivity(new Intent(MainMap.this, InventoryShow.class));
-            }
-        };
         findViewById(R.id.showinventories).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -588,7 +586,6 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 startActivityForResult(dash, DASHBOARD);
             }
         });
-        findViewById(R.id.statustext).setOnClickListener(tmp);
 
         findViewById(R.id.bottombutton_2).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -788,6 +785,26 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
+        findViewById(R.id.show_POI).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final ImageButton tb = (ImageButton) v;
+                if(tb.getTag() == null) tb.setTag(true);
+                tb.setTag(!((boolean) tb.getTag()));
+
+                if((boolean) tb.getTag()) {
+                    tb.setImageResource(R.drawable.ic_redsquare);
+                    POIPointLayer.setEnabled(true);
+                } else {
+                    tb.setImageResource(R.drawable.ic_redsquare_no);
+                    POIPointLayer.setEnabled(false);
+                }
+                theMap.invalidate();
+            }
+        });
+
+
+
         findViewById(R.id.show_tracklog).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -843,8 +860,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if(getTracklogInterval() == 0) {    // switch it off
                     if(checkGPSPermission()) {
                         setGPSEnabled(false);
-                        if (inventoryLayer != null)
-                            inventoryLayer.setCurrentLocation((Location) null);
+                        if (currentLocationLayer != null)
+                            currentLocationLayer.setCurrentLocation((Location) null);
                         theMap.invalidate();
                         final ImageButton tb = (ImageButton) findViewById(R.id.toggleGPS);
                         tb.setTag(false);
@@ -894,6 +911,24 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     return true;
                 }
                 return false;
+            }
+        });
+
+        ((SeekBar) findViewById(R.id.trackWidth)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                DataManager.layers.get(DataManager.getSelectedLayer()).setWidth((float) i / 10);
+                theMap.invalidate();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
             }
         });
 
@@ -976,7 +1011,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
                 if(event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN && event.getEventTime() - finger1Time > 150) {
                     finger2 = (GeoPoint) theMap.getProjection().fromPixels((int) event.getX(1), (int) event.getY(1));
-                    inventoryLayer.setDistanceLine(finger1, finger2);
+                    currentLocationLayer.setDistanceLine(finger1, finger2);
                     theMap.invalidate();
                     theMap.requestLayout();
 //                    Log.i("PC", "onTouch: "+event.getPointerCount()+" "+event.getPointerId(0));
@@ -1003,11 +1038,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         theMap.addMapListener(new MapListener() {
             private void updateCoordinates() {
                 GeoPoint center = (GeoPoint) theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
-                if(lastLocation != null) {
-                    ((TextView) findViewById(R.id.view_distance)).setText(formatDistance(
-                            center.distanceToAsDouble(new GeoPoint(lastLocation))
-                    ));
-                }
+                updateDistanceToCenter(center);
                 ((TextView) findViewById(R.id.view_latitude)).setText(String.format(Locale.getDefault(), "%.5f", center.getLatitude()));
                 ((TextView) findViewById(R.id.view_longitude)).setText(String.format(Locale.getDefault(), "%.5f", center.getLongitude()));
                 ((TextView) findViewById(R.id.zoomlevel)).setText(String.format(Locale.getDefault(), "%.1f", theMap.getZoomLevelDouble()));
@@ -1110,11 +1141,12 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 .setPointStyle(tmp1).setTextStyle(tmp2)
                 .setAlgorithm(SimpleFastPointOverlayOptions.RenderingAlgorithm.MEDIUM_OPTIMIZATION)
                 .setRadius(8f);
-        inventoryLayer = new SimplePointOverlayWithTracklog(DataManager.allData, opt);
+        inventoryLayer = new SimpleFastPointOverlay(DataManager.allData, opt);
+        currentLocationLayer = new SimplePointOverlayWithCurrentLocation(new Inventories(), opt);
         if(DataManager.allData.size() > 0) inventoryLayer.setSelectedPoint(DataManager.allData.size() - 1);
 //        inventoryLayer.setTracklogObject(DataSaver.tracklog);
-        inventoryLayer.setYouAreHereDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.seta2, null));
-        inventoryLayer.setOnClickListener(new SimplePointOverlayWithTracklog.OnClickListener() {
+        currentLocationLayer.setYouAreHereDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.seta2, null));
+        inventoryLayer.setOnClickListener(new SimplePointOverlayWithCurrentLocation.OnClickListener() {
             @Override
             public void onClick(SimpleFastPointOverlay.PointAdapter points, Integer point) {
 //                if(!inventoryLayer.isEnabled()) return;
@@ -1127,6 +1159,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
         theMap.getOverlays().add(inventoryLayer);
+        theMap.getOverlays().add(currentLocationLayer);
 /*
 final Gson gs1 = new GsonBuilder().setPrettyPrinting().create();
 try {
@@ -1160,6 +1193,14 @@ try {
 
     }
 
+    private void updateDistanceToCenter(GeoPoint center) {
+        if(lastLocation != null) {
+            ((TextView) findViewById(R.id.view_distance)).setText(formatDistance(
+                    center.distanceToAsDouble(new GeoPoint(lastLocation))
+            ));
+        }
+    }
+
     private int getTracklogIcon() {
         ImageButton tb = (ImageButton) findViewById(R.id.show_tracklog);
 
@@ -1182,6 +1223,7 @@ try {
         ((EditText) findViewById(R.id.POILabel)).setHint("título do ponto");
         findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
         findViewById(R.id.tracklog_times).setVisibility(View.GONE);
+        findViewById(R.id.trackWidth).setVisibility(View.GONE);
     }
 
     private void showTrackEditBox() {
@@ -1189,6 +1231,7 @@ try {
         ((EditText) findViewById(R.id.POILabel)).setHint("título da track");
         findViewById(R.id.tracklog_times).setVisibility(View.VISIBLE);
         findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
+        findViewById(R.id.trackWidth).setVisibility(View.GONE);
     }
 
     private void showLayerEditBox() {
@@ -1196,6 +1239,7 @@ try {
         ((EditText) findViewById(R.id.POILabel)).setHint("título da layer");
         findViewById(R.id.tracklog_times).setVisibility(View.INVISIBLE);
         findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
+        findViewById(R.id.trackWidth).setVisibility(View.VISIBLE);
     }
 
     private void setButtonLayout(BUTTONLAYOUT layout) {
@@ -1482,7 +1526,7 @@ try {
     }
 
     private void updateStatusBar() {
-        ((TextView) findViewById(R.id.statustext)).setText(String.format(Locale.getDefault(), "%d inv.", DataManager.allData.getSpeciesLists().size()));
+//        ((TextView) findViewById(R.id.statustext)).setText(String.format(Locale.getDefault(), "%d inv.", DataManager.allData.getSpeciesLists().size()));
     }
 
     private int getTracklogInterval() {
@@ -1852,7 +1896,7 @@ try {
                 if(DataManager.layers == null) DataManager.layers = new ArrayList<>();
 
 //                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
-                for(Tracklog tl : DataManager.layers) {
+                for(LineLayer tl : DataManager.layers) {
                     FolderOverlay fo = new FolderOverlay();
                     layersOverlay.add(fo);
 
@@ -1869,6 +1913,7 @@ try {
                             ((EditText) findViewById(R.id.POILabel)).setText(
                                     DataManager.layers.get(DataManager.getSelectedLayer()).getLayerName()
                             );
+                            ((SeekBar) findViewById(R.id.trackWidth)).setProgress((int) (DataManager.layers.get(DataManager.getSelectedLayer()).getWidth() * 10));
                             showLayerEditBox();
                         }
                     });
