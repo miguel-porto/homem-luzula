@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -10,79 +9,116 @@
         android:background="?attr/colorPrimary"
         android:id="@+id/dash_toolbar" />
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
         <LinearLayout
             android:orientation="vertical" android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/textView3"
-            android:focusable="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/tracklogs"
-            style="@style/textseparator" />
+            <TextView
+                android:focusable="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Checklist"
+                style="@style/textSeparator" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/exporttracks"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:focusable="true"
-            android:text="@string/exportar" />
+                <Button
+                    android:id="@+id/importchecklist"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Importar" />
 
-        <Button
-            android:id="@+id/importtracks"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Importar" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:text="Importa ficheiro de texto com os nomes dos taxa todos numa coluna" />
 
-        <Button
-            android:id="@+id/deletetracks"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/apagar_todos" />
+            </LinearLayout>
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/clear_checklist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Limpar checklist" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Layers"
-        style="@style/textseparator" />
+            <TextView
+                android:focusable="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/tracklogs"
+                style="@style/textSeparator" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center|center_vertical"
-        android:orientation="horizontal">
+                <Button
+                    android:id="@+id/exporttracks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:focusable="true"
+                    android:text="@string/exportar" />
 
-        <Button
-            android:id="@+id/importlayer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/adicionar" />
+                <Button
+                    android:id="@+id/importtracks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/importar" />
 
-        <Button
-            android:id="@+id/removelayers"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Apagar todas" />
+                <Button
+                    android:id="@+id/deletetracks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/apagar_todos" />
 
-    </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/layers"
+                style="@style/textSeparator" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/formato_geojson_apenas_linestring_multilinestring_polygon_multipolygon" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/importlayer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/adicionar" />
+
+                <Button
+                    android:id="@+id/removelayers"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Apagar todas" />
+
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/layer_manager"
@@ -90,11 +126,11 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"></LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Inventários"
-        style="@style/textseparator" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/inventories"
+                style="@style/textSeparator" />
 
 
             <TextView
@@ -103,75 +139,79 @@
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:textSize="18sp"
+                android:padding="8dp"
                 android:text="lista" />
 
             <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center|center_vertical"
-        android:orientation="horizontal">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center|center_vertical"
+                android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/importinventories"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Importar" />
+                <Button
+                    android:id="@+id/importinventories"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Importar" />
 
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:text="Importa ficheiro de texto com 3 colunas: nome, latitude, longitude" />
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:text="Importa ficheiro de texto com 3 colunas: nome, latitude, longitude" />
+            </LinearLayout>
+            <!--
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Numeração automática"
+                            android:textColor="@android:color/holo_blue_light"
+                            android:padding="0dp"
+                            android:textSize="16sp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Numeração automática"
-        android:textColor="@android:color/holo_blue_light"
-        android:padding="0dp"
-        android:textSize="16sp" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/inventory_prefix"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="Prefixo"
-            android:inputType="textPersonName" />
+                            <EditText
+                                android:id="@+id/inventory_prefix"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:ems="10"
+                                android:hint="Prefixo"
+                                android:inputType="textPersonName" />
 
-        <EditText
-            android:id="@+id/inventory_zeropad"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:ems="10"
-            android:hint="nº dígitos"
-            android:inputType="number" />
-    </LinearLayout>
+                            <EditText
+                                android:id="@+id/inventory_zeropad"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:ems="10"
+                                android:hint="nº dígitos"
+                                android:inputType="number" />
+            </LinearLayout>
+            -->
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="User interface"
-        style="@style/textseparator" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/user_interface"
+                style="@style/textSeparator" />
 
-    <Button
-        android:id="@+id/clear_pinned_species"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Limpar pinned species" />
+            <Button
+                android:id="@+id/clear_pinned_species"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/limpar_pinned_species" />
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
         </LinearLayout>
+    </ScrollView>
 </LinearLayout>

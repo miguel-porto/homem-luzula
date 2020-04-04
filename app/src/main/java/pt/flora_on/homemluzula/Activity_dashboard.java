@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -38,12 +39,18 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.osmdroid.views.overlay.FolderOverlay;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -73,6 +80,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
     private static final int OPEN_GEOJSON = 42;
     private static final int OPEN_POINTLIST = 43;
     private static final int OPEN_GEOJSONASLAYER = 44;
+    private static final int OPEN_CHECKLIST = 45;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,19 +92,25 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
         prefs = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
 
+/*
         String ip = prefs.getString("inventory_prefix", "");
         int zp = prefs.getInt("inventory_zeropad", 3);
+*/
 
         findViewById(R.id.exporttracks).setOnClickListener(this);
         findViewById(R.id.deletetracks).setOnClickListener(this);
         findViewById(R.id.importtracks).setOnClickListener(this);
+        findViewById(R.id.importchecklist).setOnClickListener(this);
+        findViewById(R.id.clear_checklist).setOnClickListener(this);
         findViewById(R.id.importinventories).setOnClickListener(this);
         findViewById(R.id.importlayer).setOnClickListener(this);
         findViewById(R.id.removelayers).setOnClickListener(this);
         findViewById(R.id.clear_pinned_species).setOnClickListener(this);
 
+/*
         ((EditText) findViewById(R.id.inventory_prefix)).setText(ip);
         ((EditText) findViewById(R.id.inventory_zeropad)).setText(((Integer) zp).toString());
+*/
 
         /*
          * Show list of inventories
@@ -131,10 +145,12 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
     protected void onDestroy() {
         super.onDestroy();
 
+/*
         SharedPreferences.Editor edt = prefs.edit();
         edt.putString("inventory_prefix", ((EditText) findViewById(R.id.inventory_prefix)).getText().toString());
-        edt.putInt("inventory_zeropad", Integer.parseInt(((EditText) findViewById(R.id.inventory_zeropad)).getText().toString()));
+        edt.putString("inventory_zeropad", "3");
         edt.apply();
+*/
     }
 
     @Override
@@ -179,6 +195,23 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("*/*");
                 startActivityForResult(intent, OPEN_GEOJSONASLAYER);
+                break;
+
+            case R.id.importchecklist:
+                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                startActivityForResult(intent, OPEN_CHECKLIST);
+                break;
+
+            case R.id.clear_checklist:
+                File extStoreDir = Environment.getExternalStorageDirectory();
+                File invdir = new File(extStoreDir, "homemluzula");
+                File chk1 = new File(invdir, "checklist.txt");
+                if(chk1.exists())
+                    chk1.delete();
+                ((MainMap) mainActivity).readChecklist();
+                finish();
                 break;
 
             case R.id.clear_pinned_species:
@@ -332,6 +365,31 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         }
     }
 
+    private void savefile(Uri sourceuri, File file) {
+        BufferedInputStream bis = null;
+        BufferedOutputStream bos = null;
+
+        try {
+            bis = new BufferedInputStream(getContentResolver().openInputStream(sourceuri));
+            bos = new BufferedOutputStream(new FileOutputStream(file));
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = bis.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bis != null) bis.close();
+                if (bos != null) bos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         Uri uri;
@@ -341,6 +399,24 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
         if (resultCode == Activity.RESULT_OK) {
             switch(requestCode) {
+                case OPEN_CHECKLIST:
+                    if (resultData != null) {
+                        File extStoreDir = Environment.getExternalStorageDirectory();
+                        File invdir = new File(extStoreDir, "homemluzula");
+                        uri = resultData.getData();
+                        if (uri == null) return;
+                        File chk = new File(invdir, "checklist.txt");
+                        try {
+                            chk.createNewFile();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        savefile(uri, chk);
+                    }
+                    ((MainMap) mainActivity).readChecklist();
+                    finish();
+                    break;
+
                 case OPEN_POINTLIST:
                     if (resultData != null) {
                         uri = resultData.getData();

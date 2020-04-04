@@ -54,6 +54,7 @@
     <PreferenceCategory
         android:title="Inventários"
         android:layout="@layout/preference_category">
+
         <SwitchPreference
             android:switchTextOff="Usar numeração sequencial"
             android:switchTextOn="Não usar numeração"
@@ -61,6 +62,23 @@
             android:key="pref_inventorylabels"
             android:disableDependentsState="false"
             android:title="Numeração dos inventários"/>
+
+
+        <pt.flora_on.homemluzula.EditSummaryPreference
+            android:key="inventory_prefix"
+            android:defaultValue="P"
+            android:hint="Prefixo"
+            android:dependency="pref_inventorylabels"
+            android:inputType="textPersonName" />
+
+        <ListPreference
+            android:defaultValue="3"
+            android:entries="@array/pref_inventory_zeropad"
+            android:entryValues="@array/pref_inventory_zeropad"
+            android:key="inventory_zeropad"
+            android:summary="%s"
+            android:dependency="pref_inventorylabels"
+            android:title="Número de dígitos" />
 
         <ListPreference
             android:defaultValue="6"

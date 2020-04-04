@@ -15,6 +15,18 @@
         android:paddingBottom="10dp"
         android:paddingTop="10dp" />
 
+    <TextView
+        android:text="sensu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/specbutsensu"
+        android:textSize="12sp"
+        android:gravity="center_vertical"
+        android:background="@color/colorPrimaryDark"
+        android:paddingBottom="0dp"
+        android:visibility="gone"
+        android:paddingTop="0dp" />
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"

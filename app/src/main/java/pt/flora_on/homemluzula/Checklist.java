@@ -1,5 +1,7 @@
 package pt.flora_on.homemluzula;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +27,7 @@ import pt.flora_on.observation_data.Taxon;
 
 public class Checklist {
     private final Map<Taxon, Integer> checklist = new LinkedHashMap<Taxon, Integer>();
+    private final List<String> errors = new ArrayList<>();
     /**
      * nFirst: number of letter of the genus to be input
      * nLast: number of letters of the last infrarank to be input
@@ -38,14 +41,23 @@ public class Checklist {
     public Checklist(InputStream checklistFile) throws IOException {
         String line;
         BufferedReader br = new BufferedReader(new InputStreamReader(checklistFile));
+        Taxon taxon;
         while((line = br.readLine()) != null) {
+            if(line.trim().length() == 0) continue;
             try {
-                this.checklist.put(new Taxon(line), 0);
+                this.checklist.put(taxon = new Taxon(line), 0);
+                if(taxon.hasInfraTaxa())
+                    this.checklist.put(taxon.getSpeciesTaxon(), 0);
             } catch (InvalidParameterException e) {
-                // just skip line
+                Log.w("CHK", e.getMessage());
+                errors.add(line);
             }
         }
         br.close();
+    }
+
+    public List<String> getErrors() {
+        return this.errors;
     }
 
     public int size() {

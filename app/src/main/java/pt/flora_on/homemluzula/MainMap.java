@@ -932,6 +932,9 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
+        if(MainMap.checklist.getErrors().size() > 0)
+            Toast.makeText(getApplicationContext(), "Found " + MainMap.checklist.getErrors().size() + " errors while reading checklist file.", Toast.LENGTH_LONG).show();
+
 /*
         map = (VectorMapView) findViewById(R.id.themap);
         List<PointF> points = new ArrayList<>();
@@ -1808,6 +1811,33 @@ try {
     public void onStopTrackingTouch(SeekBar seekBar) {
     }
 
+    public void readChecklist() {
+        // Read species checklist
+//            String extStore = Environment.getExternalStorageDirectory().getAbsolutePath();// System.getenv("EXTERNAL_STORAGE");
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        File invDir = new File(extStoreDir, "homemluzula");
+        File chk = new File(invDir,"checklist.txt");
+        try {
+            if(!chk.exists() || !chk.canRead())
+                MainMap.checklist = new Checklist(getResources().openRawResource(R.raw.checklist2));
+            else
+                MainMap.checklist = new Checklist(new FileInputStream(chk));
+        } catch (IOException e) {
+            new AlertDialog.Builder(MainMap.this)
+                    .setTitle("Error")
+                    .setCancelable(false)
+                    .setMessage(e.getMessage())
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            MainMap.this.finishAffinity();
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+            finish();
+        }
+    }
+
     private class InitialLoad extends AsyncTask<Void, Integer, Void> {
 
         @Override
@@ -1817,31 +1847,16 @@ try {
 
         @Override
         protected Void doInBackground(Void... params) {
-            // Read species checklist
-//            String extStore = Environment.getExternalStorageDirectory().getAbsolutePath();// System.getenv("EXTERNAL_STORAGE");
+            ((TextView) findViewById(R.id.loadstatus)).setText("checklist");
+            readChecklist();
+
             File extStoreDir = Environment.getExternalStorageDirectory();
-            File invdir = new File(extStoreDir, "homemluzula");
-//        File chk = new File(extStore + "/checklist.txt");
-            try {
-                MainMap.checklist = new Checklist(getResources().openRawResource(R.raw.checklist));
-            } catch (IOException e) {
-                new AlertDialog.Builder(MainMap.this)
-                        .setTitle("Error")
-                        .setCancelable(false)
-                        .setMessage(e.getMessage())
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                MainMap.this.finishAffinity();
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-                finish();
-            }
+            File invDir = new File(extStoreDir, "homemluzula");
 
             // Read tracklog
+            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.tracklog);
             FileInputStream fin;
-            File file = new File(invdir, "tracklog.bin");
+            File file = new File(invDir, "tracklog.bin");
             if(!file.exists())
                 DataManager.tracklog = new Tracklog(trackLogOverlay);
             else {
@@ -1880,7 +1895,8 @@ try {
             }
 
             // Read layers
-            file = new File(invdir, "layers.bin");
+            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.layers);
+            file = new File(invDir, "layers.bin");
             if(!file.exists())
                 DataManager.layers = new ArrayList<>();
             else {
@@ -1940,10 +1956,11 @@ try {
 */
 
             // Read from directory
+            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.inventories);
             DataManager.allData = new Inventories();
             int counter = 0;
-            if(invdir.exists()) {
-                for (File inv : invdir.listFiles(new FilenameFilter() {
+            if(invDir.exists()) {
+                for (File inv : invDir.listFiles(new FilenameFilter() {
                     @Override
                     public boolean accept(File file, String s) {
                         return s.endsWith(".json");
@@ -2020,6 +2037,7 @@ try {
             });
 
             // Read base point theme
+            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.base_points);
             try {
                 basePointTheme = SimplePointTheme.fromJSON(new FileInputStream(new File(extStoreDir, "basetheme.json")), false);
             } catch (IOException e) {
@@ -2036,6 +2054,7 @@ try {
 //            basePointTheme.syncronizeGeoPoints();
 
             // Read POI theme
+            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.POIs);
             try {
 //                DataSaver.POIPointTheme = SimplePointTheme.fromJSON(new FileInputStream(extStore + "/POI.json"), false);
                 DataManager.POIPointTheme = SimplePointTheme.fromXYLabelColor(new FileInputStream(new File(extStoreDir, "/POI.txt")));

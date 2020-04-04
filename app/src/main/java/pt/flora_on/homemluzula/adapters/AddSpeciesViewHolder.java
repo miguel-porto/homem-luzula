@@ -13,6 +13,7 @@ import pt.flora_on.observation_data.TaxonObservation;
 public class AddSpeciesViewHolder extends RecyclerView.ViewHolder {
     public final View main_view;
     public final View speciesname;
+    public final View speciessensu;
     public final View but_flor;
     public final View but_veget;
     public final View but_dispers;
@@ -33,6 +34,7 @@ public class AddSpeciesViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
         main_view = itemView;
         speciesname = itemView.findViewById(R.id.specbutlab);
+        speciessensu = itemView.findViewById(R.id.specbutsensu);
         but_flor = itemView.findViewById(R.id.but_flor);
 //            but_dorm = v.findViewById(R.id.but_dorm);
         but_veget = itemView.findViewById(R.id.but_veget);
@@ -57,6 +59,13 @@ public class AddSpeciesViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void setSpeciesName(String name) {
+        String[] sensu = name.split("sensu");
+        if(sensu.length > 1) {
+            name = sensu[0];
+            ((TextView) speciessensu).setText("sensu " + sensu[1]);
+            speciessensu.setVisibility(View.VISIBLE);
+        } else
+            speciessensu.setVisibility(View.GONE);
         ((TextView) speciesname).setText(name);
         speciesname.setTag(new TaxonObservation(name, Constants.PhenologicalState.NULL));
         but_flor.setTag(new TaxonObservation(name, Constants.PhenologicalState.FLOWER));

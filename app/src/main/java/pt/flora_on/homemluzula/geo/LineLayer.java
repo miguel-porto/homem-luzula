@@ -74,8 +74,8 @@ public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, S
             pl.getOutlinePaint().setColor(plist.getColor());
 
         pl.getOutlinePaint().setStrokeWidth(this.width);
-        pl.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
-        pl.getOutlinePaint().setShadowLayer(30, 0, 0, Color.BLACK);
+//        pl.getOutlinePaint().setStrokeCap(Paint.Cap.ROUND);
+//        pl.getOutlinePaint().setShadowLayer(30, 0, 0, Color.BLACK);
         if(plist != null) {
             for (GeoTimePoint gtp : plist)
                 pl.addPoint(gtp);

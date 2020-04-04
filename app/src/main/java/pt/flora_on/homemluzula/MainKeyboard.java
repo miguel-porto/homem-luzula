@@ -254,7 +254,7 @@ public class MainKeyboard extends AppCompatActivity {
         };
 
         String ip = preferences.getString("inventory_prefix", "");
-        int zp = preferences.getInt("inventory_zeropad", 3);
+        int zp = Integer.parseInt(Objects.requireNonNull(preferences.getString("inventory_zeropad", "3")));
         boolean autonumber = preferences.getBoolean("pref_inventorylabels", true);
 
         if(intent.hasExtra("specieslist")) {

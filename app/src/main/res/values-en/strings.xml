@@ -25,4 +25,14 @@
     <string name="apagar_todos">Delete all</string>
     <string name="adicionar">Add</string>
     <string name="n_inventoryies">%d inventories</string>
+    <string name="t_tulo_do_ponto">Point name</string>
+    <string name="POIs">POIs</string>
+    <string name="base_points">base points</string>
+    <string name="inventories">inventories</string>
+    <string name="layers">layers</string>
+    <string name="tracklog">tracklog</string>
+    <string name="layers1">Layers</string>
+    <string name="user_interface">User interface</string>
+    <string name="limpar_pinned_species">Remove pinned species</string>
+    <string name="importar">Import</string>
 </resources>
