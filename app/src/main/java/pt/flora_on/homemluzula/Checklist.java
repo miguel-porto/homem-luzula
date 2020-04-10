@@ -38,7 +38,7 @@ public class Checklist {
         this(new FileInputStream(checklistFile));
     }
 
-    public Checklist(InputStream checklistFile) throws IOException {
+    public Checklist(InputStream checklistFile) throws IOException, InvalidParameterException {
         String line;
         BufferedReader br = new BufferedReader(new InputStreamReader(checklistFile));
         Taxon taxon;

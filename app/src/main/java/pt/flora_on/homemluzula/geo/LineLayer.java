@@ -1,7 +1,8 @@
 package pt.flora_on.homemluzula.geo;
 
-import android.graphics.Color;
-import android.graphics.Paint;
+import android.location.Location;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
@@ -9,32 +10,59 @@ import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, Serializable, Layer {
-    private Integer color = Color.YELLOW;
-    private float width = 2;
-    private String layerName;
-    private boolean solidLayer = true;     // true: don't select individual polylines but the whole layer
-    private boolean visible = true;
+public class LineLayer extends Layer implements Iterable<Tracklog.Segment>, Serializable {
+    protected List<Tracklog.Segment> tracklog = new ArrayList<>();
+    public transient Map<Tracklog.Segment, Polyline> map;
+
+    public LineLayer() {
+        super();
+    }
 
     public LineLayer(FolderOverlay folder) {
         super(folder);
+        this.map = new IdentityHashMap<>();
     }
 
-    public String getLayerName() {
-        return layerName;
+    @Override
+    public void add(GeoTimePoint point, boolean breakPath) {
+        Tracklog.Segment tmp;
+        Polyline pl;
+        if(tracklog == null)
+            tracklog = new ArrayList<>();
+        if(tracklog.size() == 0 || breakPath || folder.getItems().size() == 0) {
+            tracklog.add(tmp = new Tracklog.Segment());
+            folder.add(pl = createPolylineFromPoints(null));
+            map.put(tmp, pl);
+        } else {
+            tmp = tracklog.get(tracklog.size() - 1);
+            pl = (Polyline) folder.getItems().get(folder.getItems().size() - 1);
+        }
+        pl.addPoint(point);
+        tmp.add(point);
     }
 
-    public void setLayerName(String layerName) {
-        this.layerName = layerName;
+    @Override
+    public void add(Location point, boolean breakPath) {
+        this.add(new GeoTimePoint(point), breakPath);
     }
 
-    public boolean isVisible() {
-        return visible;
-    }
+    public void refresh() {
+        if(folder == null) return;
+        folder.getItems().clear();
+        Polyline pl;
+        if(this.map == null)
+            this.map = new IdentityHashMap<>();
 
-    public float getWidth() {
-        return width;
+        for(Tracklog.Segment plist : tracklog) {
+            folder.add(pl = createPolylineFromPoints(plist));
+            this.map.put(plist, pl);
+        }
     }
 
     public void setWidth(float width) {
@@ -44,28 +72,9 @@ public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, S
         }
     }
 
-    public void setOverlay(FolderOverlay ovr) {
-        this.folder = ovr;
-        ovr.setEnabled(this.visible);
-    }
-
-    public void setVisible(boolean visible) {
-        this.visible = visible;
-        this.getOverlay().setEnabled(visible);
-    }
-
-    public void setSolidLayer(boolean solidLayer) {
-        this.solidLayer = solidLayer;
-    }
-
-    @Override
-    void setSelectedSegment(Segment segment) {
-    }
-
-    @Override
-    Polyline createPolylineFromPoints(Segment plist) {
+    Polyline createPolylineFromPoints(Tracklog.Segment plist) {
         Polyline pl = new SensitivePolyline();
-        pl.setOnClickListener(this.solidLayer ? new clickLayer() : new clickPolyline());
+        pl.setOnClickListener(new clickLayer());
 //            pl.getPaint().setPathEffect(new DashPathEffect(new float[]{6f, 6f}, 0f));
 
         if(plist == null || plist.getColor() == null)
@@ -83,15 +92,18 @@ public class LineLayer extends Tracklog implements Iterable<Tracklog.Segment>, S
         return pl;
     }
 
-    public Integer getColor() {
-        return this.color;
-    }
-
+    @Override
     public void setColor(Integer color) {
         this.color = color;
         for(Polyline pl : this.map.values()) {
             if(pl != null) pl.getOutlinePaint().setColor(color);
         }
+    }
+
+    @NonNull
+    @Override
+    public Iterator<Tracklog.Segment> iterator() {
+        return tracklog.iterator();
     }
 
     class clickLayer implements Polyline.OnClickListener {

@@ -1,9 +1,12 @@
 package pt.flora_on.homemluzula;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -63,6 +66,7 @@ import java.util.Locale;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
 import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.LineLayer;
+import pt.flora_on.homemluzula.geo.PointLayer;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
@@ -130,7 +134,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
     private void refreshLayerList() {
         LinearLayout layerManager = ((LinearLayout) findViewById(R.id.layer_manager));
         layerManager.removeAllViews();
-        for(LineLayer ll : DataManager.layers) {
+        for(Layer ll : DataManager.layers) {
             final CheckBox cb = new CheckBox(this);
             cb.setText(ll.getLayerName());
             cb.setChecked(ll.isVisible());
@@ -457,22 +461,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 case OPEN_GEOJSONASLAYER:
                     if (resultData == null || resultData.getData() == null) break;
 
-                    Layer tl;
-                    if(requestCode == OPEN_GEOJSONASLAYER) {
-                        FolderOverlay fo = new FolderOverlay();
-                        ((MainMap) mainActivity).getLayersOverlay().add(fo);
-                        LineLayer tmp = new LineLayer(fo);
-                        DataManager.layers.add(tmp);
-                        String result = resultData.getData().getPath();
-                        int cut = result.lastIndexOf('/');
-                        if (cut != -1) {
-                            result = result.substring(cut + 1);
-                        }
-                        tmp.setLayerName(result);
-                        tl = tmp;
-                    } else {
-                        tl = DataManager.tracklog;
-                    }
+                    Layer newLayer;
 
                     uri = resultData.getData();
                     if(uri == null) return;
@@ -484,7 +473,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                         return;
                     }
                     if(inputStream == null) return;
-                    InputStreamReader chk = new InputStreamReader(inputStream);
+                    InputStreamReader geoJsonFile = new InputStreamReader(inputStream);
 
                     DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
                     Gson gson = new GsonBuilder()
@@ -492,13 +481,56 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             .create();
                     FeatureCollection fc;
                     try {
-                        fc = gson.fromJson(chk, FeatureCollection.class);
-                        chk.close();
+                        fc = gson.fromJson(geoJsonFile, FeatureCollection.class);
+                        geoJsonFile.close();
                     } catch (IOException | IllegalArgumentException e) {
                         Toast.makeText(this, "Ficheiro geojson inválido.", Toast.LENGTH_SHORT).show();
                         e.printStackTrace();
                         return;
                     }
+
+                    if(requestCode == OPEN_GEOJSONASLAYER) {
+                        FolderOverlay fo = new FolderOverlay();
+                        ((MainMap) mainActivity).getLayersOverlay().add(fo);
+                        String layerType = fc.features().get(0).geometry().type().getValue().toUpperCase();
+                        Layer tmp = null;
+                        switch(layerType) {
+                            case "MULTIPOLYGON":
+                            case "POLYGON":
+                            case "MULTILINESTRING":
+                            case "LINESTRING":
+                                tmp = new LineLayer(fo);
+                                break;
+
+                            case "POINT":
+                                tmp = new PointLayer(fo);
+                                tmp.setColor(Color.BLUE);
+                                tmp.setWidth(10);
+                                break;
+
+                            default:
+                                new AlertDialog.Builder(this)
+                                        .setCancelable(true)
+                                        .setMessage(String.format("Geometry type %s not supported.", layerType))
+                                        .create().show();
+                                break;
+                        }
+
+                        if(tmp == null)
+                            break;
+
+                        DataManager.layers.add(tmp);
+                        String result = resultData.getData().getPath();
+                        int cut = result.lastIndexOf('/');
+                        if (cut != -1) {
+                            result = result.substring(cut + 1);
+                        }
+                        tmp.setLayerName(result);
+                        newLayer = tmp;
+                    } else {
+                        newLayer = DataManager.tracklog;
+                    }
+
                     int counter = 0;
                     if (fc != null) {
                         for (Feature f : fc.features()) {
@@ -513,10 +545,15 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             }
 
                             switch(f.geometry().type().getValue().toUpperCase()) {
+                                case "POINT":
+                                    SinglePosition sp = (SinglePosition) f.geometry().positions();
+                                    newLayer.add(new GeoTimePoint(sp.lat(), sp.lon(), 0), false);
+                                    break;
+
                                 case "MULTIPOLYGON":
                                     for(AreaPositions ap : ((MultiDimensionalPositions) f.geometry().positions()).children()) {
                                         for(LinearPositions lp : ap.children()) {
-                                            addLineStringToTracklog(lp, tl, st, et);
+                                            addLineStringToTracklog(lp, newLayer, st, et);
                                         }
                                     }
                                     break;
@@ -524,13 +561,13 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                 case "POLYGON":
                                 case "MULTILINESTRING":
                                     for(LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
-                                        addLineStringToTracklog(lp, tl, st, et);
+                                        addLineStringToTracklog(lp, newLayer, st, et);
                                     }
                                     break;
 
                                 case "LINESTRING":
                                     addLineStringToTracklog((LinearPositions) f.geometry().positions(),
-                                            tl, st, et);
+                                            newLayer, st, et);
                                     break;
                             }
                             counter++;
@@ -538,6 +575,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                     }
                     Toast.makeText(this, counter + " linhas importados do ficheiro.", Toast.LENGTH_SHORT).show();
                     refreshLayerList();
+                    newLayer.refresh();
                     break;
             }
         }

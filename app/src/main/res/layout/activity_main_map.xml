@@ -110,7 +110,7 @@
                         android:orientation="horizontal">
 
                         <ImageButton
-                            android:id="@+id/showinventories"
+                            android:id="@+id/show_dashboard"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:background="@android:color/transparent"

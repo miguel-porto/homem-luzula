@@ -1,11 +1,8 @@
 package pt.flora_on.homemluzula.geo;
 
 import android.graphics.Color;
-import android.location.Location;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
 
 import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
@@ -17,56 +14,38 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import pt.flora_on.homemluzula.HomemLuzulaApp;
 
-public class Tracklog implements Iterable<Tracklog.Segment>, Serializable, Layer {
-    private List<Segment> tracklog = new ArrayList<>();
-    transient FolderOverlay folder;
+public class Tracklog extends LineLayer implements Iterable<Tracklog.Segment>, Serializable {
     private transient Segment selectedSegment;
-    transient View.OnClickListener clickListener;
-    public transient Map<Segment, Polyline> map;
-    transient Integer TRACKLOGWIDTH;
+    private transient Integer TRACKLOGWIDTH;
 
     public Tracklog() {
+        super();
         this.TRACKLOGWIDTH =
                 Integer.parseInt(Objects.requireNonNull(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4")));
     }
 
     public Tracklog(FolderOverlay folder) {
-        this();
-        this.folder = folder;
-        this.map = new IdentityHashMap<>();
+        super(folder);
     }
 
     public void clear() {
         tracklog = new ArrayList<>();
     }
 
-    @NonNull
-    @Override
-    public Iterator<Segment> iterator() {
-        return tracklog.iterator();
-    }
 
     public int size() {
         return tracklog.size();
     }
 
-    public void setOverlay(FolderOverlay ovr) {
-        this.folder = ovr;
-    }
-
-    public FolderOverlay getOverlay() {
-        return this.folder;
-    }
-
-    public void setOnClickListener(View.OnClickListener clickListener) {
-        this.clickListener = clickListener;
+    @Override
+    public String getLayerName() {
+        return "Tracklog";
     }
 
     public GeoTimePoint getLastLocation() {
@@ -79,41 +58,17 @@ public class Tracklog implements Iterable<Tracklog.Segment>, Serializable, Layer
         return tmp.get(tmp.size() - 1);
     }
 
-    @Override
-    public void add(GeoTimePoint point, boolean breakPath) {
-        Segment tmp;
-        Polyline pl;
-        if(tracklog == null)
-            tracklog = new ArrayList<>();
-        if(tracklog.size() == 0 || breakPath || folder.getItems().size() == 0) {
-            tracklog.add(tmp = new Segment());
-            folder.add(pl = createPolylineFromPoints(null));
-            map.put(tmp, pl);
-        } else {
-            tmp = tracklog.get(tracklog.size() - 1);
-            pl = (Polyline) folder.getItems().get(folder.getItems().size() - 1);
-        }
-        pl.addPoint(point);
-        tmp.add(point);
-    }
-
-    @Override
-    public void add(Location point, boolean breakPath) {
-        this.add(new GeoTimePoint(point), breakPath);
-    }
-
     public void refresh() {
-        if(folder == null) return;
-        Polyline pl;
-        if(this.map == null)
-             this.map = new IdentityHashMap<>();
-
-        if(this.TRACKLOGWIDTH == null)
+        if(this.TRACKLOGWIDTH == null) {
             this.TRACKLOGWIDTH = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4"));
+        }
+        super.refresh();
+    }
 
-        for(Segment plist : tracklog) {
-            folder.add(pl = createPolylineFromPoints(plist));
-            this.map.put(plist, pl);
+    @Override
+    public void setColor(Integer color) {
+        for(int i=0; i < this.tracklog.size(); i++) {
+            this.setColor(color, i);
         }
     }
 

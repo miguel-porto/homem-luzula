@@ -15,6 +15,8 @@ import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
@@ -89,6 +91,7 @@ import java.util.Set;
 
 import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
+import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.RecordTracklogService;
 import pt.flora_on.homemluzula.geo.SimplePointOverlayWithCurrentLocation;
@@ -124,7 +127,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
     static public MapView theMap;
     private SimpleFastPointOverlay basePointLayer, otherPointLayer;  // this is a static point layer to display underneath
-    private SimpleFastPointOverlay POIPointLayer;   // this is an interactive simple point layer (only coordinates)
+    private SimpleFastPointOverlay POIPointLayer;   // this is an interactive simple point layer (only coordinates and title)
     static public SimpleFastPointOverlay inventoryLayer;  // this is the real inventory layer
     static public SimplePointOverlayWithCurrentLocation currentLocationLayer;  // this is the real inventory layer
     protected FolderOverlay trackLogOverlay = new FolderOverlay();
@@ -567,149 +570,12 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         findViewById(R.id.mira).setOnClickListener(fastPOI);
 //        findViewById(R.id.download_tiles).setOnClickListener(this);
 
-        /**
-         * New inventory from GPS
-         */
-        findViewById(R.id.bottombutton_3).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainMap.this, MainKeyboard.class);
-                internalNavigation = true;
-                startActivityForResult(intent, GET_SPECIESLIST);
-            }
-        });
-
-        findViewById(R.id.showinventories).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent dash = new Intent(MainMap.this, Activity_dashboard.class);
-                startActivityForResult(dash, DASHBOARD);
-            }
-        });
-
-        findViewById(R.id.bottombutton_2).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(getButtonLayout() == BUTTONLAYOUT.DELETE_TRACK) {
-                    if(DataManager.tracklog.cutNearestSegmentAt(theMap.getMapCenter(), true)) {
-                        Toast.makeText(MainMap.this, "Track cortado no vértice mais próximo do centro.", Toast.LENGTH_SHORT).show();
-                        theMap.invalidate();
-                    }
-                } else {
-                    breakTrackAtNextFix = true;
-                    showCutTrackButton = false;
-                    setButtonLayout(null);
-                    Toast.makeText(MainMap.this, "Tracklog interrompido nesta posição.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        /**
-         * Edit selected point (or delete selected POI)
-         */
-        findViewById(R.id.bottombutton_1).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                boolean noInvSel = inventoryLayer == null || inventoryLayer.getSelectedPoint() == null;
-                boolean noPOISel = POIPointLayer == null || POIPointLayer.getSelectedPoint() == null;
-                boolean noTrackSel = DataManager.tracklog == null || DataManager.tracklog.getSelectedTrack() == null;
-
-                switch(getButtonLayout()) {
-                    case EDIT_INVENTORY:
-                    case CONTINUE_LAST:
-                        if(!noInvSel) {
-                            openSpeciesList(inventoryLayer.getSelectedPoint());
-                            return;
-                        }
-                        break;
-
-                    case DELETE_POI:
-                        if(!noPOISel) {
-                            DataManager.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
-                            DataManager.POIPointTheme.setChanged(true);
-                            POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
-                            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                            theMap.invalidate();
-                        }
-                        break;
-
-                    case DELETE_TRACK:
-                        if(!noTrackSel) {
-                            theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataManager.tracklog.getSelectedPolyline().getPoints()), true);
-                            final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
-                            builder.setMessage("Quer apagar este segmento?")
-                                    .setCancelable(true)
-                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                        @Override
-                                        public void onCancel(DialogInterface dialogInterface) {
-                                            dialogInterface.dismiss();
-                                            mHideToolbars.run();
-                                        }
-                                    })
-                                    .setNegativeButton("Não", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            dialogInterface.dismiss();
-                                            mHideToolbars.run();
-                                        }
-                                    })
-                                    .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
-                                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                            DataManager.tracklog.deleteTrack(DataManager.tracklog.getSelectedTrack());
-                                            DataManager.tracklog.setSelectedTrack(DataManager.tracklog.size() > 0 ? DataManager.tracklog.size() - 1 : null);
-                                            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                                            theMap.invalidate();
-                                            mHideToolbars.run();
-                                        }
-                                    });
-                            final android.support.v7.app.AlertDialog alert = builder.create();
-                            alert.show();
-                        }
-                        break;
-
-                    case DELETE_LAYER:
-                        if(DataManager.getSelectedLayer() == null) break;
-                        LineLayer layer = DataManager.layers.get(DataManager.getSelectedLayer());
-                        if(layer == null) break;
-                        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
-                        builder.setMessage("Quer apagar esta layer?")
-                                .setCancelable(true)
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                    @Override
-                                    public void onCancel(DialogInterface dialogInterface) {
-                                        dialogInterface.dismiss();
-                                        mHideToolbars.run();
-                                    }
-                                })
-                                .setNegativeButton("Não", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.dismiss();
-                                        mHideToolbars.run();
-                                    }
-                                })
-                                .setPositiveButton("Sim, apagar layer", new DialogInterface.OnClickListener() {
-                                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                        DataManager.layers.remove(layer);
-
-                                        for(Polyline pl : layer.map.values()) {
-                                            layer.getOverlay().remove(pl);
-                                        }
-
-                                        DataManager.setSelectedLayer(null);
-                                        findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                                        theMap.invalidate();
-                                        mHideToolbars.run();
-                                    }
-                                });
-                        final android.support.v7.app.AlertDialog alert = builder.create();
-                        alert.show();
-
-                        break;
-                }
-            }
-        });
+        // New inventory from GPS
+        findViewById(R.id.bottombutton_3).setOnClickListener(this);
+        findViewById(R.id.show_dashboard).setOnClickListener(this);
+        findViewById(R.id.bottombutton_2).setOnClickListener(this);
+        // Edit selected point (or delete selected POI)
+        findViewById(R.id.bottombutton_1).setOnClickListener(this);
 
         /**
          * Toggle GPS
@@ -764,26 +630,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
-        /**
-         * Toggle inventory layer visibility
-         */
-        findViewById(R.id.show_inventories).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ImageButton tb = (ImageButton) v;
-                if(tb.getTag() == null) tb.setTag(true);
-                tb.setTag(!((boolean) tb.getTag()));
-
-                if((boolean) tb.getTag()) {
-                    tb.setImageResource(R.drawable.ic_square);
-                    inventoryLayer.setEnabled(true);
-                } else {
-                    tb.setImageResource(R.drawable.ic_square_no);
-                    inventoryLayer.setEnabled(false);
-                }
-                theMap.invalidate();
-            }
-        });
+        // Toggle inventory layer visibility
+        findViewById(R.id.show_inventories).setOnClickListener(this);
 
         findViewById(R.id.show_POI).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -932,8 +780,20 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
-        if(MainMap.checklist.getErrors().size() > 0)
-            Toast.makeText(getApplicationContext(), "Found " + MainMap.checklist.getErrors().size() + " errors while reading checklist file.", Toast.LENGTH_LONG).show();
+        if(MainMap.checklist.getErrors().size() > 0) {
+            new AlertDialog.Builder(MainMap.this)
+                    .setCancelable(false)
+                    .setTitle("Errors reading the checklist:")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setItems(MainMap.checklist.getErrors().toArray(new String[0]), null)
+                    .setPositiveButton("Ok, no problem", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            mHideToolbars.run();
+                        }
+                    })
+                    .show();
+        }
 
 /*
         map = (VectorMapView) findViewById(R.id.themap);
@@ -1152,7 +1012,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         inventoryLayer.setOnClickListener(new SimplePointOverlayWithCurrentLocation.OnClickListener() {
             @Override
             public void onClick(SimpleFastPointOverlay.PointAdapter points, Integer point) {
-//                if(!inventoryLayer.isEnabled()) return;
+                if(!inventoryLayer.isEnabled()) return;
                 POIPointLayer.setSelectedPoint(null);
                 DataManager.tracklog.setSelectedTrack(null);
                 DataManager.setSelectedLayer(null);
@@ -1310,7 +1170,7 @@ try {
         findViewById(R.id.bottombutton_1).setVisibility(View.INVISIBLE);
         findViewById(R.id.bottombutton_2).setVisibility(View.INVISIBLE);
         findViewById(R.id.bottombutton_3).setVisibility(View.INVISIBLE);
-        findViewById(R.id.showinventories).setVisibility(View.INVISIBLE);
+        findViewById(R.id.show_dashboard).setVisibility(View.INVISIBLE);
         findViewById(R.id.gps_seconds).setVisibility(View.INVISIBLE);
         findViewById(R.id.nopermissions).setVisibility(View.VISIBLE);
         findViewById(R.id.main_map_interface).setVisibility(View.VISIBLE);
@@ -1700,93 +1560,6 @@ try {
     }
 
     @Override
-    public void onClick(View view) {
-        switch(view.getId()) {
-/*
-            case R.id.download_tiles:
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainMap.this);
-
-                downloadPromptView = View.inflate(MainMap.this, R.layout.download_tiles, null);
-                SeekBar zoom_max = (SeekBar) downloadPromptView.findViewById(R.id.maxZoom);
-                SeekBar zoom_min = (SeekBar) downloadPromptView.findViewById(R.id.minZoom);
-                zoom_max.setMax((int) theMap.getMaxZoomLevel());
-                zoom_min.setMax((int) theMap.getMaxZoomLevel());
-                zoom_min.setProgress((int) theMap.getZoomLevel());
-                zoom_max.setProgress((int) theMap.getZoomLevel());
-                */
-/*zoom_min.setProgress((int) theMap.getZoomLevelDouble());
-                zoom_max.setProgress((int) theMap.getZoomLevelDouble());*//*
-
-                zoom_min.setOnSeekBarChangeListener(this);
-                zoom_max.setOnSeekBarChangeListener(this);
-
-                ((TextView) downloadPromptView.findViewById(R.id.maxzoomvalue)).setText(theMap.getZoomLevel() + "");
-                ((TextView) downloadPromptView.findViewById(R.id.minzoomvalue)).setText(theMap.getZoomLevel() + "");
-*/
-/*
-                ((TextView) downloadPromptView.findViewById(R.id.maxzoomvalue)).setText(theMap.getZoomLevelDouble() + "");
-                ((TextView) downloadPromptView.findViewById(R.id.minzoomvalue)).setText(theMap.getZoomLevelDouble() + "");
-*//*
-
-
-                downloadPromptView.findViewById(R.id.start_download).setOnClickListener(this);
-                builder.setView(downloadPromptView);
-                builder.setCancelable(true);
-
-                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        hide();
-                    }
-                });
-                builder.setTitle("Descarregar para navegar offline");
-                downloadPrompt = builder.create();
-                downloadPrompt.setCanceledOnTouchOutside(true);
-
-                downloadPrompt.show();
-                updateEstimate(false);
-                break;
-*/
-
-            case R.id.start_download:
-                updateEstimate(true);
-                break;
-
-            case quickMarkId:
-            case quickMarkId + 1:
-            case quickMarkId + 2:
-            case quickMarkId + 3:
-                if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions( MainMap.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
-                }
-                int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
-                final FastPointMark locationListener = new FastPointMark(minGPSPrecision);
-
-                LocationFixedCallback cb = new LocationFixedCallback() {
-                    @Override
-                    public void finished(float latitude, float longitude) {
-                        locationManager.removeUpdates(locationListener);
-                        Intent data = new Intent();
-                        SpeciesList sl = new SpeciesList();
-                        sl.setSingleSpecies(true);
-                        sl.setNow();
-                        sl.setLocation(latitude, longitude);
-                        TaxonObservation tObs = (TaxonObservation) view.getTag();
-                        sl.addObservation(tObs);
-                        ((Button) view).setText(tObs.getTaxonCapital().replace(" ", "\n"));
-
-                        data.putExtra("specieslist", sl);
-                        MainMap.this.onActivityResult(GET_SPECIESLIST, RESULT_OK, data);
-                    }
-                };
-                locationListener.setCallback(cb);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
-                ((Button) view).setText("waiting\nGPS...");
-                break;
-        }
-    }
-
-    @Override
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
         if(seekBar.getId() == R.id.maxZoom) {
             if(seekBar.getProgress() < ((SeekBar) downloadPromptView.findViewById(R.id.minZoom)).getProgress())
@@ -1823,18 +1596,7 @@ try {
             else
                 MainMap.checklist = new Checklist(new FileInputStream(chk));
         } catch (IOException e) {
-            new AlertDialog.Builder(MainMap.this)
-                    .setTitle("Error")
-                    .setCancelable(false)
-                    .setMessage(e.getMessage())
-                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            MainMap.this.finishAffinity();
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
-            finish();
+            e.printStackTrace();
         }
     }
 
@@ -1903,7 +1665,7 @@ try {
                 try {
                     fin = new FileInputStream(file);
                     ObjectInputStream ois = new ObjectInputStream(fin);
-                    DataManager.layers = (ArrayList<LineLayer>) ois.readObject();
+                    DataManager.layers = (ArrayList<Layer>) ois.readObject();
                     fin.close();
                 } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
@@ -1912,7 +1674,7 @@ try {
                 if(DataManager.layers == null) DataManager.layers = new ArrayList<>();
 
 //                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
-                for(LineLayer tl : DataManager.layers) {
+                for(Layer tl : DataManager.layers) {
                     FolderOverlay fo = new FolderOverlay();
                     layersOverlay.add(fo);
 
@@ -1922,8 +1684,10 @@ try {
                     tl.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+//                            Toast.makeText(MainMap.this, "layers", Toast.LENGTH_SHORT).show();
                             POIPointLayer.setSelectedPoint(null);
                             inventoryLayer.setSelectedPoint(null);
+                            DataManager.tracklog.setSelectedTrack(null);
                             DataManager.setSelectedLayer(DataManager.layers.indexOf(tl));
                             theMap.invalidate();
                             ((EditText) findViewById(R.id.POILabel)).setText(
@@ -2035,6 +1799,7 @@ try {
                         mNotificationManager.notify(UNSAVED_NOTIFICATION, mBuilder.build());*/
                 }
             });
+
 
             // Read base point theme
             ((TextView) findViewById(R.id.loadstatus)).setText(R.string.base_points);
@@ -2185,4 +1950,243 @@ try {
             v.addView(pinnedToolbar, 1, linearParams);
 
     }
+
+    @Override
+    public void onClick(View view) {
+        switch(view.getId()) {
+/*
+            case R.id.download_tiles:
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainMap.this);
+
+                downloadPromptView = View.inflate(MainMap.this, R.layout.download_tiles, null);
+                SeekBar zoom_max = (SeekBar) downloadPromptView.findViewById(R.id.maxZoom);
+                SeekBar zoom_min = (SeekBar) downloadPromptView.findViewById(R.id.minZoom);
+                zoom_max.setMax((int) theMap.getMaxZoomLevel());
+                zoom_min.setMax((int) theMap.getMaxZoomLevel());
+                zoom_min.setProgress((int) theMap.getZoomLevel());
+                zoom_max.setProgress((int) theMap.getZoomLevel());
+                */
+/*zoom_min.setProgress((int) theMap.getZoomLevelDouble());
+                zoom_max.setProgress((int) theMap.getZoomLevelDouble());*//*
+
+                zoom_min.setOnSeekBarChangeListener(this);
+                zoom_max.setOnSeekBarChangeListener(this);
+
+                ((TextView) downloadPromptView.findViewById(R.id.maxzoomvalue)).setText(theMap.getZoomLevel() + "");
+                ((TextView) downloadPromptView.findViewById(R.id.minzoomvalue)).setText(theMap.getZoomLevel() + "");
+*/
+/*
+                ((TextView) downloadPromptView.findViewById(R.id.maxzoomvalue)).setText(theMap.getZoomLevelDouble() + "");
+                ((TextView) downloadPromptView.findViewById(R.id.minzoomvalue)).setText(theMap.getZoomLevelDouble() + "");
+*//*
+
+
+                downloadPromptView.findViewById(R.id.start_download).setOnClickListener(this);
+                builder.setView(downloadPromptView);
+                builder.setCancelable(true);
+
+                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        hide();
+                    }
+                });
+                builder.setTitle("Descarregar para navegar offline");
+                downloadPrompt = builder.create();
+                downloadPrompt.setCanceledOnTouchOutside(true);
+
+                downloadPrompt.show();
+                updateEstimate(false);
+                break;
+*/
+
+            case R.id.bottombutton_3:
+                Intent intent = new Intent(MainMap.this, MainKeyboard.class);
+                internalNavigation = true;
+                startActivityForResult(intent, GET_SPECIESLIST);
+                break;
+
+            case R.id.start_download:
+                updateEstimate(true);
+                break;
+
+            case quickMarkId:
+            case quickMarkId + 1:
+            case quickMarkId + 2:
+            case quickMarkId + 3:
+                if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions( MainMap.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
+                }
+                int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
+                final FastPointMark locationListener = new FastPointMark(minGPSPrecision);
+
+                LocationFixedCallback cb = new LocationFixedCallback() {
+                    @Override
+                    public void finished(float latitude, float longitude) {
+                        ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
+                        toneGen1.startTone(ToneGenerator.TONE_PROP_BEEP,200);
+
+                        locationManager.removeUpdates(locationListener);
+                        Intent data = new Intent();
+                        SpeciesList sl = new SpeciesList();
+                        sl.setSingleSpecies(true);
+                        sl.setNow();
+                        sl.setLocation(latitude, longitude);
+                        TaxonObservation tObs = (TaxonObservation) view.getTag();
+                        sl.addObservation(tObs);
+                        ((Button) view).setText(tObs.getTaxonCapital().replace(" ", "\n"));
+
+                        data.putExtra("specieslist", sl);
+                        MainMap.this.onActivityResult(GET_SPECIESLIST, RESULT_OK, data);
+                    }
+                };
+                locationListener.setCallback(cb);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+                ((Button) view).setText("waiting\nGPS...");
+                break;
+
+            case R.id.show_dashboard:
+                Intent dash = new Intent(MainMap.this, Activity_dashboard.class);
+                startActivityForResult(dash, DASHBOARD);
+                break;
+
+            case R.id.bottombutton_2:
+                if(getButtonLayout() == BUTTONLAYOUT.DELETE_TRACK) {
+                    if(DataManager.tracklog.cutNearestSegmentAt(theMap.getMapCenter(), true)) {
+                        Toast.makeText(MainMap.this, "Track cortado no vértice mais próximo do centro.", Toast.LENGTH_SHORT).show();
+                        theMap.invalidate();
+                    }
+                } else {
+                    breakTrackAtNextFix = true;
+                    showCutTrackButton = false;
+                    setButtonLayout(null);
+                    Toast.makeText(MainMap.this, "Tracklog interrompido nesta posição.", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.bottombutton_1:
+                boolean noInvSel = inventoryLayer == null || inventoryLayer.getSelectedPoint() == null;
+                boolean noPOISel = POIPointLayer == null || POIPointLayer.getSelectedPoint() == null;
+                boolean noTrackSel = DataManager.tracklog == null || DataManager.tracklog.getSelectedTrack() == null;
+
+                switch(getButtonLayout()) {
+                    case EDIT_INVENTORY:
+                    case CONTINUE_LAST:
+                        if(!noInvSel) {
+                            openSpeciesList(inventoryLayer.getSelectedPoint());
+                            return;
+                        }
+                        break;
+
+                    case DELETE_POI:
+                        if(!noPOISel) {
+                            DataManager.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
+                            DataManager.POIPointTheme.setChanged(true);
+                            POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
+                            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                            theMap.invalidate();
+                        }
+                        break;
+
+                    case DELETE_TRACK:
+                        if(!noTrackSel) {
+                            theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataManager.tracklog.getSelectedPolyline().getPoints()), true);
+                            final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                            builder.setMessage("Quer apagar este segmento?")
+                                    .setCancelable(true)
+                                    .setIcon(android.R.drawable.ic_dialog_alert)
+                                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                        @Override
+                                        public void onCancel(DialogInterface dialogInterface) {
+                                            dialogInterface.dismiss();
+                                            mHideToolbars.run();
+                                        }
+                                    })
+                                    .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            dialogInterface.dismiss();
+                                            mHideToolbars.run();
+                                        }
+                                    })
+                                    .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
+                                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                            DataManager.tracklog.deleteTrack(DataManager.tracklog.getSelectedTrack());
+                                            DataManager.tracklog.setSelectedTrack(DataManager.tracklog.size() > 0 ? DataManager.tracklog.size() - 1 : null);
+                                            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                                            theMap.invalidate();
+                                            mHideToolbars.run();
+                                        }
+                                    });
+                            final android.support.v7.app.AlertDialog alert = builder.create();
+                            alert.show();
+                        }
+                        break;
+
+                    case DELETE_LAYER:
+                        if(DataManager.getSelectedLayer() == null) break;
+                        Layer layer = DataManager.layers.get(DataManager.getSelectedLayer());
+                        if(layer == null) break;
+                        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                        builder.setMessage(R.string.delete_this_layer)
+                                .setCancelable(true)
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    @Override
+                                    public void onCancel(DialogInterface dialogInterface) {
+                                        dialogInterface.dismiss();
+                                        mHideToolbars.run();
+                                    }
+                                })
+                                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                        mHideToolbars.run();
+                                    }
+                                })
+                                .setPositiveButton(R.string.yes_delete_layer, new DialogInterface.OnClickListener() {
+                                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                        DataManager.layers.remove(layer);
+                                        layersOverlay.remove(layer.getOverlay());
+/*
+                                        for(Polyline pl : layer.map.values()) {
+                                            layer.getOverlay().remove(pl);
+                                        }
+*/
+
+                                        DataManager.setSelectedLayer(null);
+                                        findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                                        theMap.invalidate();
+                                        mHideToolbars.run();
+                                    }
+                                });
+                        final android.support.v7.app.AlertDialog alert = builder.create();
+                        alert.show();
+
+                        break;
+                }
+                break;
+
+            case R.id.show_inventories:
+                final ImageButton tb = (ImageButton) view;
+                if(tb.getTag() == null) tb.setTag(true);
+                tb.setTag(!((boolean) tb.getTag()));
+
+                if((boolean) tb.getTag()) {
+                    tb.setImageResource(R.drawable.ic_square);
+                    inventoryLayer.setEnabled(true);
+                    inventoryLayer.getStyle().setIsClickable(true);
+                } else {
+                    tb.setImageResource(R.drawable.ic_square_no);
+                    inventoryLayer.setEnabled(false);
+                    inventoryLayer.getStyle().setIsClickable(false);
+                }
+                theMap.invalidate();
+                break;
+
+        }
+
+    }
+
 }

@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
+import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
@@ -42,7 +43,7 @@ public class DataManager extends AppCompatActivity {
     public static SimplePointTheme POIPointTheme;
     public static Inventories allData;
     public static Tracklog tracklog;
-    public static List<LineLayer> layers;
+    public static List<Layer> layers;
     private static Integer selectedLayer = null;
 
     public static Integer getSelectedLayer() {
@@ -162,7 +163,6 @@ public class DataManager extends AppCompatActivity {
                 nErrors++;
             }
         }
-
 
         if(layers != null && layers.size() > 0) {
             File file = new File(invdir, "layers.bin");
