@@ -31,6 +31,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -319,7 +320,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     public void colorButtonClick(View v) {
         int color = ((ColorDrawable) ((Button) v).getBackground()).getColor();
         if(POIPointLayer.getSelectedPoint() != null) {
-            StyledLabelledGeoPoint sgp = DataManager.POIPointTheme.getPointsList().get(POIPointLayer.getSelectedPoint());
+            GeoPoint sgp = DataManager.POIPointTheme.getPointsList().get(POIPointLayer.getSelectedPoint());
             int colTxt = (color == Color.parseColor("#ff0000") ? Color.WHITE : color);
             Paint tmp = new Paint();
             Paint tmp1 = new Paint();
@@ -331,8 +332,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             tmp.setColor(color);
             tmp1.setColor(colTxt);
 
-            sgp.setPointStyle(tmp);
-            sgp.setTextStyle(tmp1);
+            if(sgp instanceof StyledLabelledGeoPoint) {
+                ((StyledLabelledGeoPoint) sgp).setPointStyle(tmp);
+                ((StyledLabelledGeoPoint) sgp).setTextStyle(tmp1);
+            }
             theMap.invalidate();
         }
 
@@ -1666,12 +1669,18 @@ try {
                     fin = new FileInputStream(file);
                     ObjectInputStream ois = new ObjectInputStream(fin);
                     DataManager.layers = (ArrayList<Layer>) ois.readObject();
+                    if(DataManager.layers == null) Log.e("LLAYERS", "Null 0");
                     fin.close();
                 } catch (IOException | ClassNotFoundException e) {
+                    Log.e("LLAYERS", "Null 1");
+                    Log.e("LLAYERS", e.getMessage());
                     e.printStackTrace();
                 }
 
-                if(DataManager.layers == null) DataManager.layers = new ArrayList<>();
+                if(DataManager.layers == null) {
+                    Log.e("LLAYERS", "Null 2");
+                    DataManager.layers = new ArrayList<>();
+                }
 
 //                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
                 for(Layer tl : DataManager.layers) {

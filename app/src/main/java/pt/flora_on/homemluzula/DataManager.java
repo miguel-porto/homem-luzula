@@ -21,6 +21,8 @@ import com.google.gson.GsonBuilder;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.osmdroid.views.overlay.Overlay;
+import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.StyledLabelledGeoPoint;
 
 import java.io.File;
@@ -34,6 +36,7 @@ import java.util.List;
 
 import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.LineLayer;
+import pt.flora_on.homemluzula.geo.SensitivePolyline;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
@@ -51,7 +54,15 @@ public class DataManager extends AppCompatActivity {
     }
 
     public static void setSelectedLayer(Integer selectedLayer) {
+        if(DataManager.selectedLayer != null) {
+            Overlay ovr = DataManager.layers.get(DataManager.selectedLayer).getOverlay().getItems().get(0);
+            if(ovr != null) {
+                if(ovr instanceof SimpleFastPointOverlay)
+                    ((SimpleFastPointOverlay) ovr).setSelectedPoint(null);
+            }
+        }
         DataManager.selectedLayer = selectedLayer;
+
     }
 
     @Override

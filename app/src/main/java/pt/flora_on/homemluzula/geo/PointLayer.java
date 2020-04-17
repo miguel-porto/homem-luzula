@@ -2,9 +2,9 @@ package pt.flora_on.homemluzula.geo;
 
 import android.graphics.Paint;
 import android.location.Location;
-import android.util.Log;
 import android.view.View;
 
+import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.FolderOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlayOptions;
@@ -14,8 +14,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class PointLayer extends Layer implements Serializable {
-    private ArrayList<StyledLabelledGeoPoint> points = new ArrayList<>();
-    private Paint style = new Paint();
+    private ArrayList<GeoPoint> points = new ArrayList<>();
+    private transient Paint style = new Paint();
 
     public PointLayer(FolderOverlay folder) {
         super(folder);
@@ -23,7 +23,7 @@ public class PointLayer extends Layer implements Serializable {
 
     @Override
     public void add(GeoTimePoint point, boolean breakPath) {
-        points.add(new StyledLabelledGeoPoint(point.getLatitude(), point.getLongitude(), null, style,null));
+        points.add(new GeoPoint(point.getLatitude(), point.getLongitude()));
     }
 
     @Override
@@ -35,19 +35,26 @@ public class PointLayer extends Layer implements Serializable {
     public void setWidth(float width) {
         this.width = width;
         if(folder != null && folder.getItems().size() > 0)
-            ((SimpleFastPointOverlay) folder.getItems().get(0)).getStyle().setRadius(width);
+            ((SimpleFastPointOverlay) folder.getItems().get(0)).getStyle().setRadius(width * 1.5f);
     }
 
     @Override
     public void refresh() {
         if(folder == null) return;
         folder.getItems().clear();
+        if(this.style == null)
+            this.style = new Paint();
+
+        style.setStyle(Paint.Style.FILL_AND_STROKE);
+        style.setColor(color);
         SimplePointTheme theme = new SimplePointTheme();
-        for(StyledLabelledGeoPoint p : this.points) {
-            theme.add(p);
+        for(GeoPoint p : this.points) {
+            StyledLabelledGeoPoint sgp = new StyledLabelledGeoPoint(p);
+//            sgp.setPointStyle(style);
+            theme.add(sgp);
         }
         folder.add(new SimpleFastPointOverlay(theme, new SimpleFastPointOverlayOptions()
-                .setPointStyle(this.style).setRadius(this.width).setIsClickable(true)
+                .setPointStyle(this.style).setRadius(this.width * 1.5f).setIsClickable(true)
                 .setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)));
 
     }
@@ -69,6 +76,10 @@ public class PointLayer extends Layer implements Serializable {
 
     @Override
     public void setColor(Integer color) {
+        this.color = color;
+        if(this.style == null)
+            this.style = new Paint();
+
         style.setStyle(Paint.Style.FILL_AND_STROKE);
         style.setColor(color);
     }

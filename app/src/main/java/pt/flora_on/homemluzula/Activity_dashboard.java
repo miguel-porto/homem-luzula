@@ -505,7 +505,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             case "POINT":
                                 tmp = new PointLayer(fo);
                                 tmp.setColor(Color.BLUE);
-                                tmp.setWidth(10);
+                                tmp.setWidth(7);
                                 break;
 
                             default:
@@ -593,7 +593,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
     @Override
     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-        final LineLayer ll = (LineLayer) compoundButton.getTag();
+        final Layer ll = (Layer) compoundButton.getTag();
         ll.setVisible(compoundButton.isChecked());
     }
 }
