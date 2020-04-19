@@ -1669,16 +1669,13 @@ try {
                     fin = new FileInputStream(file);
                     ObjectInputStream ois = new ObjectInputStream(fin);
                     DataManager.layers = (ArrayList<Layer>) ois.readObject();
-                    if(DataManager.layers == null) Log.e("LLAYERS", "Null 0");
                     fin.close();
                 } catch (IOException | ClassNotFoundException e) {
-                    Log.e("LLAYERS", "Null 1");
-                    Log.e("LLAYERS", e.getMessage());
+                    Log.e("LOADLAYERS", e.getMessage());
                     e.printStackTrace();
                 }
 
                 if(DataManager.layers == null) {
-                    Log.e("LLAYERS", "Null 2");
                     DataManager.layers = new ArrayList<>();
                 }
 

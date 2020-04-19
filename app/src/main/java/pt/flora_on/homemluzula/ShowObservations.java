@@ -169,6 +169,7 @@ public class ShowObservations extends AppCompatActivity {
     }
 
     private void updateSpecies(TaxonObservation obs, int position) {
+        if(mSpeciesList.getTaxa().size() == 0) return;
         mSpeciesList.getTaxa().set(position, obs);
         try {
             adapter.notifyItemChanged(position);
