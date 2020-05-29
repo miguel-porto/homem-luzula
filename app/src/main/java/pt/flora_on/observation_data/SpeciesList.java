@@ -1,7 +1,13 @@
 package pt.flora_on.observation_data;
 
+import android.app.Application;
+import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 
 import java.io.PrintWriter;
 import java.security.InvalidParameterException;
@@ -14,7 +20,10 @@ import java.util.Locale;
 import java.util.UUID;
 
 import pt.flora_on.homemluzula.Checklist;
+import pt.flora_on.homemluzula.DataManager;
+import pt.flora_on.homemluzula.HomemLuzulaApp;
 import pt.flora_on.homemluzula.MainMap;
+import pt.flora_on.homemluzula.R;
 
 /**
  * Created by miguel on 04-10-2016.
@@ -253,7 +262,9 @@ public class SpeciesList implements Parcelable {
                             .append(this.year == null ? "?" : year).append("\t")
                             .append(this.year == null ? "?" : year).append("/")
                             .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
-                            .append(this.day == null ? "?" : String.format("%02d", day));
+                            .append(this.day == null ? "?" : String.format("%02d", day)).append(" ")
+                            .append(this.hour == null ? "?" : String.format("%02d", hour)).append(":")
+                            .append(this.minute == null ? "?" : String.format("%02d", minute));
                     file.println(sb.toString());
                     sb.setLength(0);
                 } else {
@@ -265,7 +276,9 @@ public class SpeciesList implements Parcelable {
                                 .append(this.year == null ? "?" : year).append("\t")
                                 .append(this.year == null ? "?" : year).append("/")
                                 .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
-                                .append(this.day == null ? "?" : String.format("%02d", day));
+                                .append(this.day == null ? "?" : String.format("%02d", day)).append(" ")
+                                .append(this.hour == null ? "?" : String.format("%02d", hour)).append(":")
+                                .append(this.minute == null ? "?" : String.format("%02d", minute));
                         sb.append("\t").append(obs.getTaxon()).append("\t").append(obs.getPhenoState().toString())
                                 .append("\t").append(obs.getConfidence().equals(Constants.Confidence.CERTAIN) ? "CERTAIN" : "DOUBTFUL")
                                 .append("\t").append(obs.getAbundance() == null ? "" : obs.getAbundance())
@@ -280,34 +293,51 @@ public class SpeciesList implements Parcelable {
 
     }
 
-    public String concatSpecies(boolean abbreviate, Integer clipAfter) {
+    public SpannableStringBuilder concatSpecies(boolean abbreviate, Integer clipAfter) {
+        SpannableStringBuilder ssb = new SpannableStringBuilder();
         StringBuilder sb = new StringBuilder();
-        List<TaxonObservation> tos = new ArrayList<>(getTaxa());
+        List<AbbreviatedTaxonObservation> tos = new ArrayList<>();
+        AbbreviatedTaxonObservation ato;
+
+        for(TaxonObservation to : getTaxa())
+            tos.add(new AbbreviatedTaxonObservation(to));
         Collections.sort(tos);
         int i;
         int nsp = getNumberOfSpecies();
         String tmp;
         for (i = 0; i < nsp && i < (clipAfter == null ? Integer.MAX_VALUE : clipAfter); i++) {
-            if(abbreviate) {
-                try {
-                    tmp = Checklist.abbreviateTaxon(new Taxon(tos.get(i).getTaxon()), MainMap.checklist.getNFirst(), MainMap.checklist.getNLast());
-                } catch(InvalidParameterException e) {
-                    tmp = tos.get(i).getTaxon();
-                }
-                sb.append(tmp.substring(0, 1).toUpperCase())
-                        .append(tmp.substring(1, MainMap.checklist.getNFirst() + MainMap.checklist.getNLast()).toLowerCase());
+            sb.setLength(0);
+            ato = tos.get(i);
+            if (abbreviate) {
+                sb.append(ato.toAbbreviatedString());
             } else {
-                tmp = tos.get(i).getTaxon();
+                tmp = ato.getTaxon();
                 sb.append(tmp.substring(0, 1).toUpperCase())
                         .append(tmp.substring(1, tmp.length()).toLowerCase());
             }
-            if(tos.get(i).getPhenoState() == Constants.PhenologicalState.FLOWER
-                    || tos.get(i).getPhenoState() == Constants.PhenologicalState.FLOWER_DISPERSION) sb.append("#");
-            if(tos.get(i).getConfidence() == Constants.Confidence.UNCERTAIN) sb.append("?");
-            if(!(i == nsp - 1 || i == (clipAfter == null ? Integer.MAX_VALUE : (clipAfter - 1)))) sb.append(", ");
+            boolean wasAppended = false;
+            if (ato.getConfidence() == Constants.Confidence.UNCERTAIN) {
+                sb.append("?");
+                wasAppended = true;
+            }
+            if (ato.getPhenoState().isFlowering()) {
+                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoFlower), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (ato.getPhenoState() == Constants.PhenologicalState.VEGETATIVE) {
+                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoVegetative), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (ato.getPhenoState() == Constants.PhenologicalState.DISPERSION || ato.getPhenoState() == Constants.PhenologicalState.FLOWER_DISPERSION) {
+                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoDispersion), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (ato.getPhenoState() == Constants.PhenologicalState.FRUIT) {
+                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoFruit), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (ato.getPhenoState() == Constants.PhenologicalState.RESTING) {
+                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoResting), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else if (ato.getPhenoState() == Constants.PhenologicalState.BUD) {
+                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoBud), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else ssb.append(sb);
+            if(!wasAppended) ssb.append(" ");
+            if(!(i == nsp - 1 || i == (clipAfter == null ? Integer.MAX_VALUE : (clipAfter - 1)))) ssb.append(" ");
         }
-        if(clipAfter != null && i > clipAfter) sb.append(", +").append(nsp - clipAfter);
+        if(clipAfter != null && i > clipAfter) ssb.append(" +").append(String.valueOf(nsp - clipAfter));
 
-        return sb.toString();
+        return ssb;
     }
 }

@@ -4,6 +4,12 @@
     <color name="colorPrimaryDark">#303f9f</color>
     <color name="colorAccent">#ff4081</color>
     <color name="black_overlay">#aa000000</color>
+    <color name="phenoVegetative">#96FF9B</color>
+    <color name="phenoFlower">#E499FF</color>
+    <color name="phenoResting">#FFD096</color>
+    <color name="phenoFruit">#FF97A3</color>
+    <color name="phenoDispersion">#93B7FF</color>
+    <color name="phenoBud">#B3FF27</color>
     <drawable name="black_overlay_draw">#44000000</drawable>
     <drawable name="accent_draw">#ff4081</drawable>
 </resources>

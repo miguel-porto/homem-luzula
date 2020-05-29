@@ -114,6 +114,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     public static Checklist checklist;
     public static SimplePointTheme basePointTheme, otherPointTheme;
     public static final Map<String, Integer> frequencies = new HashMap<>();
+    public static int phenoFlower, phenoVegetative, phenoResting, phenoFruit, phenoDispersion, phenoBud;
     private final Handler mHideHandler = new Handler();
     private final Handler mHideGPSHandler = new Handler();
     private final Handler mRecordingTracklog = new Handler();
@@ -222,6 +223,11 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         }
     }
 */
+
+    static public void beep() {
+        ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
+        toneGen1.startTone(ToneGenerator.TONE_PROP_BEEP,200);
+    }
 
     public FolderOverlay getLayersOverlay() {
         return this.layersOverlay;
@@ -1230,6 +1236,13 @@ try {
         buttonLayouts.put(BUTTONLAYOUT.DELETE_TRACK, new String[] {getString(R.string.delete_track), getString(R.string.cut_track), getString(R.string.novo_ponto)});
         buttonLayouts.put(BUTTONLAYOUT.DELETE_LAYER, new String[] {getString(R.string.delete_layer), getString(R.string.novo_ponto)});
 
+        phenoFlower = getResources().getColor(R.color.phenoFlower);
+        phenoVegetative = getResources().getColor(R.color.phenoVegetative);
+        phenoResting = getResources().getColor(R.color.phenoResting);
+        phenoFruit = getResources().getColor(R.color.phenoFruit);
+        phenoDispersion = getResources().getColor(R.color.phenoDispersion);
+        phenoBud = getResources().getColor(R.color.phenoBud);
+
         preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
         IConfigurationProvider config = Configuration.getInstance();
         config.setUserAgentValue(BuildConfig.APPLICATION_ID);
@@ -2029,9 +2042,7 @@ try {
                 LocationFixedCallback cb = new LocationFixedCallback() {
                     @Override
                     public void finished(float latitude, float longitude) {
-                        ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
-                        toneGen1.startTone(ToneGenerator.TONE_PROP_BEEP,200);
-
+                        beep();
                         locationManager.removeUpdates(locationListener);
                         Intent data = new Intent();
                         SpeciesList sl = new SpeciesList();

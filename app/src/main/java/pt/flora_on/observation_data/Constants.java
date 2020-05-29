@@ -18,7 +18,8 @@ public final class Constants {
         , FLOWER_DISPERSION("Em floração e dispersão")
         , FRUIT("Fruto imaturo")
         , RESTING("Em dormência")
-        , FLOWER_FRUIT("Flor e fruto");
+        , FLOWER_FRUIT("Flor e fruto")
+        , BUD("Em botão");
 
         private final String verbose;
 

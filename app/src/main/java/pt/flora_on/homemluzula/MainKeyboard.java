@@ -242,7 +242,7 @@ public class MainKeyboard extends AppCompatActivity {
                     setTitle();
                     ((TextView) findViewById(R.id.coordinates)).setText(
                             String.format(Locale.getDefault(), "%.5fº %.5fº", coordinates[0], coordinates[1]));
-                    Toast.makeText(MainKeyboard.this, "Ponto fixado!", Toast.LENGTH_SHORT).show();
+                    MainMap.beep();
                 }
             }
 
@@ -262,7 +262,7 @@ public class MainKeyboard extends AppCompatActivity {
             replace = intent.getIntExtra("index", -1);
             TextView tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
             //tv.setText(String.format(Locale.getDefault(), "%d espécies", speciesList.getNumberOfSpecies()));
-            tv.setText(speciesList.concatSpecies(true, 2000));
+            tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
             coordinates[0] = speciesList.getLatitude();
             coordinates[1] = speciesList.getLongitude();
             if( coordinates[0] == null || coordinates[1] == null || coordinates[0] == 0 || coordinates[1] == 0) coordinates[0] = null;
@@ -535,7 +535,7 @@ public class MainKeyboard extends AppCompatActivity {
                 speciesList.addObservation(tObs);
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
-                tv.setText(speciesList.concatSpecies(true, 2000));
+                tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
                 tv.setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.freedescriptionedit)).setText("");
                 findViewById(R.id.keyboard).setVisibility(View.VISIBLE);
@@ -664,7 +664,7 @@ public class MainKeyboard extends AppCompatActivity {
                 speciesList.addObservation(tObs);
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
-                tv.setText(speciesList.concatSpecies(true, 2000));
+                tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
                 tv.setVisibility(View.VISIBLE);
 //                Toast.makeText(MainKeyboard.this, tObs.getTaxon()+": "+tObs.getPhenoState().toString()+ " " + tObs.getComment(), Toast.LENGTH_SHORT).show();
                 break;
@@ -675,7 +675,7 @@ public class MainKeyboard extends AppCompatActivity {
                 speciesList = data.getParcelableExtra("specieslist");
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
-                tv.setText(speciesList.concatSpecies(true, 2000));
+                tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
                 break;
         }
     }

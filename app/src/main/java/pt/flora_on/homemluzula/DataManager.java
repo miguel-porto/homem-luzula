@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -32,7 +33,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.LineLayer;
@@ -68,6 +71,7 @@ public class DataManager extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
 //        setContentView(R.layout.activity_data_saver);
 
 //        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -151,9 +155,6 @@ public class DataManager extends AppCompatActivity {
 //            mNotificationManager.cancel(MainMap.UNSAVED_NOTIFICATION);
         }
 */
-        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-        r.play();
 
 //        String extStore = System.getenv("EXTERNAL_STORAGE");
         File extStoreDir = Environment.getExternalStorageDirectory();

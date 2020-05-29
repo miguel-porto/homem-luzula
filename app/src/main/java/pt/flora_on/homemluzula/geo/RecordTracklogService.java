@@ -14,9 +14,6 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -59,9 +56,6 @@ public class RecordTracklogService extends Service {
                 }
                 //location.getElapsedRealtimeNanos() - lastLocation.getElapsedRealtimeNanos() > (long) getTracklogInterval() * 6 * 1000000000L
 
-                Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                r.play();
             }
 
 
@@ -124,11 +118,6 @@ public class RecordTracklogService extends Service {
     @Override
     public void onCreate() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-/*
-        notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-*/
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
             Intent notificationIntent = new Intent(this, MainMap.class);
@@ -153,10 +142,12 @@ public class RecordTracklogService extends Service {
             precisionFilter = extras.getInt("precisionFilter");
             tracklogMinDist = extras.getInt("tracklogMinDist");
         }
+/*
         if(MainMap.recordTracklog)
             Toast.makeText(this, "Tracklog activado.", Toast.LENGTH_SHORT).show();
         else
             Toast.makeText(this, "GPS activado.", Toast.LENGTH_SHORT).show();
+*/
 
         // The service is starting, due to a call to startService()
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -170,10 +161,10 @@ public class RecordTracklogService extends Service {
     @Override
     public void onDestroy() {
         locationManager.removeUpdates(tracklogListener);
-        if(MainMap.recordTracklog)
+ /*       if(MainMap.recordTracklog)
             Toast.makeText(this, "Tracklog desactivado.", Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(this, "GPS desactivado.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "GPS desactivado.", Toast.LENGTH_SHORT).show();*/
     }
 
 }

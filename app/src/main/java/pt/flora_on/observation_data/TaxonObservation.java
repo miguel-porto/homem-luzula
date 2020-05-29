@@ -144,6 +144,10 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
 
     @Override
     public int compareTo(TaxonObservation o) {
-        return this.getTaxon().toLowerCase().compareTo(o.getTaxon().toLowerCase());
+        return this.compareKey().compareTo(o.compareKey());
+    }
+
+    String compareKey() {
+        return(this.getTaxon().toLowerCase());
     }
 }

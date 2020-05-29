@@ -40,14 +40,14 @@
                     android:paddingLeft="8dp" />
 
                 <TextView
-                    android:text="(sem espécies)"
+                    android:id="@+id/showspecies"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/showspecies"
                     android:background="@drawable/edit_icon"
-                    android:textStyle="italic"
-                    android:textSize="13sp"
-                    android:padding="8dp" />
+                    android:fontFamily="monospace"
+                    android:padding="8dp"
+                    android:text="(sem espécies)"
+                    android:textSize="11sp" />
 
                 <TextView
                     android:layout_width="match_parent"
