@@ -67,7 +67,6 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.util.TileSystem;
 import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.simplefastpoint.LabelledGeoPoint;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlayOptions;
@@ -93,7 +92,6 @@ import java.util.Set;
 import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
 import pt.flora_on.homemluzula.geo.Layer;
-import pt.flora_on.homemluzula.geo.LineLayer;
 import pt.flora_on.homemluzula.geo.RecordTracklogService;
 import pt.flora_on.homemluzula.geo.SimplePointOverlayWithCurrentLocation;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
@@ -533,13 +531,22 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         refreshFrequencies();
 
         /**
-         * New inventory in the target location (center of screen)
+         * New inventory in the target location (selected POI)
          */
         View.OnClickListener fastMark = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(POIPointLayer.getSelectedPoint() == null) return;
+                // fetch selected POI coordinates
+                IGeoPoint center = DataManager.POIPointTheme.get(POIPointLayer.getSelectedPoint());
+
+                // delete selected POI to replace with inventory
+                ((Button) findViewById(R.id.bottombutton_1)).performClick();
+
+                POIPointLayer.setSelectedPoint(null);
+
                 // fast mark the point without species
-                IGeoPoint center = theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
+//                IGeoPoint center = theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
                 Intent intent = new Intent(MainMap.this, MainKeyboard.class);
                 intent.putExtra("latitude", center.getLatitude());
                 intent.putExtra("longitude", center.getLongitude());
@@ -575,7 +582,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         };
 
-        findViewById(R.id.add_location).setOnClickListener(fastMark);
+//        findViewById(R.id.add_location).setOnClickListener(fastMark);
+        findViewById(R.id.button_make_inventory).setOnClickListener(fastMark);
         findViewById(R.id.mira).setOnClickListener(fastPOI);
 //        findViewById(R.id.download_tiles).setOnClickListener(this);
 
@@ -602,7 +610,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     if(lastLocation != null) {
                         theMap.getController().animateTo(new GeoPoint(lastLocation));
                         findViewById(R.id.mira).setVisibility(View.GONE);
-                        findViewById(R.id.add_location).setVisibility(View.GONE);
+//                        findViewById(R.id.add_location).setVisibility(View.GONE);
                         findViewById(R.id.view_distance).setVisibility(View.GONE);
                     }
                 }
@@ -901,7 +909,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if(lockOnCurrentLocation) {
                     lockOnCurrentLocation = false;
                     findViewById(R.id.mira).setVisibility(View.VISIBLE);
-                    findViewById(R.id.add_location).setVisibility(View.VISIBLE);
+//                    findViewById(R.id.add_location).setVisibility(View.VISIBLE);
                     findViewById(R.id.view_distance).setVisibility(View.VISIBLE);
                 }
                 return false;
@@ -909,8 +917,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         });
         theMap.addMapListener(new MapListener() {
             private void updateCoordinates() {
-                GeoPoint center = (GeoPoint) theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
-                updateDistanceToCenter(center);
+                GeoPoint center = updateDistanceToCenter();
                 ((TextView) findViewById(R.id.view_latitude)).setText(String.format(Locale.getDefault(), "%.5f", center.getLatitude()));
                 ((TextView) findViewById(R.id.view_longitude)).setText(String.format(Locale.getDefault(), "%.5f", center.getLongitude()));
                 ((TextView) findViewById(R.id.zoomlevel)).setText(String.format(Locale.getDefault(), "%.1f", theMap.getZoomLevelDouble()));
@@ -1065,7 +1072,13 @@ try {
 
     }
 
-    private void updateDistanceToCenter(GeoPoint center) {
+    public GeoPoint updateDistanceToCenter() {
+        GeoPoint center = (GeoPoint) theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
+        updateDistanceToPoint(center);
+        return center;
+    }
+
+    private void updateDistanceToPoint(GeoPoint center) {
         if(lastLocation != null) {
             ((TextView) findViewById(R.id.view_distance)).setText(formatDistance(
                     center.distanceToAsDouble(new GeoPoint(lastLocation))
@@ -1094,8 +1107,9 @@ try {
         setButtonLayout(BUTTONLAYOUT.DELETE_POI);
         ((EditText) findViewById(R.id.POILabel)).setHint("título do ponto");
         findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
+        findViewById(R.id.button_make_inventory).setVisibility(View.VISIBLE);
         findViewById(R.id.tracklog_times).setVisibility(View.GONE);
-        findViewById(R.id.trackWidth).setVisibility(View.GONE);
+        findViewById(R.id.trackWidthWidget).setVisibility(View.GONE);
     }
 
     private void showTrackEditBox() {
@@ -1103,7 +1117,8 @@ try {
         ((EditText) findViewById(R.id.POILabel)).setHint("título da track");
         findViewById(R.id.tracklog_times).setVisibility(View.VISIBLE);
         findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
-        findViewById(R.id.trackWidth).setVisibility(View.GONE);
+        findViewById(R.id.button_make_inventory).setVisibility(View.GONE);
+        findViewById(R.id.trackWidthWidget).setVisibility(View.GONE);
     }
 
     private void showLayerEditBox() {
@@ -1111,7 +1126,8 @@ try {
         ((EditText) findViewById(R.id.POILabel)).setHint("título da layer");
         findViewById(R.id.tracklog_times).setVisibility(View.INVISIBLE);
         findViewById(R.id.edit_label_box).setVisibility(View.VISIBLE);
-        findViewById(R.id.trackWidth).setVisibility(View.VISIBLE);
+        findViewById(R.id.button_make_inventory).setVisibility(View.GONE);
+        findViewById(R.id.trackWidthWidget).setVisibility(View.VISIBLE);
     }
 
     private void setButtonLayout(BUTTONLAYOUT layout) {

@@ -14,14 +14,19 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.osmdroid.util.GeoPoint;
+
+import java.util.Locale;
+import java.util.Observable;
 
 import pt.flora_on.homemluzula.DataManager;
 import pt.flora_on.homemluzula.MainMap;
@@ -32,6 +37,20 @@ public class RecordTracklogService extends Service {
     private Integer tracklogMinDist, precisionFilter;
     private int interval;
     private LocationManager locationManager;
+    // Binder given to clients
+    private final IBinder binder = new LocalBinder();
+
+    public class LocalBinder extends Binder {
+        public RecordTracklogService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return RecordTracklogService.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
 
     private final LocationListener tracklogListener = new LocationListener() {
         public void onLocationChanged(Location location) {
@@ -59,14 +78,19 @@ public class RecordTracklogService extends Service {
             }
 
 
+
+
             if(MainMap.lockOnCurrentLocation) {
                 MainMap.theMap.getController().setCenter(new GeoPoint(location));
                 MainMap.mainActivity.findViewById(R.id.mira).setVisibility(View.GONE);
-                MainMap.mainActivity.findViewById(R.id.add_location).setVisibility(View.GONE);
+//                MainMap.mainActivity.findViewById(R.id.add_location).setVisibility(View.GONE);
+                MainMap.mainActivity.findViewById(R.id.view_distance).setVisibility(View.GONE);
                 MainMap.mainActivity.findViewById(R.id.view_distance).setVisibility(View.GONE);
             }
 
             MainMap.lastLocation = new GeoTimePoint(location);
+            ((TextView) MainMap.mainActivity.findViewById(R.id.view_what)).setText(String.format(Locale.getDefault(), "Alt %.0fm", location.getAltitude()));
+            ((MainMap) MainMap.mainActivity).updateDistanceToCenter();
             MainMap.theMap.invalidate();
 
 //            r.play();
@@ -90,12 +114,6 @@ public class RecordTracklogService extends Service {
 
     public RecordTracklogService() {
 
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @TargetApi(Build.VERSION_CODES.O)

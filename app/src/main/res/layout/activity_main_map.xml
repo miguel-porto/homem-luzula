@@ -126,16 +126,10 @@
                             android:textSize="18sp" />
 -->
 
-                        <ImageView
-                            android:id="@+id/add_location"
-                            android:layout_width="36dp"
-                            android:layout_height="28dp"
-                            android:layout_gravity="center"
-                            app:srcCompat="@drawable/ic_add_location_black_24dp" />
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_marginRight="6dp"
                         android:layout_weight="1"

@@ -65,11 +65,10 @@
                     android:id="@+id/but_veget"
                     style="@style/phenostate" >
                     <TextView
-                        android:text="Ve"
+                        android:text="Veg"
                         style="@style/phenostate_letter" />
                     <TextView
                         style="@style/phenostate_caption"
-                        android:text="vegetative"
                         android:background="@color/phenoVegetative" />
                 </LinearLayout>
 
@@ -77,10 +76,10 @@
                     android:id="@+id/but_imatfruit"
                     style="@style/phenostate" >
                     <TextView
-                        android:text="Im"
+                        android:text="Imm"
                         style="@style/phenostate_letter"/>
                     <TextView
-                        style="@style/phenostate_caption"                        android:text="immat fruit"
+                        style="@style/phenostate_caption"
                         android:background="@color/phenoFruit" />
                 </LinearLayout>
 
@@ -88,11 +87,10 @@
                     android:id="@+id/but_dispers"
                     style="@style/phenostate" >
                     <TextView
-                        android:text="Di"
+                        android:text="Disp"
                         style="@style/phenostate_letter"/>
                     <TextView
                         style="@style/phenostate_caption"
-                        android:text="dispersion"
                         android:background="@color/phenoDispersion" />
                 </LinearLayout>
 
@@ -100,10 +98,10 @@
                     android:id="@+id/but_flordisp"
                     style="@style/phenostate">
                     <TextView
-                        android:text="FD"
+                        android:text="Fl+Dis"
                         style="@style/phenostate_letter" />
                     <TextView
-                        style="@style/phenostate_caption"                        android:text="flow+disp"
+                        style="@style/phenostate_caption"
                         android:background="@color/phenoFlower" />
                 </LinearLayout>
 
@@ -111,11 +109,10 @@
                     android:id="@+id/but_bud"
                     style="@style/phenostate" >
                     <TextView
-                        android:text="Bu"
+                        android:text="Buds"
                         style="@style/phenostate_letter" />
                     <TextView
                         style="@style/phenostate_caption"
-                        android:text="   buds   "
                         android:background="@color/phenoBud" />
                 </LinearLayout>
 
@@ -123,11 +120,10 @@
                     android:id="@+id/but_dorm"
                     style="@style/phenostate" >
                     <TextView
-                        android:text="Re"
+                        android:text="Dorm"
                         style="@style/phenostate_letter" />
                     <TextView
                         style="@style/phenostate_caption"
-                        android:text=" resting "
                         android:background="@color/phenoResting" />
                 </LinearLayout>
 
@@ -143,12 +139,10 @@
             style="@style/phenostate"
             android:orientation="vertical" >
             <TextView
-                android:text="Fl"
+                android:text="Flow"
                 style="@style/phenostate_letter" />
             <TextView
                 style="@style/phenostate_caption"
-                android:textSize="10sp"
-                android:text="flowering"
                 android:background="@color/phenoFlower" />
         </LinearLayout>
 
