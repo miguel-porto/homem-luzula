@@ -60,7 +60,7 @@ public class MainKeyboard extends AppCompatActivity {
     private SpeciesList speciesList = new SpeciesList();
     private final StringBuilder inputBuffer = new StringBuilder();
     public static final int GET_OBSERVATION = 214
-                        , UPDATE_OBSERVATIONS = 215;
+                        , UPDATE_OBSERVATIONS = 215, EDIT_INVENTORY_PROPERTIES = 216;
     private Integer replace = null;
     private SharedPreferences preferences;
     /**
@@ -286,6 +286,12 @@ public class MainKeyboard extends AppCompatActivity {
         }
 
         toolbar.setOnClickListener(view -> {    // change inventory code
+
+            Intent inv_prop = new Intent(this, InventoryProperties.class);
+            inv_prop.putExtra("speciesList", speciesList);
+            startActivityForResult(inv_prop, EDIT_INVENTORY_PROPERTIES);
+
+/*
             final StringBuilder titleText = new StringBuilder();
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Nome do ponto");
@@ -323,6 +329,7 @@ public class MainKeyboard extends AppCompatActivity {
                 }
             });
             input.requestFocus();
+*/
         });
 
         setTitle();
@@ -676,6 +683,11 @@ public class MainKeyboard extends AppCompatActivity {
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
                 tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
+                break;
+
+            case EDIT_INVENTORY_PROPERTIES:
+                speciesList = data.getParcelableExtra("specieslist");
+                setTitle();
                 break;
         }
     }

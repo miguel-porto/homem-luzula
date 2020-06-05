@@ -16,6 +16,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
     private Constants.Confidence confidence = Constants.Confidence.CERTAIN;
     private Constants.AbundanceType abundanceType = Constants.AbundanceType.NO_DATA;
     private Integer order;
+    private String cover;
 
     public TaxonObservation(String taxon, Constants.PhenologicalState phenoState) {
         this.taxon = taxon;
@@ -36,6 +37,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         this.naturalizationState = to.naturalizationState;
         this.confidence = to.confidence;
         this.abundanceType = to.abundanceType;
+        this.cover = to.cover;
     }
 
     private TaxonObservation(Parcel in) {
@@ -47,6 +49,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         confidence = Constants.Confidence.valueOf(in.readString());
         abundanceType = Constants.AbundanceType.valueOf(in.readString());
         order = in.readInt();
+        cover = in.readString();
     }
 
     @Override
@@ -59,6 +62,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         dest.writeString(confidence.toString());
         dest.writeString(abundanceType == null ? Constants.AbundanceType.NO_DATA.toString() : abundanceType.toString());
         dest.writeInt(this.getOrder());
+        dest.writeString(cover);
     }
 
     @Override
@@ -96,6 +100,12 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
             this.abundance = null;
     }
 
+    public void setCover(String cover) {
+        if(cover != null)
+            this.cover = (cover.trim().length() == 0 ? null : cover.trim());
+        else
+            this.cover = null;
+    }
 
     public static final Creator<TaxonObservation> CREATOR = new Creator<TaxonObservation>() {
         @Override
@@ -118,6 +128,10 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
 
     public String getAbundance() {
         return abundance;
+    }
+
+    public String getCover() {
+        return cover;
     }
 
     public Constants.NaturalizationState getNaturalizationState() {

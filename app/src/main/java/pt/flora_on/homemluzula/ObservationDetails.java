@@ -110,6 +110,7 @@ public class ObservationDetails extends AppCompatActivity {
                 observation.setNaturalizationState( ((ClickToSelectEditText<Constants.NaturalizationState>) findViewById(R.id.spi_naturstate)).getSelectedItem() );
                 observation.setAbundanceType( ((ClickToSelectEditText<Constants.AbundanceType>) findViewById(R.id.spi_abundancetype)).getSelectedItem() );
                 observation.setAbundance( ((TextView) findViewById(R.id.text_abundance)).getText().toString() );
+                observation.setCover( ((TextView) findViewById(R.id.text_cover)).getText().toString() );
                 observation.setComment( ((TextView) findViewById(R.id.text_comment)).getText().toString() );
 
                 Intent data = new Intent();
@@ -128,6 +129,7 @@ public class ObservationDetails extends AppCompatActivity {
             ((ClickToSelectEditText<Constants.NaturalizationState>) findViewById(R.id.spi_naturstate)).setSelectedItem(Arrays.binarySearch(Constants.NaturalizationState.values(), observation.getNaturalizationState()) );
             ((ClickToSelectEditText<Constants.AbundanceType>) findViewById(R.id.spi_abundancetype)).setSelectedItem(Arrays.binarySearch(Constants.AbundanceType.values(), observation.getAbundanceType()) );
             ((TextView) findViewById(R.id.text_abundance)).setText(observation.getAbundance());
+            ((TextView) findViewById(R.id.text_cover)).setText(observation.getCover());
             ((TextView) findViewById(R.id.text_comment)).setText(observation.getComment());
         }
     }

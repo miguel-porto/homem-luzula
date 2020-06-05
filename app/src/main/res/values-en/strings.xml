@@ -35,4 +35,8 @@
     <string name="user_interface">User interface</string>
     <string name="limpar_pinned_species">Remove pinned species</string>
     <string name="importar">Import</string>
+    <string name="cover">cover</string>
+    <string name="delete_this_layer">Delete this layer?</string>
+    <string name="no">No</string>
+    <string name="yes_delete_layer">Yes, delete layer</string>
 </resources>

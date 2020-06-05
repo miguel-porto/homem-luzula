@@ -2,13 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-<!--    <item
+<!--
+    <item
         android:id="@+id/settings"
         android:orderInCategory="100"
-        android:title="Opções"
-        android:icon="@drawable/ic_settings"
+        android:title="Propriedades"
+        android:icon="@drawable/ic_menu_black_24dp"
         app:showAsAction="ifRoom" />
 -->
+
     <item
         android:id="@+id/refreshgps"
         android:orderInCategory="110"

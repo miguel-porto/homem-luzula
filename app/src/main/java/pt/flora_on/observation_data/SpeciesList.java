@@ -104,8 +104,16 @@ public class SpeciesList implements Parcelable {
         return this.gpsCode == null ? "" : this.gpsCode;
     }
 
+    public String getHabitat() {
+        return this.habitat == null ? "" : this.habitat;
+    }
+
     public void setGpsCode(String gpsCode) {
         this.gpsCode = gpsCode;
+    }
+
+    public void setHabitat(String habitat) {
+        this.habitat = habitat;
     }
 
     public UUID getUuid() { return uuid;}
@@ -264,7 +272,8 @@ public class SpeciesList implements Parcelable {
                             .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
                             .append(this.day == null ? "?" : String.format("%02d", day)).append(" ")
                             .append(this.hour == null ? "?" : String.format("%02d", hour)).append(":")
-                            .append(this.minute == null ? "?" : String.format("%02d", minute));
+                            .append(this.minute == null ? "?" : String.format("%02d", minute))
+                            .append("\t").append(this.getHabitat());
                     file.println(sb.toString());
                     sb.setLength(0);
                 } else {
@@ -278,11 +287,14 @@ public class SpeciesList implements Parcelable {
                                 .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
                                 .append(this.day == null ? "?" : String.format("%02d", day)).append(" ")
                                 .append(this.hour == null ? "?" : String.format("%02d", hour)).append(":")
-                                .append(this.minute == null ? "?" : String.format("%02d", minute));
-                        sb.append("\t").append(obs.getTaxon()).append("\t").append(obs.getPhenoState().toString())
+                                .append(this.minute == null ? "?" : String.format("%02d", minute))
+                                .append("\t").append(this.getHabitat());
+                        sb.append("\t").append(obs.getTaxon())
+                                .append("\t").append(obs.getPhenoState().toString())
                                 .append("\t").append(obs.getConfidence().equals(Constants.Confidence.CERTAIN) ? "CERTAIN" : "DOUBTFUL")
                                 .append("\t").append(obs.getAbundance() == null ? "" : obs.getAbundance())
                                 .append("\t").append(obs.getAbundanceType() == Constants.AbundanceType.NO_DATA ? "" : obs.getAbundanceType().toString())
+                                .append("\t").append(obs.getCover() == null ? "" : obs.getCover())
                                 .append("\t").append(obs.getComment() == null ? "" : obs.getComment());
                         file.println(sb.toString());
                         sb.setLength(0);

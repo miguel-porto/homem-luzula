@@ -68,6 +68,10 @@
             android:label="Acções"
             android:theme="@style/AppTheme" />
         <activity
+            android:name=".InventoryProperties"
+            android:label="Propriedades do inventário"
+            android:theme="@style/AppTheme" />
+        <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />
 

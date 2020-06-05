@@ -101,5 +101,6 @@
     <string name="delete_this_layer">Quer apagar esta layer?</string>
     <string name="no">Não</string>
     <string name="yes_delete_layer">Sim, apagar layer</string>
+    <string name="cover">cover</string>
 
 </resources>

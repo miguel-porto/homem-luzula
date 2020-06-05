@@ -45,7 +45,7 @@ public class UpdateSpeciesViewHolder extends RecyclerView.ViewHolder {
             ((TextView) phenostate).setText("");
 */
 
-        abundance.setText(species.getAbundance());
+        abundance.setText(species.getCover());
 
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override

@@ -206,11 +206,10 @@ public class DataManager extends AppCompatActivity {
             nErrors++;
         }
 
-//        chk = new File(extStore + "/dados-lvf.txt");
         chk = new File(extStoreDir, "/dados-lvf.txt");
         try {
             bw = new PrintWriter(new FileWriter(chk, false));
-            bw.println("code\tlatitude\tlongitude\tdate\tdateYMD\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcomment");
+            bw.println("code\tlatitude\tlongitude\tdate\tdateYMD\thabitat\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcover\tcomment");
             for(SpeciesList sList : allData.getSpeciesLists()) {
                 sList.toCSV(bw, "lvf");
             }

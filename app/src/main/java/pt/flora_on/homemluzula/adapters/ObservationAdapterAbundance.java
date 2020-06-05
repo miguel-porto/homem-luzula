@@ -56,7 +56,7 @@ public class ObservationAdapterAbundance extends RecyclerView.Adapter<UpdateSpec
         viewHolder.setSpecies(species, position, mOnClick);
         viewHolder.abundance.setOnFocusChangeListener((view, b) -> {
             if(!b && view != null) {
-                species.setAbundance(((EditText) view).getText().toString());
+                species.setCover(((EditText) view).getText().toString());
                 mOnClick.commitSpecies(species, position);
             } else if(b) {
                 LinearLayoutManager llm = (LinearLayoutManager) mRecyclerView.getLayoutManager();
