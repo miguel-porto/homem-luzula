@@ -140,7 +140,7 @@ public class RecordTracklogService extends Service {
             createChannel();
             Intent notificationIntent = new Intent(this, MainMap.class);
             PendingIntent pendingIntent =
-                    PendingIntent.getActivity(this, 0, notificationIntent, 0);
+                    PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
             Notification notification = null;
             notification = new Notification.Builder(this, "pt.floraon.homemluzula")
@@ -172,8 +172,8 @@ public class RecordTracklogService extends Service {
             return (int) 0;
         }
         locationManager.removeUpdates(tracklogListener);
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval * 1000, 0, tracklogListener);
-        return (int) 1;
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval * 1000L, 0, tracklogListener);
+        return START_NOT_STICKY;
     }
 
     @Override

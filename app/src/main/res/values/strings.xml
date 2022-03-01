@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Homem Luzula</string>
-    <string name="empty_string"></string>
+    <string name="empty_string" translatable="false"></string>
 
     <!-- Strings related to Settings -->
 
@@ -61,15 +61,15 @@
         <item>5</item>
     </string-array>
 
-    <string name="title_activity_fullscreen">Keyboard</string>
+    <string name="title_activity_fullscreen" translatable="false">Keyboard</string>
     <string name="title_activity_species_chooser">Escolha uma espécie</string>
     <string name="action_settings">Definições</string>
-    <string name="title_activity_navigation_map">NavigationMap</string>
+    <string name="title_activity_navigation_map" translatable="false">NavigationMap</string>
     <string name="title_activity_species_list_show">Espécies registadas</string>
     <string name="title_activity_settings">Definições</string>
-    <string name="title_activity_species_lists">SpeciesLists</string>
+    <string name="title_activity_species_lists" translatable="false">SpeciesLists</string>
     <string name="digite_a_letra_do_genero_e_as_da_especie_ou_infrataxon">digite a 1ª letra do género e as %d primeiras da espécie (ou infrataxon)</string>
-    <string name="carregando_dados">Carregando dados...</string>
+    <string name="carregando_dados">Carregando dados…</string>
     <string name="novo_ponto">Novo ponto</string>
     <string name="cortar_ntrack">Cortar\ntrack</string>
     <string name="continuar_nponto_anterior">Continuar\nponto anterior</string>
@@ -102,5 +102,9 @@
     <string name="no">Não</string>
     <string name="yes_delete_layer">Sim, apagar layer</string>
     <string name="cover">cover</string>
+    <string name="permission_location">Access background location</string>
+    <string name="permission_location_text">In order to record tracklogs, the app needs permission to access your location while the screen is off.\nIn the next screen, please select \"All the time\" to allow it.</string>
+    <string name="permission_storage">Permission to access storage</string>
+    <string name="permission_storage_text">The app needs full access to the internal storage, in order to save and export data. In the next screen, please allow that permission.</string>
 
 </resources>

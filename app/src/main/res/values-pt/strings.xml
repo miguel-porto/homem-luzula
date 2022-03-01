@@ -39,4 +39,8 @@
     <string name="no">Não</string>
     <string name="yes_delete_layer">Sim, apagar layer</string>
     <string name="cover">cobertura</string>
+    <string name="permission_location">Aceder à localização em background</string>
+    <string name="permission_location_text">De forma a gravar o percurso, a app precisa de permissão para aceder a sua localização mesmo com o ecran desligado.\nA seguir, por favor seleccione \"All the time\", para o permitir.</string>
+    <string name="permission_storage">Aceder ao storage</string>
+    <string name="permission_storage_text">De forma a poder gravar e exportar os dados, a app precisa de permissão para aceder livremente à internal storage. No ecran seguinte, por favor permita-o.</string>
 </resources>

@@ -30,7 +30,8 @@ public class AbbreviatedTaxonObservation extends TaxonObservation implements Par
         } catch (InvalidParameterException e) {
             tmp = getTaxon();
         }
-        tmp = tmp.substring(0, 1).toUpperCase() + tmp.substring(1, MainMap.checklist.getNFirst() + MainMap.checklist.getNLast()).toLowerCase();
+        int howmany = Math.min(MainMap.checklist.getNFirst() + MainMap.checklist.getNLast(), tmp.length());
+        tmp = tmp.substring(0, 1).toUpperCase() + tmp.substring(1, howmany).toLowerCase();
         return(tmp);
     }
 

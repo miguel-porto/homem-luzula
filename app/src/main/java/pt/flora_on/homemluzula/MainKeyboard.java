@@ -2,6 +2,7 @@ package pt.flora_on.homemluzula;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
@@ -147,9 +149,13 @@ public class MainKeyboard extends AppCompatActivity {
                 }
                 MainKeyboard.this.setTitle("Actualizando coordenadas...");
                 speciesList.setNow();
-                locationManager.removeUpdates(locationListener);
-                if(ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED)
+
+                if (ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                        || ContextCompat.checkSelfPermission(MainKeyboard.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    locationManager.removeUpdates(locationListener);
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+                }
+
                 return true;
 
             default:
@@ -227,10 +233,6 @@ public class MainKeyboard extends AppCompatActivity {
 
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-
-                if(ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions( MainKeyboard.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
-                }
                 MainKeyboard.this.setTitle(String.format(Locale.getDefault(), "Fixando GPS %.1fm", location.getAccuracy()));
 
                 coordinates[0] = (float) location.getLatitude();

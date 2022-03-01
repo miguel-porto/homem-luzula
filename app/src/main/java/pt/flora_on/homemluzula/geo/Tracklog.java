@@ -32,6 +32,8 @@ public class Tracklog extends LineLayer implements Iterable<Tracklog.Segment>, S
 
     public Tracklog(FolderOverlay folder) {
         super(folder);
+        this.TRACKLOGWIDTH =
+                Integer.parseInt(Objects.requireNonNull(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4")));
     }
 
     public void clear() {
@@ -60,7 +62,7 @@ public class Tracklog extends LineLayer implements Iterable<Tracklog.Segment>, S
 
     public void refresh() {
         if(this.TRACKLOGWIDTH == null) {
-            this.TRACKLOGWIDTH = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4"));
+            this.TRACKLOGWIDTH = Integer.parseInt(Objects.requireNonNull(PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext()).getString("pref_track_width", "4")));
         }
         super.refresh();
     }

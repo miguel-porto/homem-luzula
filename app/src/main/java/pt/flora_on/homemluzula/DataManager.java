@@ -10,7 +10,9 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
@@ -33,7 +35,9 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
+import java.security.Timestamp;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -100,29 +104,12 @@ public class DataManager extends AppCompatActivity {
 //            finishAffinity();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public void saveEverythingSilently() {
         StringBuilder sb = new StringBuilder();
         int nErrors = 0;
         final Gson gs = new GsonBuilder().setPrettyPrinting().create();
         boolean setUnchanged = false;
-/*
-        // export main data file
-        if(allData != null && allData.isChanged()) {
-            try {
-                final File tmp = new File(System.getenv("EXTERNAL_STORAGE") + "/flora-on.json");
-//                if (!tmp.canWrite()) throw new IOException("Can't write to file");
-
-                FileWriter fw = new FileWriter(tmp, false);
-                gs.toJson(allData, fw);
-                fw.close();
-            } catch (IOException e) {
-                sb.append("flora-on.json: ").append(e.getMessage()).append("\n");
-                nErrors++;
-            }
-            allData.setChanged(false);
-            setUnchanged = true;
-        }
-*/
         // export POI
         if(POIPointTheme != null && POIPointTheme.isChanged()) {
             try {
@@ -143,24 +130,21 @@ public class DataManager extends AppCompatActivity {
             //Toast.makeText(getApplicationContext(), "Saved POI", Toast.LENGTH_SHORT).show();
         }
 
-        // remove changed notification
-/*
-        if(setUnchanged) {
-            SharedPreferences prefs = getSharedPreferences("datastate", MODE_PRIVATE);
-            SharedPreferences.Editor edit = prefs.edit();
-            edit.putBoolean("changed", false);
-            edit.commit();
-
-//            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//            mNotificationManager.cancel(MainMap.UNSAVED_NOTIFICATION);
-        }
-*/
-
 //        String extStore = System.getenv("EXTERNAL_STORAGE");
         File extStoreDir = Environment.getExternalStorageDirectory();
         File invdir = new File(extStoreDir, "homemluzula");
         // save tracklog
         if(tracklog != null) {
+/*  TODO: save tracklogs in individual files
+            File trklogDir = new File(invdir, "tracklogs");
+            if(!trklogDir.exists()) trklogDir.mkdir();
+            for (Iterator<Tracklog.Segment> it = tracklog.iterator(); it.hasNext(); ) {
+                Tracklog.Segment s = it.next();
+                File ts = new File();
+
+            }
+*/
+
             File file = new File(invdir, "tracklog.bin");
             Log.i("PATH", file.getAbsolutePath());
             if (file.exists()) file.delete();
@@ -236,7 +220,7 @@ public class DataManager extends AppCompatActivity {
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
             stackBuilder.addParentStack(MainMap.class);
             stackBuilder.addNextIntent(resultIntent);
-            PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             mBuilder.setContentIntent(resultPendingIntent);
             NotificationManager mNotificationManager =
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -264,6 +248,7 @@ public class DataManager extends AppCompatActivity {
             dialog = ProgressDialog.show(activity, "Gravando", "Um momento...", true);
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.M)
         protected Void doInBackground(Void... voids) {
             saveEverythingSilently();
             return null;

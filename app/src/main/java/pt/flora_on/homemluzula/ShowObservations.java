@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.Locale;
 
@@ -107,6 +108,12 @@ public class ShowObservations extends AppCompatActivity {
         findViewById(R.id.save_inventario).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                View vf = getCurrentFocus();
+                if(vf != null) {
+                    if(vf.getId() == R.id.abundance) {
+                        vf.clearFocus();
+                    }
+                }
                 Intent data = new Intent();
                 data.putExtra("specieslist", mSpeciesList);
                 setResult(Activity.RESULT_OK, data);

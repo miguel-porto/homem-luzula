@@ -39,4 +39,8 @@
     <string name="delete_this_layer">Delete this layer?</string>
     <string name="no">No</string>
     <string name="yes_delete_layer">Yes, delete layer</string>
+    <string name="permission_location">Access background location</string>
+    <string name="permission_location_text">In order to record tracklogs, the app needs permission to access your location while the screen is off.\nIn the next screen, please select \"All the time\" to allow it.</string>
+    <string name="permission_storage">Permission to access storage</string>
+    <string name="permission_storage_text">The app needs full access to the internal storage, in order to save and export data. In the next screen, please allow that permission.</string>
 </resources>

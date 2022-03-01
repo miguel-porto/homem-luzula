@@ -4,6 +4,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -17,12 +18,14 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -32,6 +35,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -255,12 +259,13 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             // Note that some of these constants are new as of API 16 (Jelly Bean)
             // and API 19 (KitKat). It is safe to use them, as they are inlined
             // at compile-time and do nothing on earlier devices.
-            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+            if(mContentView != null)
+                mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
 
@@ -441,7 +446,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 //            Toast.makeText(this, "md" + tracklogMinDist.toString()+ tracklogPrecisionFilter.toString(), Toast.LENGTH_SHORT).show();
 
             if (getTracklogInterval() == 0)
-                ((RadioButton) findViewById(R.id.log5s)).setChecked(true);
+                ((RadioButton) findViewById(R.id.log1s)).setChecked(true);
 
             if (!isGPSEnabled()) {
                 internalNavigation = true;
@@ -502,9 +507,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 //                    locationManager.removeUpdates(fastWaypointListener);
                 }
                 Intent saveIntent = new Intent(MainMap.this, DataManager.class);
-                saveIntent.putExtra("changed", DataManager.POIPointTheme.isChanged());
-//                            saveIntent.setAction("immediate");
-                startActivity(saveIntent);
+                if(DataManager.POIPointTheme != null) {
+                    saveIntent.putExtra("changed", DataManager.POIPointTheme.isChanged());
+                    startActivity(saveIntent);
+                }
                 finish();
                 return true;
         }
@@ -707,6 +713,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
+        // Toggle record tracklog
         findViewById(R.id.show_tracklog).setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -745,12 +752,9 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         }
 
         // go fullscreen when the keyboard is hidden
-        ((EditTextBackEvent) findViewById(R.id.POILabel)).setOnEditTextImeBackListener(new EditTextBackEvent.EditTextImeBackListener() {
-            @Override
-            public void onImeBack(EditTextBackEvent ctrl, String text) {
-                findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                mHideToolbars.run();
-            }
+        ((EditTextBackEvent) findViewById(R.id.POILabel)).setOnEditTextImeBackListener((ctrl, text) -> {
+            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+            mHideToolbars.run();
         });
 
         // update POI label when keyboard done
@@ -843,7 +847,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 */
         theMap.setTileSource(bing);
 
-        theMap.setMaxZoomLevel(19.9);
+        theMap.setMaxZoomLevel(20.9);
         theMap.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         Configuration.getInstance().setCacheMapTileOvershoot((short) 100);
 
@@ -1173,6 +1177,7 @@ try {
             GPSIntent.putExtra("tracklogMinDist", tracklogMinDist);
 
             stopService(GPSIntent);
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(GPSIntent);
             } else {
@@ -1284,68 +1289,82 @@ try {
             }
         });
         findViewById(R.id.toggleGPS).setTag(false);
+        checkAllPermissions();
+    }
 
-/*        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        SharedPreferences prefs = getSharedPreferences("datastate", MODE_PRIVATE);
-        if(prefs.getBoolean("changed", false)) {
-            final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
-            builder.setTitle("Existem dados não gravados!")
-                    .setMessage("Abra as notificações e clique no ícone para gravar. Clique em descartar se NÃO quiser gravar as alterações.")
-                    .setCancelable(true)
-                    .setIcon(R.drawable.ic_folha)
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialogInterface) {
-                            finish();
-                        }
-                    })
-                    .setNegativeButton("Sair", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            finish();
-                        }
-                    })
-                    .setPositiveButton("Descartar", new DialogInterface.OnClickListener() {
-                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                            mNotificationManager.cancel(UNSAVED_NOTIFICATION);
-                            SharedPreferences prefs = getSharedPreferences("datastate", MODE_PRIVATE);
-                            SharedPreferences.Editor edit = prefs.edit();
-                            edit.putBoolean("changed", false);
-                            edit.commit();
-                            new InitialLoad().execute();
-                            //initializeApp();
-                        }
-                    });
-            final android.support.v7.app.AlertDialog alert = builder.create();
-            alert.show();
-        } else {*/
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-//                    ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                        , Manifest.permission.READ_EXTERNAL_STORAGE
-                        , Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        , Manifest.permission.ACCESS_WIFI_STATE
-                        , Manifest.permission.ACCESS_NETWORK_STATE
-                        , Manifest.permission.INTERNET
-                        , Manifest.permission.ACCESS_COARSE_LOCATION
-                        , Manifest.permission.VIBRATE
-                }, 23);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 23);
-                }
-                // no permissions, do nothing, wait for permission callback
-            } else
-                new InitialLoad().execute();
-//        }
+    private void checkAllPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                    , Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    , Manifest.permission.ACCESS_WIFI_STATE
+                    , Manifest.permission.ACCESS_NETWORK_STATE
+                    , Manifest.permission.INTERNET
+                    , Manifest.permission.ACCESS_COARSE_LOCATION
+                    , Manifest.permission.ACCESS_FINE_LOCATION
+                    , Manifest.permission.VIBRATE
+            }, 1);
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if(ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.FOREGROUND_SERVICE}, 1);
+                return;
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if(!Environment.isExternalStorageManager()) {
+                new android.support.v7.app.AlertDialog.Builder(this)
+                        .setTitle(R.string.permission_storage)
+                        .setMessage(R.string.permission_storage_text)
+                        .setCancelable(false)
+                        .setPositiveButton("I'm ok with that", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Intent intent = new Intent();
+                                intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                                Uri uri = Uri.fromParts("package", MainMap.this.getPackageName(), null);
+                                intent.setData(uri);
+                                startActivityForResult(intent, 8937);
+                            }
+                        }).create().show();
+                return;
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if(ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                new android.support.v7.app.AlertDialog.Builder(this)
+                        .setTitle(R.string.permission_location)
+                        .setMessage(R.string.permission_location_text)
+                        .setCancelable(false)
+                        .setPositiveButton("I'm ok with that", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                // this request will take user to Application's Setting page
+                                requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 2);
+                            }
+                        }).create().show();
+                return;
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainMap.this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 2);
+                return;
+            }
+        }
+
+        new InitialLoad().execute();
     }
 
     @Override
@@ -1393,6 +1412,17 @@ try {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
+            case 1:
+                checkAllPermissions();
+                break;
+
+            case 2:
+                if(ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                    noPermissionsMan();
+                else
+                    checkAllPermissions();
+                break;
+
             case 23: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0) {
@@ -1430,6 +1460,11 @@ try {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == 8937) {
+            checkAllPermissions();
+            return;
+        }
+
         SpeciesList sList = null;
         int index;
         if(data != null)
@@ -1646,7 +1681,6 @@ try {
 
             File extStoreDir = Environment.getExternalStorageDirectory();
             File invDir = new File(extStoreDir, "homemluzula");
-
             // Read tracklog
             ((TextView) findViewById(R.id.loadstatus)).setText(R.string.tracklog);
             FileInputStream fin;
@@ -1835,7 +1869,6 @@ try {
                 }
             });
 
-
             // Read base point theme
             ((TextView) findViewById(R.id.loadstatus)).setText(R.string.base_points);
             try {
@@ -1859,6 +1892,7 @@ try {
 //                DataSaver.POIPointTheme = SimplePointTheme.fromJSON(new FileInputStream(extStore + "/POI.json"), false);
                 DataManager.POIPointTheme = SimplePointTheme.fromXYLabelColor(new FileInputStream(new File(extStoreDir, "/POI.txt")));
             } catch (IOException e) {
+                e.printStackTrace();
                 DataManager.POIPointTheme = new SimplePointTheme();
             }
             DataManager.POIPointTheme.setChanged(false);
@@ -1967,8 +2001,8 @@ try {
             final Button btn = new Button(this);
             // Give button an ID
             btn.setId(quickMarkId + counter);
-            btn.setText(sp.getTaxon().replace(" ", "\n"));
-            btn.setTextSize(16);
+            btn.setText(sp.getTaxon().replace(" ", " "));
+            btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             btn.setTag(sp);
 
             // set the layoutParams on the button
@@ -1984,6 +2018,29 @@ try {
         if(v != null)
             v.addView(pinnedToolbar, 1, linearParams);
 
+    }
+
+    @TargetApi(29)
+    private void checkLocationPermission29() {
+        if (ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainMap.this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 23);
+        }
+    }
+
+    @TargetApi(30)
+    private void checkLocationPermission30() {
+        if(ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            new android.support.v7.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.permission_location)
+                    .setMessage(R.string.permission_location_text)
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            // this request will take user to Application's Setting page
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 23);
+                        }
+                    }).create().show();
+        }
     }
 
     @Override
@@ -2049,9 +2106,9 @@ try {
             case quickMarkId + 1:
             case quickMarkId + 2:
             case quickMarkId + 3:
-                if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions( MainMap.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 23 );
-                }
+                if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED)
+                    break;
+
                 int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
                 final FastPointMark locationListener = new FastPointMark(minGPSPrecision);
 
