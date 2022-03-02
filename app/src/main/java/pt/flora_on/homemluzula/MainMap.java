@@ -120,6 +120,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private final Handler mHideHandler = new Handler();
     private final Handler mHideGPSHandler = new Handler();
     private final Handler mRecordingTracklog = new Handler();
+    private final Handler saveTracklogTimer = new Handler();
     private Integer tracklogMinDist, precisionFilter;
     private Boolean tracklogPrecisionFilter;
     private View mContentView;
@@ -227,8 +228,20 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 */
 
     static public void beep() {
+        beep(0);
+    }
+
+    static public void beep(int tone) {
         ToneGenerator toneGen1 = new ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME);
-        toneGen1.startTone(ToneGenerator.TONE_PROP_BEEP,200);
+        switch(tone) {
+            case 0:
+                toneGen1.startTone(ToneGenerator.TONE_PROP_BEEP,200);
+                break;
+
+            case 1:
+                toneGen1.startTone(ToneGenerator.TONE_SUP_RINGTONE,100);
+                break;
+        }
     }
 
     public FolderOverlay getLayersOverlay() {
@@ -298,6 +311,16 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             } finally {
                 mRecordingTracklog.postDelayed(mToggleTracklogIcon, 500);
             }
+        }
+    };
+
+    private final Runnable saveTracklogRunnable = new Runnable() {
+        @Override
+        public void run() {
+            DataManager.saveTrackLog(null, null);
+            int asInt = Integer.parseInt(preferences.getString("pref_autosave_interval", "300000"));
+            if(asInt > 0)
+                saveTracklogTimer.postDelayed(saveTracklogRunnable, asInt);
         }
     };
 
@@ -397,9 +420,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 */
         }
 
-        if(!value) {
+        if(!value) {    // switched recording off
             recordTracklog = false;
             mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
+            saveTracklogTimer.removeCallbacks(saveTracklogRunnable);
 
             tb1.setTag(((int) tb1.getTag()) & 1);
 
@@ -407,6 +431,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 //            Toast.makeText(MainMap.this, "Tracklog desactivado.", Toast.LENGTH_SHORT).show();
             showCutTrackButton = false;
             setButtonLayout(null);
+            DataManager.saveTrackLog(null, null);
+            Toast.makeText(this.getApplicationContext(), "Saved tracklog", Toast.LENGTH_SHORT).show();
         } else {
             recordTracklog = true;
             mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
@@ -418,6 +444,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             DataManager.tracklog.setSelectedTrack(null);
             setButtonLayout(BUTTONLAYOUT.CONTINUE_LAST);
             mRecordingTracklog.postDelayed(hideCutTrackButton, 10000);
+
+            int asInt = Integer.parseInt(preferences.getString("pref_autosave_interval", "300000"));
+            if(asInt > 0) saveTracklogTimer.postDelayed(saveTracklogRunnable, asInt);
+
         }
 
         if(v != null) {
@@ -499,7 +529,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 theMap.getController().zoomIn();
                 return true;
 
-            case KeyEvent.KEYCODE_BACK:     // app exit!
+            case KeyEvent.KEYCODE_BACK:     // quit app!
                 if(checkGPSPermission()) {
                     isGPSOn = false;
                     stopService(GPSIntent);
@@ -847,7 +877,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 */
         theMap.setTileSource(bing);
 
-        theMap.setMaxZoomLevel(20.9);
+        theMap.setMaxZoomLevel(19.9);
         theMap.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
         Configuration.getInstance().setCacheMapTileOvershoot((short) 100);
 
@@ -2018,29 +2048,6 @@ try {
         if(v != null)
             v.addView(pinnedToolbar, 1, linearParams);
 
-    }
-
-    @TargetApi(29)
-    private void checkLocationPermission29() {
-        if (ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainMap.this, new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 23);
-        }
-    }
-
-    @TargetApi(30)
-    private void checkLocationPermission30() {
-        if(ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            new android.support.v7.app.AlertDialog.Builder(this)
-                    .setTitle(R.string.permission_location)
-                    .setMessage(R.string.permission_location_text)
-                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            // this request will take user to Application's Setting page
-                            requestPermissions(new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION}, 23);
-                        }
-                    }).create().show();
-        }
     }
 
     @Override

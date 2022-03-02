@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="pt.flora_on.homemluzula.MainKeyboard"
+    android:fitsSystemWindows="true"
     android:id="@+id/keyboard_page">
 
     <!-- The primary full-screen view. This can be replaced with whatever view

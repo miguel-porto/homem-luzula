@@ -34,6 +34,7 @@
             android:name=".MainKeyboard"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
+            android:windowSoftInputMode="adjustResize"
             android:screenOrientation="unspecified" />
         <!-- android:theme="@style/FullscreenTheme" /> -->
         <activity

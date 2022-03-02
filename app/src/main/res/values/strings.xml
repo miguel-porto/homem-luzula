@@ -29,6 +29,22 @@
         <item>20</item>
     </string-array>
 
+    <string-array name="pref_gps_autosave">
+        <item>0</item>
+        <item>60000</item>
+        <item>300000</item>
+        <item>600000</item>
+        <item>1800000</item>
+    </string-array>
+
+    <string-array name="pref_gps_autosave_labels">
+        <item>Não gravar automaticamente</item>
+        <item>1 min</item>
+        <item>5 min</item>
+        <item>10 min</item>
+        <item>30 min</item>
+    </string-array>
+
     <string-array name="pref_sizes">
         <item>6</item>
         <item>8</item>

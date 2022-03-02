@@ -18,6 +18,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -70,6 +71,41 @@ public class DataManager extends AppCompatActivity {
         }
         DataManager.selectedLayer = selectedLayer;
 
+    }
+
+    protected static int saveTrackLog(File invdir, StringBuilder errors) {
+        if(tracklog == null) return 0;
+        if(invdir == null) {
+            File extStoreDir = Environment.getExternalStorageDirectory();
+            invdir = new File(extStoreDir, "homemluzula");
+        }
+        int nErrors = 0;
+/*  TODO: save tracklogs in individual files
+            File trklogDir = new File(invdir, "tracklogs");
+            if(!trklogDir.exists()) trklogDir.mkdir();
+            for (Iterator<Tracklog.Segment> it = tracklog.iterator(); it.hasNext(); ) {
+                Tracklog.Segment s = it.next();
+                File ts = new File();
+
+            }
+*/
+
+        File file = new File(invdir, "tracklog.bin");
+        Log.i("PATH", file.getAbsolutePath());
+        if (file.exists()) file.delete();
+        try {
+            file.createNewFile();
+            FileOutputStream fout = new FileOutputStream(file);
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(tracklog);
+            oos.close();
+            MainMap.beep(1);
+        } catch (IOException e) {
+            if(errors != null)
+                errors.append("tracklog.bin: ").append(e.getMessage()).append("\n");
+            nErrors++;
+        }
+        return nErrors;
     }
 
     @Override
@@ -135,29 +171,7 @@ public class DataManager extends AppCompatActivity {
         File invdir = new File(extStoreDir, "homemluzula");
         // save tracklog
         if(tracklog != null) {
-/*  TODO: save tracklogs in individual files
-            File trklogDir = new File(invdir, "tracklogs");
-            if(!trklogDir.exists()) trklogDir.mkdir();
-            for (Iterator<Tracklog.Segment> it = tracklog.iterator(); it.hasNext(); ) {
-                Tracklog.Segment s = it.next();
-                File ts = new File();
-
-            }
-*/
-
-            File file = new File(invdir, "tracklog.bin");
-            Log.i("PATH", file.getAbsolutePath());
-            if (file.exists()) file.delete();
-            try {
-                file.createNewFile();
-                FileOutputStream fout = new FileOutputStream(file);
-                ObjectOutputStream oos = new ObjectOutputStream(fout);
-                oos.writeObject(tracklog);
-                oos.close();
-            } catch (IOException e) {
-                sb.append("tracklog.bin: ").append(e.getMessage()).append("\n");
-                nErrors++;
-            }
+            nErrors += saveTrackLog(invdir, sb);
         }
 
         if(layers != null && layers.size() > 0) {
@@ -175,22 +189,9 @@ public class DataManager extends AppCompatActivity {
             }
         }
 
-        // export Flora-On text file
-        //File chk = new File(extStore + "/dados-floraon.txt");
-        File chk = new File(extStoreDir, "dados-floraon.txt");
+        // export LVF text file
+        File chk = new File(extStoreDir, "/dados-lvf.txt");
         PrintWriter bw;
-        try {
-            bw = new PrintWriter(new FileWriter(chk, false));
-            for(SpeciesList sList : allData.getSpeciesLists()) {
-                sList.toCSV(bw, "floraon");
-            }
-            bw.close();
-        } catch (IOException e) {
-            sb.append("dados.txt: ").append(e.getMessage()).append("\n");
-            nErrors++;
-        }
-
-        chk = new File(extStoreDir, "/dados-lvf.txt");
         try {
             bw = new PrintWriter(new FileWriter(chk, false));
             bw.println("code\tlatitude\tlongitude\tdate\tdateYMD\thabitat\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcover\tcomment");

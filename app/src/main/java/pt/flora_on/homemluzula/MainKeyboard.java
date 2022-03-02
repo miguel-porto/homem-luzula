@@ -281,7 +281,8 @@ public class MainKeyboard extends AppCompatActivity {
             }
 
             MainKeyboard.this.setTitle("Adquirindo coordenadas...");
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED)
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
             speciesList.setNow();
             if(autonumber)
                 speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
@@ -539,6 +540,9 @@ public class MainKeyboard extends AppCompatActivity {
         findViewById(R.id.add_freedoubt).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
                 TextView tv;
                 TaxonObservation tObs = new TaxonObservation(((TextView) findViewById(R.id.freedescriptionedit)).getText().toString(), null);
                 speciesList.addObservation(tObs);

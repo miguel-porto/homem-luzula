@@ -4,7 +4,7 @@
         android:title="Tracklog"
         android:layout="@layout/preference_category">
         <ListPreference
-            android:defaultValue="4"
+            android:defaultValue="3"
             android:entries="@array/pref_gps_mindist"
             android:entryValues="@array/pref_gps_mindist"
             android:key="pref_gps_mindist"
@@ -29,6 +29,14 @@
             android:summary="Registar ponto de tracklog apenas se a precisão for melhor do que %s m"
             android:dependency="pref_gps_filter"
             android:title="Precisão do tracklog" />
+
+        <ListPreference
+            android:defaultValue="300000"
+            android:entries="@array/pref_gps_autosave_labels"
+            android:entryValues="@array/pref_gps_autosave"
+            android:key="pref_autosave_interval"
+            android:summary="Gravar tracklog automaticamente a cada: %s"
+            android:title="Autosave do tracklog" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -81,7 +89,7 @@
             android:title="Número de dígitos" />
 
         <ListPreference
-            android:defaultValue="6"
+            android:defaultValue="4"
             android:entries="@array/pref_gps_minprecision"
             android:entryValues="@array/pref_gps_minprecision"
             android:key="pref_gps_minprecision"
