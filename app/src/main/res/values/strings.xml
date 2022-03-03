@@ -31,6 +31,7 @@
 
     <string-array name="pref_gps_autosave">
         <item>0</item>
+        <!--<item>5000</item>-->
         <item>60000</item>
         <item>300000</item>
         <item>600000</item>
@@ -39,6 +40,7 @@
 
     <string-array name="pref_gps_autosave_labels">
         <item>Não gravar automaticamente</item>
+        <!--<item>5 sec</item>-->
         <item>1 min</item>
         <item>5 min</item>
         <item>10 min</item>

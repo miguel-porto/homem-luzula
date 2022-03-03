@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
@@ -22,6 +23,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Looper;
+import android.os.Message;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -158,17 +161,33 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private StyledLabelledGeoPoint prevSelectedPoint = null;
     private final Map<BUTTONLAYOUT, String[]> buttonLayouts = new HashMap<>();
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(!recordTracklog && isGPSOn) {
-            if(checkGPSPermission()) {
-                stopService(GPSIntent);
-//                locationManager.removeUpdates(tracklogListener);
+    private final LocationListener curPosListener = new LocationListener() {
+        public void onLocationChanged(Location location) {
+            if (MainMap.theMap == null || MainMap.inventoryLayer == null) return;
+            MainMap.currentLocationLayer.setCurrentLocation(location);
+            if(MainMap.lockOnCurrentLocation) {
+                MainMap.theMap.getController().setCenter(new GeoPoint(location));
+                MainMap.mainActivity.findViewById(R.id.mira).setVisibility(View.GONE);
+                MainMap.mainActivity.findViewById(R.id.view_distance).setVisibility(View.GONE);
+                MainMap.mainActivity.findViewById(R.id.view_distance).setVisibility(View.GONE);
             }
+
+            MainMap.lastLocation = new GeoTimePoint(location);
+            ((TextView) MainMap.mainActivity.findViewById(R.id.view_what)).setText(String.format(Locale.getDefault(), "Alt %.0fm", location.getAltitude()));
+            ((MainMap) MainMap.mainActivity).updateDistanceToCenter();
+            MainMap.theMap.invalidate();
         }
-    }
-/**
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        public void onProviderEnabled(String provider) {
+        }
+
+        public void onProviderDisabled(String provider) {
+        }
+    };
+    /**
      * This is a listener called on onResume, to enable GPS as soon as the user switches the screen
      * on. It only lives for a short time, until the location is precise.
      *//*
@@ -424,6 +443,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             recordTracklog = false;
             mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
             saveTracklogTimer.removeCallbacks(saveTracklogRunnable);
+            stopService(GPSIntent);
 
             tb1.setTag(((int) tb1.getTag()) & 1);
 
@@ -433,6 +453,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             setButtonLayout(null);
             DataManager.saveTrackLog(null, null);
             Toast.makeText(this.getApplicationContext(), "Saved tracklog", Toast.LENGTH_SHORT).show();
+            setGPSEnabled(true);
         } else {
             recordTracklog = true;
             mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
@@ -468,12 +489,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         final ImageButton tb = (ImageButton) findViewById(R.id.toggleGPS);
 
         if(value) {
-            if(isGPSOn) return;
+//            if(isGPSOn) return;
             tracklogMinDist = Integer.parseInt(preferences.getString("pref_gps_mindist", "4"));
             tracklogPrecisionFilter = preferences.getBoolean("pref_gps_filter", true);
             precisionFilter = Integer.parseInt(preferences.getString("pref_minprecision", "10"));
-
-//            Toast.makeText(this, "md" + tracklogMinDist.toString()+ tracklogPrecisionFilter.toString(), Toast.LENGTH_SHORT).show();
 
             if (getTracklogInterval() == 0)
                 ((RadioButton) findViewById(R.id.log1s)).setChecked(true);
@@ -484,12 +503,37 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
             switchOnLocationUpdates(getTracklogInterval());
             tb.setImageResource(R.drawable.ic_gps_fixed_green_24dp);
+            tb.setTag(true);
         } else {
             stopService(GPSIntent);
-//            locationManager.removeUpdates(tracklogListener);
+            locationManager.removeUpdates(curPosListener);
             isGPSOn = false;
-
+            saveTracklogTimer.removeCallbacks(saveTracklogRunnable);
             tb.setImageResource(R.drawable.ic_gps_fixed_white_24dp);
+            tb.setTag(false);
+        }
+    }
+
+    private void switchOnLocationUpdates(int interval) {
+        if(checkGPSPermission()) {
+            if(recordTracklog) {
+                GPSIntent.putExtra("interval", interval);
+                GPSIntent.putExtra("tracklogPrecisionFilter", tracklogPrecisionFilter);
+                GPSIntent.putExtra("precisionFilter", precisionFilter);
+                GPSIntent.putExtra("tracklogMinDist", tracklogMinDist);
+
+                stopService(GPSIntent);
+                locationManager.removeUpdates(curPosListener);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(GPSIntent);
+                } else {
+                    startService(GPSIntent);
+                }
+            } else {
+                locationManager.removeUpdates(curPosListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval * 1000L, 0, curPosListener);
+            }
+            isGPSOn = true;
         }
     }
 
@@ -533,6 +577,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if(checkGPSPermission()) {
                     isGPSOn = false;
                     stopService(GPSIntent);
+                    locationManager.removeUpdates(curPosListener);
+                    saveTracklogTimer.removeCallbacks(saveTracklogRunnable);
 //                    locationManager.removeUpdates(tracklogListener);
 //                    locationManager.removeUpdates(fastWaypointListener);
                 }
@@ -630,118 +676,17 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         // Edit selected point (or delete selected POI)
         findViewById(R.id.bottombutton_1).setOnClickListener(this);
 
-        /**
-         * Toggle GPS
-         */
-        findViewById(R.id.toggleGPS).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ImageButton tb = (ImageButton) v;
-                tb.setTag(!((boolean) tb.getTag()));
-
-                if((boolean) tb.getTag()) {     // if it was off, switch on
-                    setGPSEnabled(true);
-                } else {        // if it was on, just center
-                    tb.setTag(true);
-                    if(lastLocation != null) {
-                        theMap.getController().animateTo(new GeoPoint(lastLocation));
-                        findViewById(R.id.mira).setVisibility(View.GONE);
-//                        findViewById(R.id.add_location).setVisibility(View.GONE);
-                        findViewById(R.id.view_distance).setVisibility(View.GONE);
-                    }
-                }
-
-                // show interval buttons
-                mHideGPSHandler.removeCallbacks(mHideGPSRunnable);
-                mHideGPSHandler.postDelayed(mHideGPSRunnable, 2500);
-                setGPSVisibility(true);
-                lockOnCurrentLocation = true;
-            }
-        });
-
-        /**
-         * Toggle base waypoint layers visibility
-         */
-        findViewById(R.id.show_layers).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ImageButton tb = (ImageButton) v;
-                if(tb.getTag() == null) tb.setTag(true);
-                tb.setTag(!((boolean) tb.getTag()));
-
-                if((boolean) tb.getTag()) {
-                    tb.setImageResource(R.drawable.ic_point);
-                    otherPointLayer.setEnabled(true);
-                    basePointLayer.setEnabled(true);
-                    theMap.invalidate();
-                } else {
-                    tb.setImageResource(R.drawable.ic_nopoint);
-                    otherPointLayer.setEnabled(false);
-                    basePointLayer.setEnabled(false);
-                    theMap.invalidate();
-                }
-            }
-        });
+        // Toggle base waypoint layers visibility
+        findViewById(R.id.show_layers).setOnClickListener(this);
 
         // Toggle inventory layer visibility
         findViewById(R.id.show_inventories).setOnClickListener(this);
+        findViewById(R.id.show_POI).setOnClickListener(this);
+        findViewById(R.id.show_tracklog).setOnClickListener(this);
+        findViewById(R.id.show_veclayers).setOnClickListener(this);
 
-        findViewById(R.id.show_POI).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ImageButton tb = (ImageButton) v;
-                if(tb.getTag() == null) tb.setTag(true);
-                tb.setTag(!((boolean) tb.getTag()));
-
-                if((boolean) tb.getTag()) {
-                    tb.setImageResource(R.drawable.ic_redsquare);
-                    POIPointLayer.setEnabled(true);
-                } else {
-                    tb.setImageResource(R.drawable.ic_redsquare_no);
-                    POIPointLayer.setEnabled(false);
-                }
-                theMap.invalidate();
-            }
-        });
-
-
-
-        findViewById(R.id.show_tracklog).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ImageButton tb = (ImageButton) v;
-                if(tb.getTag() == null)
-                    tb.setTag(1);
-
-                tb.setTag(((int) tb.getTag()) ^ 1);
-                tb.setImageResource(getTracklogIcon());
-
-                if((((int) tb.getTag()) & 1) != 0) {
-                    trackLogOverlay.setEnabled(true);
-                } else {
-                    trackLogOverlay.setEnabled(false);
-                }
-                theMap.invalidate();
-            }
-        });
-
-        findViewById(R.id.show_veclayers).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final ImageButton tb = (ImageButton) v;
-                if(tb.getTag() == null) tb.setTag(true);
-                tb.setTag(!((boolean) tb.getTag()));
-
-                if((boolean) tb.getTag()) {
-                    tb.setImageResource(R.drawable.ic_layers);
-                    layersOverlay.setEnabled(true);
-                } else {
-                    tb.setImageResource(R.drawable.ic_layers_no);
-                    layersOverlay.setEnabled(false);
-                }
-                theMap.invalidate();
-            }
-        });
+        // Toggle GPS
+        findViewById(R.id.toggleGPS).setOnClickListener(this);
 
         // Toggle record tracklog
         findViewById(R.id.show_tracklog).setOnLongClickListener(new View.OnLongClickListener() {
@@ -761,15 +706,14 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             public void onClick(View v) {
                 if(getTracklogInterval() == 0) {    // switch it off
                     if(checkGPSPermission()) {
+                        if(recordTracklog)
+                            setRecordTracklog(false);
+
                         setGPSEnabled(false);
                         if (currentLocationLayer != null)
                             currentLocationLayer.setCurrentLocation((Location) null);
                         theMap.invalidate();
-                        final ImageButton tb = (ImageButton) findViewById(R.id.toggleGPS);
-                        tb.setTag(false);
-
-                        if(recordTracklog)
-                            setRecordTracklog(false);
+//                        final ImageButton tb = (ImageButton) findViewById(R.id.toggleGPS);
                     }
                 } else
                     switchOnLocationUpdates(getTracklogInterval());
@@ -1199,28 +1143,6 @@ try {
             return (BUTTONLAYOUT) findViewById(R.id.bottombuttons).getTag();
     }
 
-    private void switchOnLocationUpdates(int interval) {
-        if(checkGPSPermission()) {
-            GPSIntent.putExtra("interval", interval);
-            GPSIntent.putExtra("tracklogPrecisionFilter", tracklogPrecisionFilter);
-            GPSIntent.putExtra("precisionFilter", precisionFilter);
-            GPSIntent.putExtra("tracklogMinDist", tracklogMinDist);
-
-            stopService(GPSIntent);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(GPSIntent);
-            } else {
-                startService(GPSIntent);
-            }
-/*
-            locationManager.removeUpdates(tracklogListener);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval * 1000, 0, tracklogListener);
-*/
-            isGPSOn = true;
-        }
-    }
-
     /**
      * I need permissions man!
      */
@@ -1398,48 +1320,6 @@ try {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
-        // this is just an internal activity change, don't do anything.
-        if(internalNavigation) {
-            internalNavigation = false;
-            return;
-        }
-
-        if(checkGPSPermission()) {
-//            locationManager.removeUpdates(tracklogListener);
-//            locationManager.removeUpdates(fastWaypointListener);
-        }
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        /**
-         * When screen is switched on, switch GPS on for some time, as it may be an emergency waypoint!
-         */
-//        registerReceiver(screenOnReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        lockOnCurrentLocation = true;
-        recordTracklog = false;
-        breakTrackAtNextFix = false;
-        mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
-/*
-        try {
-            unregisterReceiver(screenOnReceiver);
-        } catch (IllegalArgumentException e) {
-            // just ignore, it was not registered
-        }
-*/
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case 1:
@@ -1613,6 +1493,17 @@ try {
 */
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        if(!recordTracklog && isGPSOn) {
+            if(checkGPSPermission()) {
+//                stopService(GPSIntent);
+                locationManager.removeUpdates(curPosListener);
+            }
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         hide();
@@ -1621,6 +1512,51 @@ try {
             switchOnLocationUpdates(getTracklogInterval());
         }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // this is just an internal activity change, don't do anything.
+        if(internalNavigation) {
+            internalNavigation = false;
+            return;
+        }
+
+        if(checkGPSPermission()) {
+//            locationManager.removeUpdates(tracklogListener);
+//            locationManager.removeUpdates(fastWaypointListener);
+        }
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        /**
+         * When screen is switched on, switch GPS on for some time, as it may be an emergency waypoint!
+         */
+//        registerReceiver(screenOnReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        lockOnCurrentLocation = true;
+        recordTracklog = false;
+        breakTrackAtNextFix = false;
+        mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
+        stopService(GPSIntent);
+        saveTracklogTimer.removeCallbacks(saveTracklogRunnable);
+/*
+        try {
+            unregisterReceiver(screenOnReceiver);
+        } catch (IllegalArgumentException e) {
+            // just ignore, it was not registered
+        }
+*/
+    }
+
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -2051,9 +1987,274 @@ try {
     }
 
     @Override
-    public void onClick(View view) {
-        switch(view.getId()) {
+    public void onClick(View v) {
+        if(v.getId() == R.id.toggleGPS) {
+            final ImageButton tb = (ImageButton) v;
+            tb.setTag(!((boolean) tb.getTag()));
+
+            if((boolean) tb.getTag()) {     // if it was off, switch on
+                setGPSEnabled(true);
+            } else {        // if it was on, just center
+                tb.setTag(true);
+                if(lastLocation != null) {
+                    theMap.getController().animateTo(new GeoPoint(lastLocation));
+                    findViewById(R.id.mira).setVisibility(View.GONE);
+//                        findViewById(R.id.add_location).setVisibility(View.GONE);
+                    findViewById(R.id.view_distance).setVisibility(View.GONE);
+                }
+            }
+
+            // show interval buttons
+            mHideGPSHandler.removeCallbacks(mHideGPSRunnable);
+            mHideGPSHandler.postDelayed(mHideGPSRunnable, 2500);
+            setGPSVisibility(true);
+            lockOnCurrentLocation = true;
+        }
+
+        if(v.getId() == R.id.show_veclayers) {
+            final ImageButton tb = (ImageButton) v;
+            if(tb.getTag() == null) tb.setTag(true);
+            tb.setTag(!((boolean) tb.getTag()));
+
+            if((boolean) tb.getTag()) {
+                tb.setImageResource(R.drawable.ic_layers);
+                layersOverlay.setEnabled(true);
+            } else {
+                tb.setImageResource(R.drawable.ic_layers_no);
+                layersOverlay.setEnabled(false);
+            }
+            theMap.invalidate();
+        }
+
+        if(v.getId() == R.id.show_tracklog) {
+            final ImageButton tb = (ImageButton) v;
+            if(tb.getTag() == null)
+                tb.setTag(1);
+
+            tb.setTag(((int) tb.getTag()) ^ 1);
+            tb.setImageResource(getTracklogIcon());
+
+            trackLogOverlay.setEnabled((((int) tb.getTag()) & 1) != 0);
+            theMap.invalidate();
+        }
+
+        if(v.getId() == R.id.show_POI) {
+            final ImageButton tb = (ImageButton) v;
+            if(tb.getTag() == null) tb.setTag(true);
+            tb.setTag(!((boolean) tb.getTag()));
+
+            if((boolean) tb.getTag()) {
+                tb.setImageResource(R.drawable.ic_redsquare);
+                POIPointLayer.setEnabled(true);
+            } else {
+                tb.setImageResource(R.drawable.ic_redsquare_no);
+                POIPointLayer.setEnabled(false);
+            }
+            theMap.invalidate();
+        }
+
+        if(v.getId() == R.id.show_layers) {
+            final ImageButton tb = (ImageButton) v;
+            if(tb.getTag() == null) tb.setTag(true);
+            tb.setTag(!((boolean) tb.getTag()));
+
+            if((boolean) tb.getTag()) {
+                tb.setImageResource(R.drawable.ic_point);
+                otherPointLayer.setEnabled(true);
+                basePointLayer.setEnabled(true);
+                theMap.invalidate();
+            } else {
+                tb.setImageResource(R.drawable.ic_nopoint);
+                otherPointLayer.setEnabled(false);
+                basePointLayer.setEnabled(false);
+                theMap.invalidate();
+            }
+        }
+
+        if(v.getId() == R.id.start_download) {
+            updateEstimate(true);
+        }
+
+        if(v.getId() == R.id.bottombutton_3) {
+            Intent intent = new Intent(MainMap.this, MainKeyboard.class);
+            internalNavigation = true;
+            startActivityForResult(intent, GET_SPECIESLIST);
+        }
+
+        if(v.getId() == R.id.show_dashboard) {
+            Intent dash = new Intent(MainMap.this, Activity_dashboard.class);
+            startActivityForResult(dash, DASHBOARD);
+        }
+
+        if(v.getId() == R.id.bottombutton_2) {
+            if(getButtonLayout() == BUTTONLAYOUT.DELETE_TRACK) {
+                if(DataManager.tracklog.cutNearestSegmentAt(theMap.getMapCenter(), true)) {
+                    Toast.makeText(MainMap.this, "Track cortado no vértice mais próximo do centro.", Toast.LENGTH_SHORT).show();
+                    theMap.invalidate();
+                }
+            } else {
+                breakTrackAtNextFix = true;
+                showCutTrackButton = false;
+                setButtonLayout(null);
+                Toast.makeText(MainMap.this, "Tracklog interrompido nesta posição.", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        if(v.getId() == R.id.bottombutton_1) {
+            boolean noInvSel = inventoryLayer == null || inventoryLayer.getSelectedPoint() == null;
+            boolean noPOISel = POIPointLayer == null || POIPointLayer.getSelectedPoint() == null;
+            boolean noTrackSel = DataManager.tracklog == null || DataManager.tracklog.getSelectedTrack() == null;
+
+            switch(getButtonLayout()) {
+                case EDIT_INVENTORY:
+                case CONTINUE_LAST:
+                    if(!noInvSel) {
+                        openSpeciesList(inventoryLayer.getSelectedPoint());
+                        return;
+                    }
+                    break;
+
+                case DELETE_POI:
+                    if(!noPOISel) {
+                        DataManager.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
+                        DataManager.POIPointTheme.setChanged(true);
+                        POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
+                        findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                        theMap.invalidate();
+                    }
+                    break;
+
+                case DELETE_TRACK:
+                    if(!noTrackSel) {
+                        theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataManager.tracklog.getSelectedPolyline().getPoints()), true);
+                        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                        builder.setMessage("Quer apagar este segmento?")
+                                .setCancelable(true)
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    @Override
+                                    public void onCancel(DialogInterface dialogInterface) {
+                                        dialogInterface.dismiss();
+                                        mHideToolbars.run();
+                                    }
+                                })
+                                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                        mHideToolbars.run();
+                                    }
+                                })
+                                .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
+                                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                        DataManager.tracklog.deleteTrack(DataManager.tracklog.getSelectedTrack());
+                                        DataManager.tracklog.setSelectedTrack(DataManager.tracklog.size() > 0 ? DataManager.tracklog.size() - 1 : null);
+                                        findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                                        theMap.invalidate();
+                                        mHideToolbars.run();
+                                    }
+                                });
+                        final android.support.v7.app.AlertDialog alert = builder.create();
+                        alert.show();
+                    }
+                    break;
+
+                case DELETE_LAYER:
+                    if(DataManager.getSelectedLayer() == null) break;
+                    Layer layer = DataManager.layers.get(DataManager.getSelectedLayer());
+                    if(layer == null) break;
+                    final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                    builder.setMessage(R.string.delete_this_layer)
+                            .setCancelable(true)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialogInterface) {
+                                    dialogInterface.dismiss();
+                                    mHideToolbars.run();
+                                }
+                            })
+                            .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dialogInterface.dismiss();
+                                    mHideToolbars.run();
+                                }
+                            })
+                            .setPositiveButton(R.string.yes_delete_layer, new DialogInterface.OnClickListener() {
+                                public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    DataManager.layers.remove(layer);
+                                    layersOverlay.remove(layer.getOverlay());
 /*
+                                    for(Polyline pl : layer.map.values()) {
+                                        layer.getOverlay().remove(pl);
+                                    }
+*/
+
+                                    DataManager.setSelectedLayer(null);
+                                    findViewById(R.id.edit_label_box).setVisibility(View.GONE);
+                                    theMap.invalidate();
+                                    mHideToolbars.run();
+                                }
+                            });
+                    final android.support.v7.app.AlertDialog alert = builder.create();
+                    alert.show();
+
+                    break;
+            }
+        }
+
+        if(v.getId() == R.id.show_inventories) {
+            final ImageButton tb = (ImageButton) v;
+            if(tb.getTag() == null) tb.setTag(true);
+            tb.setTag(!((boolean) tb.getTag()));
+
+            if((boolean) tb.getTag()) {
+                tb.setImageResource(R.drawable.ic_square);
+                inventoryLayer.setEnabled(true);
+                inventoryLayer.getStyle().setIsClickable(true);
+            } else {
+                tb.setImageResource(R.drawable.ic_square_no);
+                inventoryLayer.setEnabled(false);
+                inventoryLayer.getStyle().setIsClickable(false);
+            }
+            theMap.invalidate();
+        }
+
+        // fast mark pinned species
+        if(v.getId() == quickMarkId || v.getId() == quickMarkId + 1 || v.getId() == quickMarkId + 2 || v.getId() == quickMarkId + 3) {
+            if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED)
+                return;
+
+            int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
+            final FastPointMark locationListener = new FastPointMark(minGPSPrecision);
+
+            LocationFixedCallback cb = new LocationFixedCallback() {
+                @Override
+                public void finished(float latitude, float longitude) {
+                    beep();
+                    locationManager.removeUpdates(locationListener);
+                    Intent data = new Intent();
+                    SpeciesList sl = new SpeciesList();
+                    sl.setSingleSpecies(true);
+                    sl.setNow();
+                    sl.setLocation(latitude, longitude);
+                    TaxonObservation tObs = (TaxonObservation) v.getTag();
+                    sl.addObservation(tObs);
+                    ((Button) v).setText(tObs.getTaxonCapital().replace(" ", "\n"));
+
+                    data.putExtra("specieslist", sl);
+                    MainMap.this.onActivityResult(GET_SPECIESLIST, RESULT_OK, data);
+                }
+            };
+            locationListener.setCallback(cb);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+            ((Button) v).setText("waiting\nGPS...");
+        }
+
+/*
+        switch(view.getId()) {
+
             case R.id.download_tiles:
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainMap.this);
 
@@ -2097,193 +2298,8 @@ try {
                 downloadPrompt.show();
                 updateEstimate(false);
                 break;
-*/
 
-            case R.id.bottombutton_3:
-                Intent intent = new Intent(MainMap.this, MainKeyboard.class);
-                internalNavigation = true;
-                startActivityForResult(intent, GET_SPECIESLIST);
-                break;
-
-            case R.id.start_download:
-                updateEstimate(true);
-                break;
-
-            case quickMarkId:
-            case quickMarkId + 1:
-            case quickMarkId + 2:
-            case quickMarkId + 3:
-                if(ContextCompat.checkSelfPermission(MainMap.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED)
-                    break;
-
-                int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
-                final FastPointMark locationListener = new FastPointMark(minGPSPrecision);
-
-                LocationFixedCallback cb = new LocationFixedCallback() {
-                    @Override
-                    public void finished(float latitude, float longitude) {
-                        beep();
-                        locationManager.removeUpdates(locationListener);
-                        Intent data = new Intent();
-                        SpeciesList sl = new SpeciesList();
-                        sl.setSingleSpecies(true);
-                        sl.setNow();
-                        sl.setLocation(latitude, longitude);
-                        TaxonObservation tObs = (TaxonObservation) view.getTag();
-                        sl.addObservation(tObs);
-                        ((Button) view).setText(tObs.getTaxonCapital().replace(" ", "\n"));
-
-                        data.putExtra("specieslist", sl);
-                        MainMap.this.onActivityResult(GET_SPECIESLIST, RESULT_OK, data);
-                    }
-                };
-                locationListener.setCallback(cb);
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
-                ((Button) view).setText("waiting\nGPS...");
-                break;
-
-            case R.id.show_dashboard:
-                Intent dash = new Intent(MainMap.this, Activity_dashboard.class);
-                startActivityForResult(dash, DASHBOARD);
-                break;
-
-            case R.id.bottombutton_2:
-                if(getButtonLayout() == BUTTONLAYOUT.DELETE_TRACK) {
-                    if(DataManager.tracklog.cutNearestSegmentAt(theMap.getMapCenter(), true)) {
-                        Toast.makeText(MainMap.this, "Track cortado no vértice mais próximo do centro.", Toast.LENGTH_SHORT).show();
-                        theMap.invalidate();
-                    }
-                } else {
-                    breakTrackAtNextFix = true;
-                    showCutTrackButton = false;
-                    setButtonLayout(null);
-                    Toast.makeText(MainMap.this, "Tracklog interrompido nesta posição.", Toast.LENGTH_SHORT).show();
-                }
-                break;
-
-            case R.id.bottombutton_1:
-                boolean noInvSel = inventoryLayer == null || inventoryLayer.getSelectedPoint() == null;
-                boolean noPOISel = POIPointLayer == null || POIPointLayer.getSelectedPoint() == null;
-                boolean noTrackSel = DataManager.tracklog == null || DataManager.tracklog.getSelectedTrack() == null;
-
-                switch(getButtonLayout()) {
-                    case EDIT_INVENTORY:
-                    case CONTINUE_LAST:
-                        if(!noInvSel) {
-                            openSpeciesList(inventoryLayer.getSelectedPoint());
-                            return;
-                        }
-                        break;
-
-                    case DELETE_POI:
-                        if(!noPOISel) {
-                            DataManager.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
-                            DataManager.POIPointTheme.setChanged(true);
-                            POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
-                            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                            theMap.invalidate();
-                        }
-                        break;
-
-                    case DELETE_TRACK:
-                        if(!noTrackSel) {
-                            theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataManager.tracklog.getSelectedPolyline().getPoints()), true);
-                            final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
-                            builder.setMessage("Quer apagar este segmento?")
-                                    .setCancelable(true)
-                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                        @Override
-                                        public void onCancel(DialogInterface dialogInterface) {
-                                            dialogInterface.dismiss();
-                                            mHideToolbars.run();
-                                        }
-                                    })
-                                    .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            dialogInterface.dismiss();
-                                            mHideToolbars.run();
-                                        }
-                                    })
-                                    .setPositiveButton("Sim, apagar track", new DialogInterface.OnClickListener() {
-                                        public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                            DataManager.tracklog.deleteTrack(DataManager.tracklog.getSelectedTrack());
-                                            DataManager.tracklog.setSelectedTrack(DataManager.tracklog.size() > 0 ? DataManager.tracklog.size() - 1 : null);
-                                            findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                                            theMap.invalidate();
-                                            mHideToolbars.run();
-                                        }
-                                    });
-                            final android.support.v7.app.AlertDialog alert = builder.create();
-                            alert.show();
-                        }
-                        break;
-
-                    case DELETE_LAYER:
-                        if(DataManager.getSelectedLayer() == null) break;
-                        Layer layer = DataManager.layers.get(DataManager.getSelectedLayer());
-                        if(layer == null) break;
-                        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
-                        builder.setMessage(R.string.delete_this_layer)
-                                .setCancelable(true)
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                    @Override
-                                    public void onCancel(DialogInterface dialogInterface) {
-                                        dialogInterface.dismiss();
-                                        mHideToolbars.run();
-                                    }
-                                })
-                                .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        dialogInterface.dismiss();
-                                        mHideToolbars.run();
-                                    }
-                                })
-                                .setPositiveButton(R.string.yes_delete_layer, new DialogInterface.OnClickListener() {
-                                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                        DataManager.layers.remove(layer);
-                                        layersOverlay.remove(layer.getOverlay());
-/*
-                                        for(Polyline pl : layer.map.values()) {
-                                            layer.getOverlay().remove(pl);
-                                        }
-*/
-
-                                        DataManager.setSelectedLayer(null);
-                                        findViewById(R.id.edit_label_box).setVisibility(View.GONE);
-                                        theMap.invalidate();
-                                        mHideToolbars.run();
-                                    }
-                                });
-                        final android.support.v7.app.AlertDialog alert = builder.create();
-                        alert.show();
-
-                        break;
-                }
-                break;
-
-            case R.id.show_inventories:
-                final ImageButton tb = (ImageButton) view;
-                if(tb.getTag() == null) tb.setTag(true);
-                tb.setTag(!((boolean) tb.getTag()));
-
-                if((boolean) tb.getTag()) {
-                    tb.setImageResource(R.drawable.ic_square);
-                    inventoryLayer.setEnabled(true);
-                    inventoryLayer.getStyle().setIsClickable(true);
-                } else {
-                    tb.setImageResource(R.drawable.ic_square_no);
-                    inventoryLayer.setEnabled(false);
-                    inventoryLayer.getStyle().setIsClickable(false);
-                }
-                theMap.invalidate();
-                break;
-
-        }
+        }*/
 
     }
-
 }

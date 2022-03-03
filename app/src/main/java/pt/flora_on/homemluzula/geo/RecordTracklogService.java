@@ -77,9 +77,6 @@ public class RecordTracklogService extends Service {
 
             }
 
-
-
-
             if(MainMap.lockOnCurrentLocation) {
                 MainMap.theMap.getController().setCenter(new GeoPoint(location));
                 MainMap.mainActivity.findViewById(R.id.mira).setVisibility(View.GONE);
@@ -139,6 +136,7 @@ public class RecordTracklogService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
             Intent notificationIntent = new Intent(this, MainMap.class);
+
             PendingIntent pendingIntent =
                     PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
