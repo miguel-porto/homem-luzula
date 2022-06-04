@@ -2,12 +2,14 @@ package pt.flora_on.observation_data;
 
 import android.app.Application;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.UnderlineSpan;
 
 import java.io.PrintWriter;
 import java.security.InvalidParameterException;
@@ -338,19 +340,24 @@ public class SpeciesList implements Parcelable {
                 sb.append("?");
                 wasAppended = true;
             }
+            SpannableString str = new SpannableString(sb.toString());
+            if(ato.isAcquiringGPS != null && ato.isAcquiringGPS != 0)
+                str.setSpan(new android.text.style.StyleSpan(Typeface.ITALIC), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
             if (ato.getPhenoState().isFlowering()) {
-                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoFlower), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ForegroundColorSpan(MainMap.phenoFlower), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if (ato.getPhenoState() == Constants.PhenologicalState.VEGETATIVE) {
-                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoVegetative), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ForegroundColorSpan(MainMap.phenoVegetative), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if (ato.getPhenoState() == Constants.PhenologicalState.DISPERSION || ato.getPhenoState() == Constants.PhenologicalState.FLOWER_DISPERSION) {
-                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoDispersion), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ForegroundColorSpan(MainMap.phenoDispersion), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if (ato.getPhenoState() == Constants.PhenologicalState.FRUIT) {
-                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoFruit), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ForegroundColorSpan(MainMap.phenoFruit), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if (ato.getPhenoState() == Constants.PhenologicalState.RESTING) {
-                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoResting), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                str.setSpan(new ForegroundColorSpan(MainMap.phenoResting), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             } else if (ato.getPhenoState() == Constants.PhenologicalState.BUD) {
-                ssb.append(sb, new ForegroundColorSpan(MainMap.phenoBud), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            } else ssb.append(sb);
+                str.setSpan(new ForegroundColorSpan(MainMap.phenoBud), 0, str.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            ssb.append(str);
             if(!wasAppended) ssb.append(" ");
             if(!(i == nsp - 1 || i == (clipAfter == null ? Integer.MAX_VALUE : (clipAfter - 1)))) ssb.append(" ");
         }

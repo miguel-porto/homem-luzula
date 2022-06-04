@@ -76,7 +76,7 @@ public class ObservationAdapterPhenology extends RecyclerView.Adapter<AddSpecies
         });
 
         // more fields
-        holder.but_details.setTag(new TaxonObservation(text, Constants.PhenologicalState.NULL));
+        holder.but_details.setTag(new TaxonObservation(TaxonObservation.capitalize(text), Constants.PhenologicalState.NULL));
         holder.but_details.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

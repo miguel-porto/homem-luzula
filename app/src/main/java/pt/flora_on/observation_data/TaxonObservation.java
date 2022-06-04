@@ -18,6 +18,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
     private Integer order;
     private String cover;
     private Float observationLatitude, observationLongitude;
+    public transient Integer isAcquiringGPS;
 
     public TaxonObservation(String taxon, Constants.PhenologicalState phenoState) {
         this.taxon = taxon;
@@ -39,6 +40,9 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         this.confidence = to.confidence;
         this.abundanceType = to.abundanceType;
         this.cover = to.cover;
+        this.observationLongitude = to.observationLongitude;
+        this.observationLatitude = to.observationLatitude;
+        this.isAcquiringGPS = to.isAcquiringGPS;
     }
 
     private TaxonObservation(Parcel in) {
@@ -53,6 +57,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         cover = in.readString();
         observationLatitude = in.readFloat();
         observationLongitude = in.readFloat();
+        isAcquiringGPS = in.readInt();
     }
 
     @Override
@@ -68,6 +73,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         dest.writeString(cover);
         dest.writeFloat(observationLatitude == null ? 0 : observationLatitude);
         dest.writeFloat(observationLongitude == null ? 0 : observationLongitude);
+        dest.writeInt(isAcquiringGPS == null ? 0 : isAcquiringGPS);
     }
 
     @Override
@@ -137,8 +143,12 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         }
     };
 
-    public String getTaxonCapital() { return (getTaxon().substring(0, 1)).toUpperCase() + getTaxon().substring(1, getTaxon().length()).toLowerCase();}
+    public String getTaxonCapital() { return capitalize(getTaxon());}
     public String getTaxon() { return taxon; }
+
+    static public String capitalize(String s) {
+        return (s.substring(0, 1)).toUpperCase() + s.substring(1, s.length()).toLowerCase();
+    }
 
     public void setTaxon(String taxon) {
         this.taxon = taxon;

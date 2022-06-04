@@ -1965,7 +1965,7 @@ try {
         Set<String> pinned = preferences.getStringSet("pinnedTaxa", new HashSet<String>());
         int counter = 0;
         for (String spname : pinned) {
-            TaxonObservation sp = new TaxonObservation(spname, null);
+            TaxonObservation sp = new TaxonObservation(TaxonObservation.capitalize(spname), null);
             final Button btn = new Button(this);
             // Give button an ID
             btn.setId(quickMarkId + counter);

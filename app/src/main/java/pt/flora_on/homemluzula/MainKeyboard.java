@@ -333,7 +333,7 @@ public class MainKeyboard extends AppCompatActivity {
                     inputBuffer.append(btn);
                 } else {    // not a letter
                     switch (btn) {
-                        case '<':
+                        case '⌫':
                             if (inputBuffer.length() == 0) break;
                             inputBuffer.setLength(inputBuffer.length() - 1);
                             inputBuffer.trimToSize();
@@ -696,8 +696,10 @@ public class MainKeyboard extends AppCompatActivity {
 //            MainKeyboard.this.setTitle(String.format(Locale.getDefault(), "Fixando GPS %.5f %.5f", taxonObservation.getObservationLongitude(), taxonObservation.getObservationLatitude()));
             if(location.getAccuracy() < minGPSPrecision) {
                 locationManager.removeUpdates(this);
+                taxonObservation.isAcquiringGPS = 0;
                 MainMap.beep();
             }
+            ((TextView) MainKeyboard.this.findViewById(R.id.showspecies)).setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -724,12 +726,14 @@ public class MainKeyboard extends AppCompatActivity {
 
                 if(recordTaxonCoordinates) {
                     LocationListener tmp;
-                    if(speciesList.getNumberOfSpecies() == 1) {
+                    if(speciesList.getNumberOfSpecies() == 1) {     // if it has only one species, set the same location of inventory
                         tObs.setLocation(speciesList.getLatitude(), speciesList.getLongitude());
                     } else if(speciesList.getNumberOfSpecies() > 1) {
+                        tObs.isAcquiringGPS = 1;
                         observationLocationListener.add(tmp = new observationLocationListener(tObs));
-                        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, tmp);
+                        }
                     }
                 }
 
