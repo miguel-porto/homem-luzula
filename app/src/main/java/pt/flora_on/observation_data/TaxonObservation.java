@@ -8,7 +8,7 @@ import android.os.Parcelable;
  */
 
 public class TaxonObservation implements Parcelable, Comparable<TaxonObservation> {
-    private final String taxon;
+    private String taxon;
     private String comment;
     private String abundance;
     private Constants.PhenologicalState phenoState;
@@ -17,6 +17,7 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
     private Constants.AbundanceType abundanceType = Constants.AbundanceType.NO_DATA;
     private Integer order;
     private String cover;
+    private Float observationLatitude, observationLongitude;
 
     public TaxonObservation(String taxon, Constants.PhenologicalState phenoState) {
         this.taxon = taxon;
@@ -50,6 +51,8 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         abundanceType = Constants.AbundanceType.valueOf(in.readString());
         order = in.readInt();
         cover = in.readString();
+        observationLatitude = in.readFloat();
+        observationLongitude = in.readFloat();
     }
 
     @Override
@@ -63,6 +66,8 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         dest.writeString(abundanceType == null ? Constants.AbundanceType.NO_DATA.toString() : abundanceType.toString());
         dest.writeInt(this.getOrder());
         dest.writeString(cover);
+        dest.writeFloat(observationLatitude == null ? 0 : observationLatitude);
+        dest.writeFloat(observationLongitude == null ? 0 : observationLongitude);
     }
 
     @Override
@@ -107,6 +112,19 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
             this.cover = null;
     }
 
+    public void setLocation(Float observationLatitude, Float observationLongitude) {
+        this.observationLatitude = observationLatitude;
+        this.observationLongitude = observationLongitude;
+    }
+
+    public Float getObservationLatitude() {
+        return this.observationLatitude;
+    }
+
+    public Float getObservationLongitude() {
+        return  this.observationLongitude;
+    }
+
     public static final Creator<TaxonObservation> CREATOR = new Creator<TaxonObservation>() {
         @Override
         public TaxonObservation createFromParcel(Parcel in) {
@@ -121,6 +139,10 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
 
     public String getTaxonCapital() { return (getTaxon().substring(0, 1)).toUpperCase() + getTaxon().substring(1, getTaxon().length()).toLowerCase();}
     public String getTaxon() { return taxon; }
+
+    public void setTaxon(String taxon) {
+        this.taxon = taxon;
+    }
 
     public String getComment() {
         return comment;

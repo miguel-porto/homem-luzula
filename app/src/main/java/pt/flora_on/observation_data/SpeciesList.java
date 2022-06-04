@@ -265,9 +265,11 @@ public class SpeciesList implements Parcelable {
                 if(taxa.size() == 0) {
                     sb.append(this.getGpsCode()).append("\t")
                             .append(this.latitude).append("\t").append(this.longitude).append("\t")
+/*
                             .append(this.day == null ? "?" : String.format("%02d", day)).append("/")
                             .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
                             .append(this.year == null ? "?" : year).append("\t")
+*/
                             .append(this.year == null ? "?" : year).append("/")
                             .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
                             .append(this.day == null ? "?" : String.format("%02d", day)).append(" ")
@@ -280,9 +282,11 @@ public class SpeciesList implements Parcelable {
                     for (TaxonObservation obs : taxa) {
                         sb.append(this.getGpsCode()).append("\t")
                                 .append(this.latitude).append("\t").append(this.longitude).append("\t")
+/*
                                 .append(this.day == null ? "?" : String.format("%02d", day)).append("/")
                                 .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
                                 .append(this.year == null ? "?" : year).append("\t")
+*/
                                 .append(this.year == null ? "?" : year).append("/")
                                 .append(this.month == null ? "?" : String.format("%02d", month)).append("/")
                                 .append(this.day == null ? "?" : String.format("%02d", day)).append(" ")
@@ -295,7 +299,9 @@ public class SpeciesList implements Parcelable {
                                 .append("\t").append(obs.getAbundance() == null ? "" : obs.getAbundance())
                                 .append("\t").append(obs.getAbundanceType() == Constants.AbundanceType.NO_DATA ? "" : obs.getAbundanceType().toString())
                                 .append("\t").append(obs.getCover() == null ? "" : obs.getCover())
-                                .append("\t").append(obs.getComment() == null ? "" : obs.getComment());
+                                .append("\t").append(obs.getComment() == null ? "" : obs.getComment())
+                                .append("\t").append((obs.getObservationLatitude() == null || obs.getObservationLatitude() == 0) ? "" : obs.getObservationLatitude())
+                                .append("\t").append((obs.getObservationLongitude() == null || obs.getObservationLongitude() == 0) ? "" : obs.getObservationLongitude());
                         file.println(sb.toString());
                         sb.setLength(0);
                     }

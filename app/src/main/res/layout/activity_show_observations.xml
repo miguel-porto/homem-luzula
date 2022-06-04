@@ -58,7 +58,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:clickable="true"
-            app:srcCompat="@android:drawable/ic_menu_save"
+            app:srcCompat="@drawable/ic_ok"
             android:id="@+id/save_inventario"
             android:layout_marginRight="12dp"
             android:visibility="invisible"

@@ -194,7 +194,7 @@ public class DataManager extends AppCompatActivity {
         PrintWriter bw;
         try {
             bw = new PrintWriter(new FileWriter(chk, false));
-            bw.println("code\tlatitude\tlongitude\tdate\tdateYMD\thabitat\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcover\tcomment");
+            bw.println("code\tlatitude\tlongitude\tdate\thabitat\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcover\tcomment\tobservationLatitude\tobservationLongitude");
             for(SpeciesList sList : allData.getSpeciesLists()) {
                 sList.toCSV(bw, "lvf");
             }

@@ -422,6 +422,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private void setRecordTracklog(Boolean value) {
         ImageButton tb1 = (ImageButton) findViewById(R.id.show_tracklog);
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        boolean hardOff = false;    // set to true when the user really presses the Off button
 
         if(tb1.getTag() == null)
             tb1.setTag(1);
@@ -437,7 +438,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             else
                 value = true;
 */
-        }
+        } else hardOff = true;
 
         if(!value) {    // switched recording off
             recordTracklog = false;
@@ -453,7 +454,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             setButtonLayout(null);
             DataManager.saveTrackLog(null, null);
             Toast.makeText(this.getApplicationContext(), "Saved tracklog", Toast.LENGTH_SHORT).show();
-            setGPSEnabled(true);
+            if(!hardOff) setGPSEnabled(true);
         } else {
             recordTracklog = true;
             mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
@@ -632,6 +633,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 Intent intent = new Intent(MainMap.this, MainKeyboard.class);
                 intent.putExtra("latitude", center.getLatitude());
                 intent.putExtra("longitude", center.getLongitude());
+                intent.putExtra("dontMarkTaxa", true);
                 startActivityForResult(intent, GET_SPECIESLIST);
 
 /*

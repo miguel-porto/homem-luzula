@@ -15,6 +15,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -44,6 +45,7 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -64,6 +66,7 @@ public class MainKeyboard extends AppCompatActivity {
     public static final int GET_OBSERVATION = 214
                         , UPDATE_OBSERVATIONS = 215, EDIT_INVENTORY_PROPERTIES = 216;
     private Integer replace = null;
+    private boolean replaceTaxon = false, changed = false, recordTaxonCoordinates;
     private SharedPreferences preferences;
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -131,6 +134,7 @@ public class MainKeyboard extends AppCompatActivity {
 
     private LocationManager locationManager;
     private LocationListener locationListener;
+    private List<LocationListener> observationLocationListener = new ArrayList<LocationListener>();
     private static final int numberNonLetterKeys = 2;   // how many keys are non-letter, in the keyboard
 
     @Override
@@ -153,7 +157,7 @@ public class MainKeyboard extends AppCompatActivity {
                 if (ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                         || ContextCompat.checkSelfPermission(MainKeyboard.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     locationManager.removeUpdates(locationListener);
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
                 }
 
                 return true;
@@ -231,6 +235,8 @@ public class MainKeyboard extends AppCompatActivity {
         final Float[] coordinates = new Float[2];
         int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
 
+        recordTaxonCoordinates = preferences.getBoolean("pref_markSpeciesCoords", true);
+
         locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
                 MainKeyboard.this.setTitle(String.format(Locale.getDefault(), "Fixando GPS %.1fm", location.getAccuracy()));
@@ -268,6 +274,7 @@ public class MainKeyboard extends AppCompatActivity {
             coordinates[0] = speciesList.getLatitude();
             coordinates[1] = speciesList.getLongitude();
             if( coordinates[0] == null || coordinates[1] == null || coordinates[0] == 0 || coordinates[1] == 0) coordinates[0] = null;
+            setTitle();
         } else if(intent.hasExtra("latitude")) {    // coordinates are given
             coordinates[0] = (float) intent.getDoubleExtra("latitude", 0f);
             coordinates[1] = (float) intent.getDoubleExtra("longitude", 0f);
@@ -275,6 +282,11 @@ public class MainKeyboard extends AppCompatActivity {
             speciesList.setLocation(coordinates[0], coordinates[1]);
             if(autonumber)
                 speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
+            setTitle();
+        } else if (intent.hasExtra("replaceTaxon")) {
+            setTitle("Substituir espécie");
+            findViewById(R.id.save_inventario).setVisibility(View.GONE);
+            replaceTaxon = true;
         } else {    // fetch GPS location
             if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
                 startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -282,60 +294,21 @@ public class MainKeyboard extends AppCompatActivity {
 
             MainKeyboard.this.setTitle("Adquirindo coordenadas...");
             if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED)
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
             speciesList.setNow();
             if(autonumber)
                 speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
+            setTitle();
         }
 
-        toolbar.setOnClickListener(view -> {    // change inventory code
+        if(intent.hasExtra("dontMarkTaxa"))     // this is an inventory clicked on the map, not GPS
+            recordTaxonCoordinates = false;
 
+        toolbar.setOnClickListener(view -> {    // change inventory code
             Intent inv_prop = new Intent(this, InventoryProperties.class);
             inv_prop.putExtra("speciesList", speciesList);
             startActivityForResult(inv_prop, EDIT_INVENTORY_PROPERTIES);
-
-/*
-            final StringBuilder titleText = new StringBuilder();
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Nome do ponto");
-
-// Set up the input
-            final EditText input = new EditText(this);
-            input.setInputType(InputType.TYPE_CLASS_TEXT);
-            builder.setView(input);
-
-// Set up the buttons
-            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    speciesList.setGpsCode(input.getText().toString());
-                    setTitle();
-                    mHidePart2Runnable.run();
-                }
-            });
-
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                    mHidePart2Runnable.run();
-                }
-            });
-
-            final AlertDialog dialog = builder.show();
-            input.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (hasFocus && dialog.getWindow() != null) {
-                        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-                    }
-                }
-            });
-            input.requestFocus();
-*/
         });
-
-        setTitle();
 
         if(coordinates[0] == null) {
             ((TextView) findViewById(R.id.coordinates)).setText("Sem coordenadas");
@@ -419,9 +392,15 @@ public class MainKeyboard extends AppCompatActivity {
                         .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                                 Intent data = new Intent();
-                                if(locationManager != null && locationListener != null && ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
-                                    locationManager.removeUpdates(locationListener);
+                                if(locationManager != null && ContextCompat.checkSelfPermission(MainKeyboard.this, Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
+                                    if(locationListener != null)
+                                        locationManager.removeUpdates(locationListener);
+                                    if(recordTaxonCoordinates) {
+                                        for (LocationListener ll : observationLocationListener)
+                                            locationManager.removeUpdates(ll);
+                                    }
                                 }
+
                                 data.putExtra("delete", true);
                                 data.putExtra("index", replace);
                                 setResult(Activity.RESULT_OK, data);
@@ -445,10 +424,42 @@ public class MainKeyboard extends AppCompatActivity {
         findViewById(R.id.cancel_inventario).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
-                if(locationManager != null && locationListener != null && ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED)
-                    locationManager.removeUpdates(locationListener);
-                finish();
+                if(changed) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MainKeyboard.this);
+                    builder.setMessage("Tem a certeza que quer descartar as alterações?")
+                            .setCancelable(true)
+                            .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                                public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    if (locationManager != null && ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                        if (locationListener != null)
+                                            locationManager.removeUpdates(locationListener);
+                                        if (recordTaxonCoordinates) {
+                                            for (LocationListener ll : observationLocationListener)
+                                                locationManager.removeUpdates(ll);
+                                        }
+                                    }
+                                    finish();
+                                }
+                            })
+                            .setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                                public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                    dialog.cancel();
+                                    hide();
+                                }
+                            });
+                    final AlertDialog alert = builder.create();
+                    alert.show();
+                } else {
+                    if (locationManager != null && ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        if (locationListener != null)
+                            locationManager.removeUpdates(locationListener);
+                        if (recordTaxonCoordinates) {
+                            for (LocationListener ll : observationLocationListener)
+                                locationManager.removeUpdates(ll);
+                        }
+                    }
+                    finish();
+                }
             }
         });
 
@@ -459,7 +470,7 @@ public class MainKeyboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent data = new Intent();
-                if(speciesList.getLatitude() == null || speciesList.getLongitude() == null) {
+                if((speciesList.getLatitude() == null || speciesList.getLongitude() == null) && !replaceTaxon) {
                     if(ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
 //                        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
                         if(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) == null) {
@@ -472,6 +483,10 @@ public class MainKeyboard extends AppCompatActivity {
                             speciesList.setLocation(coordinates[0], coordinates[1]);
                         }
                         locationManager.removeUpdates(locationListener);
+                        if(recordTaxonCoordinates) {
+                            for (LocationListener ll : observationLocationListener)
+                                locationManager.removeUpdates(ll);
+                        }
                     }
                 }
                 data.putExtra("specieslist", speciesList);
@@ -667,14 +682,57 @@ public class MainKeyboard extends AppCompatActivity {
         }
     }
 
+    class observationLocationListener implements LocationListener {
+        private final TaxonObservation taxonObservation;
+        private final int minGPSPrecision = Integer.parseInt(Objects.requireNonNull(preferences.getString("pref_gps_minprecision", "6")));
+
+        observationLocationListener(TaxonObservation taxonObservation) {
+            this.taxonObservation = taxonObservation;
+        }
+
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            taxonObservation.setLocation((float) location.getLatitude(), (float) location.getLongitude());
+//            MainKeyboard.this.setTitle(String.format(Locale.getDefault(), "Fixando GPS %.5f %.5f", taxonObservation.getObservationLongitude(), taxonObservation.getObservationLatitude()));
+            if(location.getAccuracy() < minGPSPrecision) {
+                locationManager.removeUpdates(this);
+                MainMap.beep();
+            }
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+        public void onProviderEnabled(String provider) {}
+
+        public void onProviderDisabled(String provider) {}
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         TextView tv;
         if (resultCode != RESULT_OK) return;
+        changed = true;
+        findViewById(R.id.save_inventario).setVisibility(View.VISIBLE);
         switch(requestCode) {
             case GET_OBSERVATION:
-                TaxonObservation tObs = data.getParcelableExtra("observation");
+                final TaxonObservation tObs = data.getParcelableExtra("observation");
                 speciesList.addObservation(tObs);
+                if(replaceTaxon) {  // this was called to replace one taxon, so confirm it immediately
+                    findViewById(R.id.save_inventario).callOnClick();
+                    break;
+                }
+
+                if(recordTaxonCoordinates) {
+                    LocationListener tmp;
+                    if(speciesList.getNumberOfSpecies() == 1) {
+                        tObs.setLocation(speciesList.getLatitude(), speciesList.getLongitude());
+                    } else if(speciesList.getNumberOfSpecies() > 1) {
+                        observationLocationListener.add(tmp = new observationLocationListener(tObs));
+                        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, tmp);
+                    }
+                }
+
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
                 tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
@@ -733,6 +791,10 @@ public class MainKeyboard extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         locationManager.removeUpdates(locationListener);
+        if(recordTaxonCoordinates) {
+            for (LocationListener ll : observationLocationListener)
+                locationManager.removeUpdates(ll);
+        }
     }
     /**
      * Schedules a call to hide() in [delay] milliseconds, canceling any

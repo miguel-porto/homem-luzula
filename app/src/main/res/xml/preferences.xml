@@ -71,7 +71,6 @@
             android:disableDependentsState="false"
             android:title="Numeração dos inventários"/>
 
-
         <pt.flora_on.homemluzula.EditSummaryPreference
             android:key="inventory_prefix"
             android:defaultValue="P"
@@ -87,6 +86,14 @@
             android:summary="%s"
             android:dependency="pref_inventorylabels"
             android:title="Número de dígitos" />
+
+        <SwitchPreference
+            android:switchTextOff="Registar coordenadas"
+            android:switchTextOn="Não registar coordenadas"
+            android:defaultValue="true"
+            android:key="pref_markSpeciesCoords"
+            android:disableDependentsState="false"
+            android:title="Registar coordenadas de cada espécie individualmente"/>
 
         <ListPreference
             android:defaultValue="4"

@@ -111,6 +111,13 @@
                     android:id="@+id/text_comment"
                     android:hint="comentário" />
             </android.support.design.widget.TextInputLayout>
+
+            <TextView
+                android:id="@+id/observationCoordinates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="" />
+
         </LinearLayout>
     </ScrollView>
 
@@ -161,9 +168,10 @@
             android:clickable="true"
             app:backgroundTint="@android:color/holo_green_dark"
             app:fabSize="mini"
-            app:srcCompat="@android:drawable/ic_menu_save" />
+            app:srcCompat="@drawable/ic_ok" />
 
     </LinearLayout>
+
     <!--
         <android.support.v7.widget.Toolbar
             android:layout_width="match_parent"
