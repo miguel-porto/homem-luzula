@@ -106,7 +106,7 @@ public class ObservationDetails extends AppCompatActivity {
 
         findViewById(R.id.details_toolbar).setOnClickListener(view -> {
             Intent intent = new Intent(this, MainKeyboard.class);
-            intent.putExtra("replaceTaxon", true);
+            intent.putExtra("selectSpecies", true);
             startActivityForResult(intent, MainKeyboard.UPDATE_OBSERVATIONS);
         });
 

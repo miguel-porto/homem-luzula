@@ -2,7 +2,6 @@ package pt.flora_on.homemluzula;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,11 +11,9 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -24,7 +21,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -66,7 +62,7 @@ public class MainKeyboard extends AppCompatActivity {
     public static final int GET_OBSERVATION = 214
                         , UPDATE_OBSERVATIONS = 215, EDIT_INVENTORY_PROPERTIES = 216;
     private Integer replace = null;
-    private boolean replaceTaxon = false, changed = false, recordTaxonCoordinates;
+    private boolean selectSpecies = false, changed = false, recordTaxonCoordinates;
     private SharedPreferences preferences;
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -283,10 +279,12 @@ public class MainKeyboard extends AppCompatActivity {
             if(autonumber)
                 speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
             setTitle();
-        } else if (intent.hasExtra("replaceTaxon")) {
-            setTitle("Substituir espécie");
+        } else if (intent.hasExtra("selectSpecies")) {
+            setTitle("Seleccionar espécie");
             findViewById(R.id.save_inventario).setVisibility(View.GONE);
-            replaceTaxon = true;
+            findViewById(R.id.showspecies).setVisibility(View.GONE);
+            findViewById(R.id.coordinates).setVisibility(View.GONE);
+            selectSpecies = true;
         } else {    // fetch GPS location
             if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
                 startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
@@ -470,7 +468,7 @@ public class MainKeyboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent data = new Intent();
-                if((speciesList.getLatitude() == null || speciesList.getLongitude() == null) && !replaceTaxon) {
+                if((speciesList.getLatitude() == null || speciesList.getLongitude() == null) && !selectSpecies) {
                     if(ContextCompat.checkSelfPermission(MainKeyboard.this, android.Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
 //                        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
                         if(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) == null) {
@@ -719,7 +717,7 @@ public class MainKeyboard extends AppCompatActivity {
             case GET_OBSERVATION:
                 final TaxonObservation tObs = data.getParcelableExtra("observation");
                 speciesList.addObservation(tObs);
-                if(replaceTaxon) {  // this was called to replace one taxon, so confirm it immediately
+                if(selectSpecies) {  // this was called to replace one taxon, so confirm it immediately
                     findViewById(R.id.save_inventario).callOnClick();
                     break;
                 }

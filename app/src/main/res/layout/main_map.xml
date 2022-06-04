@@ -226,6 +226,16 @@
                         android:cropToPadding="false"
                         app:srcCompat="@drawable/ic_square" />
 
+                    <ImageButton
+                        android:id="@+id/search_taxon"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center"
+                        android:adjustViewBounds="false"
+                        android:background="@android:color/transparent"
+                        android:cropToPadding="false"
+                        app:srcCompat="@drawable/magnifier" />
+
                     <!--
                     <ImageView
                         android:id="@+id/download_tiles"

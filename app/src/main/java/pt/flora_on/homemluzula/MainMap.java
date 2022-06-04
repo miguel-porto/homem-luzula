@@ -4,7 +4,6 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +12,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,8 +23,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Looper;
-import android.os.Message;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -114,6 +112,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     public static final int CLEAR_TRACKLOG = 192;
     public static final int EDIT_OBSERVATION = 193;
     public static final int CLEAR_ALLLAYERS = 194;
+    public static final int SELECT_SPECIES = 195;
     public static final int UNSAVED_NOTIFICATION = 6774;
     public static final int DASHBOARD = 1;
     public static Checklist checklist;
@@ -136,6 +135,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     static public MapView theMap;
     private SimpleFastPointOverlay basePointLayer, otherPointLayer;  // this is a static point layer to display underneath
     private SimpleFastPointOverlay POIPointLayer;   // this is an interactive simple point layer (only coordinates and title)
+    private SimpleFastPointOverlay searchResultsLayer, searchResultsLayerFill;
     static public SimpleFastPointOverlay inventoryLayer;  // this is the real inventory layer
     static public SimplePointOverlayWithCurrentLocation currentLocationLayer;  // this is the real inventory layer
     protected FolderOverlay trackLogOverlay = new FolderOverlay();
@@ -684,6 +684,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         // Toggle inventory layer visibility
         findViewById(R.id.show_inventories).setOnClickListener(this);
         findViewById(R.id.show_POI).setOnClickListener(this);
+        findViewById(R.id.search_taxon).setOnClickListener(this);
         findViewById(R.id.show_tracklog).setOnClickListener(this);
         findViewById(R.id.show_veclayers).setOnClickListener(this);
 
@@ -1226,7 +1227,7 @@ try {
         config.setTileFileSystemCacheMaxBytes(3000L * 1024L * 1024L);
         config.setTileFileSystemCacheTrimBytes(2900L * 1024L * 1024L);
 
-        setContentView(R.layout.activity_main_map);
+        setContentView(R.layout.main_map);
         mContentView = findViewById(R.id.entrance_page);
         findViewById(R.id.main_map_interface).setVisibility(View.INVISIBLE);
         mHideToolbars.run();
@@ -1452,6 +1453,53 @@ try {
                         DataManager.allData.replaceSpeciesList(sList, index);
                     }
                 }
+                break;
+
+            case SELECT_SPECIES:
+                if (resultCode != RESULT_OK || data == null) return;
+                SpeciesList sl = data.getParcelableExtra("specieslist");
+                String searchTaxon = sl.getTaxa().get(0).getTaxon().toLowerCase(Locale.ROOT);
+                Paint srPaint = new Paint();
+                Paint srPaintFill = new Paint();
+                Paint srText = new Paint();
+                srPaint.setStyle(Paint.Style.STROKE);
+                srPaint.setStrokeWidth(10);
+                srPaint.setColor(Color.rgb(255, 255, 0));
+
+                srPaintFill.setStyle(Paint.Style.FILL);
+                srPaintFill.setColor(Color.rgb(0, 0, 0));
+
+                srText.setStyle(Paint.Style.FILL);
+                srText.setTypeface(Typeface.DEFAULT_BOLD);
+                srText.setTextSize(40);
+                srText.setColor(Color.rgb(255, 255, 0));
+                srText.setTextAlign(Paint.Align.CENTER);
+
+                SimplePointTheme searchResults = new SimplePointTheme();
+                for(SpeciesList sl1 : DataManager.allData.getSpeciesLists()) {
+                    for(TaxonObservation to : sl1.getTaxa()) {
+                        if(to.getTaxon().toLowerCase(Locale.ROOT).equals(searchTaxon)) {
+                            if(to.getObservationLatitude() != null && to.getObservationLatitude() != 0)
+                                searchResults.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
+                            else if(sl1.getLatitude() != null && sl1.getLongitude() != null)
+                                searchResults.add(new StyledLabelledGeoPoint(sl1.getLatitude(), sl1.getLongitude()));
+                        }
+                    }
+                }
+
+                searchResultsLayer = new SimpleFastPointOverlay(searchResults,
+                        new SimpleFastPointOverlayOptions().setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)
+                                .setPointStyle(srPaint).setRadius(22));  // .setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD) .setMaxNShownLabels(0));
+                searchResultsLayerFill = new SimpleFastPointOverlay(searchResults,
+                        new SimpleFastPointOverlayOptions().setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)
+                                .setPointStyle(srPaintFill).setRadius(18)); // .setTextStyle(srText).setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD).setMaxNShownLabels(20));
+
+                theMap.getOverlays().add(searchResultsLayer);
+                theMap.getOverlays().add(searchResultsLayerFill);
+
+                ImageButton ib = (ImageButton) findViewById(R.id.search_taxon);
+                ib.setImageResource(R.drawable.magnifier_crossed);
+                ib.setTag(!((boolean) ib.getTag()));
                 break;
 
             case DASHBOARD:
@@ -2038,6 +2086,25 @@ try {
 
             trackLogOverlay.setEnabled((((int) tb.getTag()) & 1) != 0);
             theMap.invalidate();
+        }
+
+        if(v.getId() == R.id.search_taxon) {
+            final ImageButton tb = (ImageButton) v;
+            if(tb.getTag() == null) tb.setTag(true);
+
+            if((boolean) tb.getTag()) {
+                Intent intent = new Intent(MainMap.this, MainKeyboard.class);
+                internalNavigation = true;
+                intent.putExtra("selectSpecies", true);
+                startActivityForResult(intent, SELECT_SPECIES);
+            } else {
+                tb.setImageResource(R.drawable.magnifier);
+                theMap.getOverlays().remove(searchResultsLayer);
+                theMap.getOverlays().remove(searchResultsLayerFill);
+                theMap.invalidate();
+                tb.setTag(!((boolean) tb.getTag()));
+            }
+
         }
 
         if(v.getId() == R.id.show_POI) {
