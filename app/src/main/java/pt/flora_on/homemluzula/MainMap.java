@@ -1480,30 +1480,33 @@ try {
                 srPaintFill.setStyle(Paint.Style.FILL);
                 srPaintFill.setColor(Color.rgb(0, 0, 0));
 
-                srText.setStyle(Paint.Style.FILL);
-                srText.setTypeface(Typeface.DEFAULT_BOLD);
-                srText.setTextSize(40);
-                srText.setColor(Color.rgb(255, 255, 0));
-                srText.setTextAlign(Paint.Align.CENTER);
+                srText.setStyle(Paint.Style.FILL_AND_STROKE);
+                srText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD_ITALIC));
+                srText.setTextSize(36);
+                //srText.setColor(Color.parseColor("#00afff"));
+                srText.setColor(Color.parseColor("#ef6c00"));
+                srText.setTextAlign(Paint.Align.LEFT);
 
                 SimplePointTheme searchResults = new SimplePointTheme();
+                Set<String> resultNames = new HashSet<>();
                 for(SpeciesList sl1 : DataManager.allData.getSpeciesLists()) {
                     for(TaxonObservation to : sl1.getTaxa()) {
                         if(to.getTaxon().toLowerCase(Locale.ROOT).contains(searchTaxon)) {
+                            resultNames.add(to.getTaxon().toLowerCase(Locale.ROOT));
                             if(to.hasObservationCoordinates())
-                                searchResults.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
+                                searchResults.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude(), to.getTaxonCapital()));
                             else if(sl1.getLatitude() != null && sl1.getLongitude() != null)
-                                searchResults.add(new StyledLabelledGeoPoint(sl1.getLatitude(), sl1.getLongitude()));
+                                searchResults.add(new StyledLabelledGeoPoint(sl1.getLatitude(), sl1.getLongitude(), to.getTaxonCapital()));
                         }
                     }
                 }
 
                 searchResultsLayer = new SimpleFastPointOverlay(searchResults,
                         new SimpleFastPointOverlayOptions().setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)
-                                .setPointStyle(srPaint).setRadius(22).setIsClickable(false));  // .setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD) .setMaxNShownLabels(0));
+                                .setPointStyle(srPaint).setRadius(22).setIsClickable(false).setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD).setMaxNShownLabels(0));
                 searchResultsLayerFill = new SimpleFastPointOverlay(searchResults,
                         new SimpleFastPointOverlayOptions().setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)
-                                .setPointStyle(srPaintFill).setRadius(18).setIsClickable(false)); // .setTextStyle(srText).setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD).setMaxNShownLabels(20));
+                                .setPointStyle(srPaintFill).setRadius(18).setIsClickable(false).setTextStyle(srText).setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD).setMaxNShownLabels(resultNames.size() > 1 ? 30 : 0));
 
                 theMap.getOverlays().add(searchResultsLayer);
                 theMap.getOverlays().add(searchResultsLayerFill);

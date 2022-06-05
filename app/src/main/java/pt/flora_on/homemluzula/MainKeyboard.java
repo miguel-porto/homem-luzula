@@ -564,6 +564,10 @@ public class MainKeyboard extends AppCompatActivity {
                 TaxonObservation tObs = new TaxonObservation(((TextView) findViewById(R.id.freedescriptionedit)).getText().toString(), null);
 
                 speciesList.addObservation(tObs);
+                if(selectSpecies) {  // this was called to replace one taxon, so confirm it immediately
+                    findViewById(R.id.save_inventario).callOnClick();
+                    return;
+                }
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
                 tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
