@@ -131,6 +131,11 @@ public class TaxonObservation implements Parcelable, Comparable<TaxonObservation
         return  this.observationLongitude;
     }
 
+    public boolean hasObservationCoordinates() {
+        return this.observationLatitude != null && this.observationLatitude != 0
+                && this.observationLongitude != null && this.observationLongitude != 0;
+    }
+
     public static final Creator<TaxonObservation> CREATOR = new Creator<TaxonObservation>() {
         @Override
         public TaxonObservation createFromParcel(Parcel in) {

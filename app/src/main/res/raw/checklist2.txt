@@ -3207,7 +3207,7 @@ Linum narbonense subsp. narbonense
 Linum narbonense subsp. barrasii
 Trigonella ovalis
 Prolongoa hispanica
-Euphorbia flavicoma subsp. flavicoma
+Euphorbia flavicoma
 Thymelaea salsa
 Globularia alypum
 Armeria gaditana
@@ -3227,3 +3227,4 @@ Alkanna tinctoria subsp. tinctoria
 Castanea sativa
 Galium belizianum
 Juniperus navicularis
+Centaurea collina

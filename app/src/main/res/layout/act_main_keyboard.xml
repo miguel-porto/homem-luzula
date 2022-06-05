@@ -260,7 +260,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:clickable="true"
-                    android:visibility="invisible"
+                    android:visibility="visible"
                     app:backgroundTint="@android:color/holo_green_dark"
                     app:fabSize="mini"
                     app:srcCompat="@android:drawable/ic_menu_save"

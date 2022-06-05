@@ -12,6 +12,7 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -42,12 +43,21 @@ public class Checklist {
         String line;
         BufferedReader br = new BufferedReader(new InputStreamReader(checklistFile));
         Taxon taxon;
+        Set<Taxon> subsp = new HashSet<>();
+        List<Taxon> toAdd = new ArrayList<>();
+
         while((line = br.readLine()) != null) {
             if(line.trim().length() == 0) continue;
             try {
                 this.checklist.put(taxon = new Taxon(line), 0);
-                if(taxon.hasInfraTaxa())
-                    this.checklist.put(taxon.getSpeciesTaxon(), 0);
+                if(taxon.hasInfraTaxa()) {
+                    if(subsp.contains(taxon.getSpeciesTaxon())) // only add species if there is more than one infrataxon
+                        toAdd.add(taxon.getSpeciesTaxon());
+                    else
+                        subsp.add(taxon.getSpeciesTaxon());
+                }
+                for(Taxon t : toAdd)
+                    this.checklist.put(t, 0);
             } catch (InvalidParameterException e) {
                 Log.w("CHK", e.getMessage());
                 errors.add(line);

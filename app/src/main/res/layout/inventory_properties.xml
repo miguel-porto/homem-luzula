@@ -63,6 +63,6 @@
         app:backgroundTint="@android:color/holo_green_dark"
         app:fabSize="mini"
         android:layout_gravity="end"
-        app:srcCompat="@android:drawable/ic_menu_save"
+        app:srcCompat="@drawable/ic_ok"
         android:focusable="true" />
 </LinearLayout>

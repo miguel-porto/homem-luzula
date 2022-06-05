@@ -41,12 +41,15 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.osmdroid.views.overlay.simplefastpoint.StyledLabelledGeoPoint;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
+import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.Taxon;
 import pt.flora_on.observation_data.TaxonObservation;
@@ -417,7 +420,7 @@ public class MainKeyboard extends AppCompatActivity {
         });
 
         /**
-         * Discard changes in current inventory
+         * Discard changes in current inventoryTools
          */
         findViewById(R.id.cancel_inventario).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -460,6 +463,7 @@ public class MainKeyboard extends AppCompatActivity {
                 }
             }
         });
+
 
         /**
          * Save current inventory
@@ -558,6 +562,7 @@ public class MainKeyboard extends AppCompatActivity {
 
                 TextView tv;
                 TaxonObservation tObs = new TaxonObservation(((TextView) findViewById(R.id.freedescriptionedit)).getText().toString(), null);
+
                 speciesList.addObservation(tObs);
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
@@ -567,6 +572,9 @@ public class MainKeyboard extends AppCompatActivity {
                 findViewById(R.id.keyboard).setVisibility(View.VISIBLE);
                 findViewById(R.id.freedescription).setVisibility(View.GONE);
                 ((RadioButton) findViewById(R.id.inputmode_fast)).setChecked(true);
+
+                if(recordTaxonCoordinates) recordObservationCoordinates(tObs);
+                changed = true;
             }
         });
     }
@@ -691,10 +699,10 @@ public class MainKeyboard extends AppCompatActivity {
         @Override
         public void onLocationChanged(@NonNull Location location) {
             taxonObservation.setLocation((float) location.getLatitude(), (float) location.getLongitude());
-//            MainKeyboard.this.setTitle(String.format(Locale.getDefault(), "Fixando GPS %.5f %.5f", taxonObservation.getObservationLongitude(), taxonObservation.getObservationLatitude()));
             if(location.getAccuracy() < minGPSPrecision) {
                 locationManager.removeUpdates(this);
                 taxonObservation.isAcquiringGPS = 0;
+//                Inventories.saveInventoryToDisk(speciesList, speciesList.getUuid().toString());
                 MainMap.beep();
             }
             ((TextView) MainKeyboard.this.findViewById(R.id.showspecies)).setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
@@ -705,6 +713,20 @@ public class MainKeyboard extends AppCompatActivity {
         public void onProviderEnabled(String provider) {}
 
         public void onProviderDisabled(String provider) {}
+    }
+
+    private void recordObservationCoordinates(TaxonObservation taxonObservation) {
+        LocationListener tmp;
+        if(speciesList.getNumberOfSpecies() == 1) {     // if it has only one species, set the same location of inventory
+            taxonObservation.setLocation(speciesList.getLatitude(), speciesList.getLongitude());
+//            Inventories.saveInventoryToDisk(speciesList, speciesList.getUuid().toString());
+        } else if(speciesList.getNumberOfSpecies() > 1) {
+            taxonObservation.isAcquiringGPS = 1;
+            observationLocationListener.add(tmp = new observationLocationListener(taxonObservation));
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, tmp);
+            }
+        }
     }
 
     @Override
@@ -722,18 +744,9 @@ public class MainKeyboard extends AppCompatActivity {
                     break;
                 }
 
-                if(recordTaxonCoordinates) {
-                    LocationListener tmp;
-                    if(speciesList.getNumberOfSpecies() == 1) {     // if it has only one species, set the same location of inventory
-                        tObs.setLocation(speciesList.getLatitude(), speciesList.getLongitude());
-                    } else if(speciesList.getNumberOfSpecies() > 1) {
-                        tObs.isAcquiringGPS = 1;
-                        observationLocationListener.add(tmp = new observationLocationListener(tObs));
-                        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, tmp);
-                        }
-                    }
-                }
+//                Inventories.saveInventoryToDisk(speciesList, speciesList.getUuid().toString());
+                if(recordTaxonCoordinates)
+                    recordObservationCoordinates(tObs);
 
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
@@ -749,10 +762,12 @@ public class MainKeyboard extends AppCompatActivity {
                 tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
                 tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
+//                Inventories.saveInventoryToDisk(speciesList, speciesList.getUuid().toString());
                 break;
 
             case EDIT_INVENTORY_PROPERTIES:
                 speciesList = data.getParcelableExtra("specieslist");
+//                Inventories.saveInventoryToDisk(speciesList, speciesList.getUuid().toString());
                 setTitle();
                 break;
         }

@@ -103,6 +103,7 @@ import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
+import pt.flora_on.observation_data.Taxon;
 import pt.flora_on.observation_data.TaxonObservation;
 
 public class MainMap extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
@@ -116,7 +117,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     public static final int UNSAVED_NOTIFICATION = 6774;
     public static final int DASHBOARD = 1;
     public static Checklist checklist;
-    public static SimplePointTheme basePointTheme, otherPointTheme;
+    public static SimplePointTheme basePointTheme, otherPointTheme, observationTheme;
     public static final Map<String, Integer> frequencies = new HashMap<>();
     public static int phenoFlower, phenoVegetative, phenoResting, phenoFruit, phenoDispersion, phenoBud;
     private final Handler mHideHandler = new Handler();
@@ -136,8 +137,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private SimpleFastPointOverlay basePointLayer, otherPointLayer;  // this is a static point layer to display underneath
     private SimpleFastPointOverlay POIPointLayer;   // this is an interactive simple point layer (only coordinates and title)
     private SimpleFastPointOverlay searchResultsLayer, searchResultsLayerFill;
-    static public SimpleFastPointOverlay inventoryLayer;  // this is the real inventory layer
-    static public SimplePointOverlayWithCurrentLocation currentLocationLayer;  // this is the real inventory layer
+    static public SimpleFastPointOverlay inventoryLayer, observationLayer;  // this is the real inventory layer plus observations
+    static public SimplePointOverlayWithCurrentLocation currentLocationLayer;  // this is the current position
     protected FolderOverlay trackLogOverlay = new FolderOverlay();
     protected FolderOverlay layersOverlay = new FolderOverlay();
 
@@ -1003,6 +1004,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 .setRadius(8f);
         inventoryLayer = new SimpleFastPointOverlay(DataManager.allData, opt);
         currentLocationLayer = new SimplePointOverlayWithCurrentLocation(new Inventories(), opt);
+        observationLayer = new SimpleFastPointOverlay(observationTheme,
+                new SimpleFastPointOverlayOptions().setRadius(3).setSymbol(SimpleFastPointOverlayOptions.Shape.SQUARE)
+                        .setPointStyle(tmp1).setIsClickable(false));
+
         if(DataManager.allData.size() > 0) inventoryLayer.setSelectedPoint(DataManager.allData.size() - 1);
 //        inventoryLayer.setTracklogObject(DataSaver.tracklog);
         currentLocationLayer.setYouAreHereDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.seta2, null));
@@ -1020,6 +1025,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         });
         theMap.getOverlays().add(inventoryLayer);
         theMap.getOverlays().add(currentLocationLayer);
+        theMap.getOverlays().add(observationLayer);
+
 /*
 final Gson gs1 = new GsonBuilder().setPrettyPrinting().create();
 try {
@@ -1390,6 +1397,10 @@ try {
                 if (resultCode != RESULT_OK) return;
                 DataManager.allData.addSpeciesList(sList);
 
+                for(TaxonObservation to : sList.getTaxa())
+                    if(to.hasObservationCoordinates())
+                        MainMap.observationTheme.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
+
                 if(Inventories.saveInventoryToDisk(sList, sList.getUuid().toString()))
                     Toast.makeText(getApplicationContext(), "Saved inventory.", Toast.LENGTH_SHORT).show();
                 else
@@ -1401,7 +1412,7 @@ try {
                 setButtonLayout(BUTTONLAYOUT.CONTINUE_LAST);
                 break;
 
-            case EDIT_OBSERVATION:
+            case EDIT_OBSERVATION:      // edit an existing single-species inventory (i.e. observation)
                 if (resultCode != RESULT_OK) return;
                 index = data == null ? -1 : data.getIntExtra("index", -1);
                 if(index < 0) new AlertDialog.Builder(this).setTitle("Error").setCancelable(false).setPositiveButton(android.R.string.yes, null).setIcon(android.R.drawable.ic_dialog_alert)
@@ -1429,7 +1440,7 @@ try {
                 }
                 break;
 
-            case REPLACE_SPECIESLIST:
+            case REPLACE_SPECIESLIST:       // edit an existing inventory
                 if (resultCode != RESULT_OK) return;
                 index = data == null ? -1 : data.getIntExtra("index", -1);
                 if(index < 0) new AlertDialog.Builder(this).setTitle("Error").setCancelable(false).setPositiveButton(android.R.string.yes, null).setIcon(android.R.drawable.ic_dialog_alert)
@@ -1478,8 +1489,8 @@ try {
                 SimplePointTheme searchResults = new SimplePointTheme();
                 for(SpeciesList sl1 : DataManager.allData.getSpeciesLists()) {
                     for(TaxonObservation to : sl1.getTaxa()) {
-                        if(to.getTaxon().toLowerCase(Locale.ROOT).equals(searchTaxon)) {
-                            if(to.getObservationLatitude() != null && to.getObservationLatitude() != 0)
+                        if(to.getTaxon().toLowerCase(Locale.ROOT).contains(searchTaxon)) {
+                            if(to.hasObservationCoordinates())
                                 searchResults.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
                             else if(sl1.getLatitude() != null && sl1.getLongitude() != null)
                                 searchResults.add(new StyledLabelledGeoPoint(sl1.getLatitude(), sl1.getLongitude()));
@@ -1489,10 +1500,10 @@ try {
 
                 searchResultsLayer = new SimpleFastPointOverlay(searchResults,
                         new SimpleFastPointOverlayOptions().setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)
-                                .setPointStyle(srPaint).setRadius(22));  // .setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD) .setMaxNShownLabels(0));
+                                .setPointStyle(srPaint).setRadius(22).setIsClickable(false));  // .setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD) .setMaxNShownLabels(0));
                 searchResultsLayerFill = new SimpleFastPointOverlay(searchResults,
                         new SimpleFastPointOverlayOptions().setSymbol(SimpleFastPointOverlayOptions.Shape.CIRCLE)
-                                .setPointStyle(srPaintFill).setRadius(18)); // .setTextStyle(srText).setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD).setMaxNShownLabels(20));
+                                .setPointStyle(srPaintFill).setRadius(18).setIsClickable(false)); // .setTextStyle(srText).setLabelPolicy(SimpleFastPointOverlayOptions.LabelPolicy.DENSITY_THRESHOLD).setMaxNShownLabels(20));
 
                 theMap.getOverlays().add(searchResultsLayer);
                 theMap.getOverlays().add(searchResultsLayerFill);
@@ -1808,6 +1819,8 @@ try {
             ((TextView) findViewById(R.id.loadstatus)).setText(R.string.inventories);
             DataManager.allData = new Inventories();
             int counter = 0;
+            SpeciesList sltmp;
+            observationTheme = new SimplePointTheme();
             if(invDir.exists()) {
                 for (File inv : invDir.listFiles(new FilenameFilter() {
                     @Override
@@ -1818,9 +1831,14 @@ try {
 
                     try {
                         data = new FileReader(inv);
-                        DataManager.allData.addSpeciesList(gs.fromJson(data, SpeciesList.class));
+                        DataManager.allData.addSpeciesList(sltmp = gs.fromJson(data, SpeciesList.class));
                         data.close();
                         counter++;
+                        for(TaxonObservation to : sltmp.getTaxa()) {
+                            if(to.hasObservationCoordinates())
+                                observationTheme.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
+                        }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -1828,7 +1846,6 @@ try {
                         publishProgress(counter);
                 }
             }
-
 
             // this is just to build an array of GeoPoints in order to make rendering faster
 //            DataSaver.allData.syncronizeSpeciesListsAndPoints();
@@ -2282,10 +2299,12 @@ try {
                 tb.setImageResource(R.drawable.ic_square);
                 inventoryLayer.setEnabled(true);
                 inventoryLayer.getStyle().setIsClickable(true);
+                observationLayer.setEnabled(true);
             } else {
                 tb.setImageResource(R.drawable.ic_square_no);
                 inventoryLayer.setEnabled(false);
                 inventoryLayer.getStyle().setIsClickable(false);
+                observationLayer.setEnabled(false);
             }
             theMap.invalidate();
         }
