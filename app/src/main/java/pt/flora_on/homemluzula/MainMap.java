@@ -1231,8 +1231,8 @@ try {
         config.setUserAgentValue(BuildConfig.APPLICATION_ID);
         // set cache expiry to one year
         config.setExpirationOverrideDuration(365L * 24L * 3600L * 1000L);
-        config.setTileFileSystemCacheMaxBytes(3000L * 1024L * 1024L);
-        config.setTileFileSystemCacheTrimBytes(2900L * 1024L * 1024L);
+        config.setTileFileSystemCacheMaxBytes(6000L * 1024L * 1024L);
+        config.setTileFileSystemCacheTrimBytes(5900L * 1024L * 1024L);
 
         setContentView(R.layout.main_map);
         mContentView = findViewById(R.id.entrance_page);
@@ -1483,7 +1483,6 @@ try {
                 srText.setStyle(Paint.Style.FILL_AND_STROKE);
                 srText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD_ITALIC));
                 srText.setTextSize(36);
-                //srText.setColor(Color.parseColor("#00afff"));
                 srText.setColor(Color.parseColor("#ef6c00"));
                 srText.setTextAlign(Paint.Align.LEFT);
 

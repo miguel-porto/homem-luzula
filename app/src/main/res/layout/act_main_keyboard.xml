@@ -59,6 +59,15 @@
                     android:id="@+id/inputbuffer"
                     android:textSize="80sp" />
 
+                <ImageView
+                    android:id="@+id/foto"
+                    android:background="@color/colorPrimary"
+                    android:visibility="visible"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                </ImageView>
             </LinearLayout>
         </ScrollView>
 
@@ -106,6 +115,15 @@
                         android:text="DÚVIDA"
                         android:textSize="16sp" />
                 </RadioGroup>
+
+                <TextView
+                    android:id="@+id/take_photo"
+                    style="@style/tecla"
+                    android:background="@android:drawable/ic_menu_camera"
+                    android:text="_"
+                    android:layout_width="50dp"
+                    android:layout_height="44dp"
+                    android:textColor="@android:color/black" />
 
                 <Space
                     android:layout_width="match_parent"
@@ -265,7 +283,6 @@
                     app:fabSize="mini"
                     app:srcCompat="@android:drawable/ic_menu_save"
                     android:focusable="true" />
-                <!--<TextView android:text="_" style="@style/tecla" android:textColor="@android:color/black" android:background="@android:drawable/ic_menu_camera"/>-->
 
             </GridLayout>
 
@@ -371,5 +388,4 @@
         </LinearLayout>
 
     </FrameLayout>
-
 </FrameLayout>
