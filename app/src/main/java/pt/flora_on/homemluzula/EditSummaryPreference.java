@@ -3,8 +3,9 @@ package pt.flora_on.homemluzula;
 import android.content.Context;
 import android.os.Build;
 import android.preference.EditTextPreference;
-import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+
+import androidx.annotation.RequiresApi;
 
 public class EditSummaryPreference extends EditTextPreference {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

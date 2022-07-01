@@ -2,10 +2,11 @@ package pt.flora_on.homemluzula.adapters;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import pt.flora_on.homemluzula.ObservationDetails;
 import pt.flora_on.homemluzula.R;

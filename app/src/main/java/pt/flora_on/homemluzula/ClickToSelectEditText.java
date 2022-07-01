@@ -5,10 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.os.Build;
-import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.EditText;
+
+import androidx.appcompat.app.AlertDialog;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
  * Taken from https://gist.github.com/rodrigohenriques/77398a81b5d01ac71c3b
  */
 
-public class ClickToSelectEditText<T extends Listable> extends EditText {
+public class ClickToSelectEditText<T extends Listable> extends androidx.appcompat.widget.AppCompatEditText {
 
     List<T> mItems;
     String[] mListableItems;
@@ -43,12 +43,12 @@ public class ClickToSelectEditText<T extends Listable> extends EditText {
         mHint = getHint();
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+/*    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ClickToSelectEditText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
 
         mHint = getHint();
-    }
+    }*/
 
     @Override
     protected void onDraw(Canvas canvas) {

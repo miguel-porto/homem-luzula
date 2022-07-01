@@ -2,7 +2,7 @@ package pt.flora_on.homemluzula;
 
 import android.app.Application;
 import android.content.Context;
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 import java.io.File;
 import java.io.FileWriter;

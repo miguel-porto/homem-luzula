@@ -11,8 +11,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -224,7 +224,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 break;
 
             case R.id.removelayers:
-                final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+                final androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
                 builder.setMessage("Quer apagar todas as layers?")
                         .setCancelable(true)
                         .setIcon(android.R.drawable.ic_dialog_alert)
@@ -246,7 +246,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                 finish();
                             }
                         });
-                final android.support.v7.app.AlertDialog alert = builder.create();
+                final androidx.appcompat.app.AlertDialog alert = builder.create();
                 alert.show();
                 break;
 
@@ -339,7 +339,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 break;
 
             case R.id.deletetracks:
-                final android.support.v7.app.AlertDialog.Builder builder2 = new android.support.v7.app.AlertDialog.Builder(this);
+                final androidx.appcompat.app.AlertDialog.Builder builder2 = new androidx.appcompat.app.AlertDialog.Builder(this);
                 builder2.setMessage("Quer apagar todos os tracklogs?")
                         .setCancelable(true)
                         .setIcon(android.R.drawable.ic_dialog_alert)
@@ -361,7 +361,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                 finish();
                             }
                         });
-                final android.support.v7.app.AlertDialog alert2 = builder2.create();
+                final androidx.appcompat.app.AlertDialog alert2 = builder2.create();
                 alert2.show();
 
                 break;

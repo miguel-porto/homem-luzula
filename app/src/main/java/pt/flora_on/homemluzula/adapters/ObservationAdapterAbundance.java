@@ -1,22 +1,16 @@
 package pt.flora_on.homemluzula.adapters;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import pt.flora_on.homemluzula.R;
-import pt.flora_on.observation_data.Constants;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.TaxonObservation;
 

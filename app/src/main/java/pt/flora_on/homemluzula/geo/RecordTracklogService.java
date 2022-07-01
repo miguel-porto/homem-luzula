@@ -18,15 +18,13 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.osmdroid.util.GeoPoint;
 
 import java.util.Locale;
-import java.util.Observable;
 
 import pt.flora_on.homemluzula.DataManager;
 import pt.flora_on.homemluzula.MainMap;

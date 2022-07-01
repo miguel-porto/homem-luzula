@@ -1,9 +1,10 @@
 package pt.flora_on.homemluzula.adapters;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import pt.flora_on.homemluzula.R;
 

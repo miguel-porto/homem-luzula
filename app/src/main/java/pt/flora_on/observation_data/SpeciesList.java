@@ -44,6 +44,7 @@ public class SpeciesList implements Parcelable {
     private ArrayList<TaxonObservation> taxa = new ArrayList<>();
     private UUID uuid;
     private boolean singleSpecies = false;
+    private boolean hasTaxonCoordinates = true;
     private transient Integer maxOrder;
 
     public SpeciesList() {
@@ -128,6 +129,14 @@ public class SpeciesList implements Parcelable {
         this.singleSpecies = singleSpecies;
     }
 
+    public boolean isHasTaxonCoordinates() {
+        return hasTaxonCoordinates;
+    }
+
+    public void setHasTaxonCoordinates(boolean hasTaxonCoordinates) {
+        this.hasTaxonCoordinates = hasTaxonCoordinates;
+    }
+
     public void setYear(Integer year) {this.year = year;}
     public void setMonth(Integer month) {this.month = month;}
     public void setMinute(Integer minute) {this.minute = minute;}
@@ -197,6 +206,7 @@ public class SpeciesList implements Parcelable {
         authors = in.createStringArrayList();
         taxa = in.createTypedArrayList(TaxonObservation.CREATOR);
         singleSpecies = in.readByte() != 0;
+        hasTaxonCoordinates = in.readByte() != 0;
     }
 
     @Override
@@ -220,6 +230,7 @@ public class SpeciesList implements Parcelable {
         dest.writeStringList(authors);
         dest.writeTypedList(taxa);
         dest.writeByte((byte) (singleSpecies ? 1 : 0));
+        dest.writeByte((byte) (hasTaxonCoordinates ? 1 : 0));
     }
 
     public static final Creator<SpeciesList> CREATOR = new Creator<SpeciesList>() {

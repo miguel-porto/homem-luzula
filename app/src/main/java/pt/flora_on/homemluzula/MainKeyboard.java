@@ -21,14 +21,15 @@ import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.KeyEvent;
@@ -50,20 +51,15 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.osmdroid.views.overlay.simplefastpoint.StyledLabelledGeoPoint;
-
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
-import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.Taxon;
 import pt.flora_on.observation_data.TaxonObservation;
@@ -155,6 +151,10 @@ public class MainKeyboard extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_keyboard, menu);
+        if(selectSpecies) {
+            MenuItem item = menu.findItem(R.id.refreshgps);
+            item.setVisible(false);
+        }
         return true;
     }
 
@@ -235,6 +235,7 @@ public class MainKeyboard extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.keyboard_toolbar);
         setSupportActionBar(toolbar);
+
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         DisplayMetrics metrics = new DisplayMetrics();
@@ -282,6 +283,7 @@ public class MainKeyboard extends AppCompatActivity {
         if(intent.hasExtra("specieslist")) {
             speciesList = intent.getParcelableExtra("specieslist");
             replace = intent.getIntExtra("index", -1);
+            recordTaxonCoordinates = speciesList.isHasTaxonCoordinates();
             TextView tv = (TextView) MainKeyboard.this.findViewById(R.id.showspecies);
             //tv.setText(String.format(Locale.getDefault(), "%d espécies", speciesList.getNumberOfSpecies()));
             tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
@@ -298,10 +300,13 @@ public class MainKeyboard extends AppCompatActivity {
                 speciesList.setSerialNumber(DataManager.allData.getNextSerial(), ip, zp);
             setTitle();
         } else if (intent.hasExtra("selectSpecies")) {
-            setTitle("Seleccionar espécie");
+            setTitle("Pesquisar por espécie ou texto livre");
             findViewById(R.id.save_inventario).setVisibility(View.GONE);
             findViewById(R.id.showspecies).setVisibility(View.GONE);
             findViewById(R.id.coordinates).setVisibility(View.GONE);
+            findViewById(R.id.take_photo).setVisibility(View.GONE);
+            ((EditTextBackEvent) findViewById(R.id.freedescriptionedit)).setHint("pesquise por texto livre");
+            ((RadioButton) findViewById(R.id.inputmode_doubt)).setText("TEXTO LIVRE");
             selectSpecies = true;
         } else {    // fetch GPS location
             if ( !locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
@@ -320,6 +325,8 @@ public class MainKeyboard extends AppCompatActivity {
         if(intent.hasExtra("dontMarkTaxa"))     // this is an inventory clicked on the map, not GPS
             recordTaxonCoordinates = false;
 
+        speciesList.setHasTaxonCoordinates(recordTaxonCoordinates);
+
         if(!selectSpecies && speciesList.getUuid() != null) {
             File extStoreDir = Environment.getExternalStorageDirectory();
             File imgDir = new File(extStoreDir, "homemluzula/photos");
@@ -329,11 +336,13 @@ public class MainKeyboard extends AppCompatActivity {
                 ((ImageView) findViewById(R.id.foto)).setImageBitmap(bmp);
             }
         }
-        toolbar.setOnClickListener(view -> {    // change inventory code
-            Intent inv_prop = new Intent(this, InventoryProperties.class);
-            inv_prop.putExtra("speciesList", speciesList);
-            startActivityForResult(inv_prop, EDIT_INVENTORY_PROPERTIES);
-        });
+        if(!selectSpecies) {
+            toolbar.setOnClickListener(view -> {    // change inventory code
+                Intent inv_prop = new Intent(this, InventoryProperties.class);
+                inv_prop.putExtra("speciesList", speciesList);
+                startActivityForResult(inv_prop, EDIT_INVENTORY_PROPERTIES);
+            });
+        }
 
         if(coordinates[0] == null) {
             ((TextView) findViewById(R.id.coordinates)).setText("Sem coordenadas");

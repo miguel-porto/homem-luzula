@@ -2,7 +2,8 @@ package pt.flora_on.homemluzula.geo;
 
 import android.location.Location;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;

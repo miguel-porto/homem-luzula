@@ -27,12 +27,13 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -103,7 +104,6 @@ import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
-import pt.flora_on.observation_data.Taxon;
 import pt.flora_on.observation_data.TaxonObservation;
 
 public class MainMap extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
@@ -679,8 +679,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         // Edit selected point (or delete selected POI)
         findViewById(R.id.bottombutton_1).setOnClickListener(this);
 
+/*
         // Toggle base waypoint layers visibility
         findViewById(R.id.show_layers).setOnClickListener(this);
+*/
 
         // Toggle inventory layer visibility
         findViewById(R.id.show_inventories).setOnClickListener(this);
@@ -1228,7 +1230,7 @@ try {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
         IConfigurationProvider config = Configuration.getInstance();
-        config.setUserAgentValue(BuildConfig.APPLICATION_ID);
+        config.setUserAgentValue(BuildConfig.LIBRARY_PACKAGE_NAME);
         // set cache expiry to one year
         config.setExpirationOverrideDuration(365L * 24L * 3600L * 1000L);
         config.setTileFileSystemCacheMaxBytes(6000L * 1024L * 1024L);
@@ -1286,7 +1288,7 @@ try {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if(!Environment.isExternalStorageManager()) {
-                new android.support.v7.app.AlertDialog.Builder(this)
+                new androidx.appcompat.app.AlertDialog.Builder(this)
                         .setTitle(R.string.permission_storage)
                         .setMessage(R.string.permission_storage_text)
                         .setCancelable(false)
@@ -1306,7 +1308,7 @@ try {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if(ContextCompat.checkSelfPermission(MainMap.this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                new android.support.v7.app.AlertDialog.Builder(this)
+                new androidx.appcompat.app.AlertDialog.Builder(this)
                         .setTitle(R.string.permission_location)
                         .setMessage(R.string.permission_location_text)
                         .setCancelable(false)
@@ -2088,9 +2090,13 @@ try {
             if((boolean) tb.getTag()) {
                 tb.setImageResource(R.drawable.ic_layers);
                 layersOverlay.setEnabled(true);
+                otherPointLayer.setEnabled(true);
+                basePointLayer.setEnabled(true);
             } else {
                 tb.setImageResource(R.drawable.ic_layers_no);
                 layersOverlay.setEnabled(false);
+                otherPointLayer.setEnabled(false);
+                basePointLayer.setEnabled(false);
             }
             theMap.invalidate();
         }
@@ -2140,7 +2146,7 @@ try {
             }
             theMap.invalidate();
         }
-
+/*
         if(v.getId() == R.id.show_layers) {
             final ImageButton tb = (ImageButton) v;
             if(tb.getTag() == null) tb.setTag(true);
@@ -2158,7 +2164,7 @@ try {
                 theMap.invalidate();
             }
         }
-
+*/
         if(v.getId() == R.id.start_download) {
             updateEstimate(true);
         }
@@ -2215,7 +2221,7 @@ try {
                 case DELETE_TRACK:
                     if(!noTrackSel) {
                         theMap.zoomToBoundingBox(BoundingBox.fromGeoPoints(DataManager.tracklog.getSelectedPolyline().getPoints()), true);
-                        final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                        final androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainMap.this);
                         builder.setMessage("Quer apagar este segmento?")
                                 .setCancelable(true)
                                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -2242,7 +2248,7 @@ try {
                                         mHideToolbars.run();
                                     }
                                 });
-                        final android.support.v7.app.AlertDialog alert = builder.create();
+                        final androidx.appcompat.app.AlertDialog alert = builder.create();
                         alert.show();
                     }
                     break;
@@ -2251,7 +2257,7 @@ try {
                     if(DataManager.getSelectedLayer() == null) break;
                     Layer layer = DataManager.layers.get(DataManager.getSelectedLayer());
                     if(layer == null) break;
-                    final android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(MainMap.this);
+                    final androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(MainMap.this);
                     builder.setMessage(R.string.delete_this_layer)
                             .setCancelable(true)
                             .setIcon(android.R.drawable.ic_dialog_alert)
@@ -2285,7 +2291,7 @@ try {
                                     mHideToolbars.run();
                                 }
                             });
-                    final android.support.v7.app.AlertDialog alert = builder.create();
+                    final androidx.appcompat.app.AlertDialog alert = builder.create();
                     alert.show();
 
                     break;
