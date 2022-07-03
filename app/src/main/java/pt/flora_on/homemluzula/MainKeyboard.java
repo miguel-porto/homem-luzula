@@ -16,7 +16,9 @@ import android.graphics.Matrix;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.ExifInterface;
+import androidx.exifinterface.media.ExifInterface;
+
+import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -38,6 +40,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -51,14 +54,20 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.chrisbanes.photoview.PhotoView;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.Taxon;
@@ -330,11 +339,26 @@ public class MainKeyboard extends AppCompatActivity {
         if(!selectSpecies && speciesList.getUuid() != null) {
             File extStoreDir = Environment.getExternalStorageDirectory();
             File imgDir = new File(extStoreDir, "homemluzula/photos");
+            File[] imgs = imgDir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File file, String s) {
+                    return s.startsWith(speciesList.getUuid().toString());
+                }
+            });
+            if(imgs != null) {
+                Arrays.sort(imgs);
+                for(File img : imgs) {
+                    Bitmap bmp = BitmapFactory.decodeFile(img.getAbsolutePath());
+                    addImage(bmp);
+                }
+            }
+/*
             File chk = new File(imgDir, speciesList.getUuid() + ".jpg");
             if(chk.exists() && chk.canRead()) {
                 Bitmap bmp = BitmapFactory.decodeFile(chk.getAbsolutePath());
                 ((ImageView) findViewById(R.id.foto)).setImageBitmap(bmp);
             }
+*/
         }
         if(!selectSpecies) {
             toolbar.setOnClickListener(view -> {    // change inventory code
@@ -849,14 +873,38 @@ public class MainKeyboard extends AppCompatActivity {
                         rotatedBitmap = thumbnail;
                 }
 
-                ((ImageView) findViewById(R.id.foto)).setImageBitmap(rotatedBitmap);
+//                ((ImageView) findViewById(R.id.foto)).setImageBitmap(rotatedBitmap);
+                addImage(rotatedBitmap);
 //                Toast.makeText(this, getRealPathFromURI(imageUri), Toast.LENGTH_SHORT).show();
                 File extStoreDir = Environment.getExternalStorageDirectory();
                 File invDir = new File(extStoreDir, "homemluzula");
                 if(!invDir.exists()) invDir.mkdir();
                 File imgDir = new File(invDir, "photos");
                 if(!imgDir.exists()) imgDir.mkdir();
-                File dest = new File(imgDir, speciesList.getUuid() + ".jpg");
+
+                int imageNumber = 0;
+                File[] imgs = imgDir.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File file, String s) {
+                        return s.startsWith(speciesList.getUuid().toString());
+                    }
+                });
+                if(imgs != null) {
+                    Pattern p = Pattern.compile("[\\w]-([0-9]{2})\\.jpg", Pattern.CASE_INSENSITIVE);
+                    for(File img : imgs) {
+                        Matcher m = p.matcher(img.getName());
+                        if(m.find()) {
+                            String gr;
+                            if((gr = m.group(1)) != null) {
+                                if (Integer.parseInt(gr) > imageNumber)
+                                    imageNumber = Integer.parseInt(gr);
+                            }
+                        }
+                    }
+                }
+
+                File dest = new File(imgDir, speciesList.getUuid() + "-" +
+                        String.format(Locale.getDefault(), "%02d", imageNumber + 1) + ".jpg");
 
                 try (FileOutputStream out = new FileOutputStream(dest)) {
                     rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
@@ -878,6 +926,51 @@ public class MainKeyboard extends AppCompatActivity {
                 }*/
                 break;
         }
+    }
+
+    public static void setMargins (View v, int l, int t, int r, int b) {
+        if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            p.setMargins(l, t, r, b);
+            v.requestLayout();
+        }
+    }
+    private void addImage(Bitmap bmp) {
+        PhotoView pv = new PhotoView(this);
+//        ImageView pv = new ImageView(this);
+        pv.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        pv.setAdjustViewBounds(true);
+        setMargins(pv, 0, 30, 0, 30);
+        pv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        pv.setImageBitmap(getResizedBitmap(bmp, 1000));
+        pv.setMaximumScale(10);
+        pv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                View v = findViewById(R.id.keyboard_layout);
+                if(v.getVisibility() == View.GONE)
+                    findViewById(R.id.keyboard_layout).setVisibility(View.VISIBLE);
+                else
+                    findViewById(R.id.keyboard_layout).setVisibility(View.GONE);
+            }
+        });
+        ((LinearLayout) findViewById(R.id.topLayout)).addView(pv);
+    }
+
+    static public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        float bitmapRatio = (float)width / (float) height;
+        if (bitmapRatio > 0) {
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+        return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
     public String getRealPathFromURI(Uri contentUri) {

@@ -24,6 +24,7 @@
             android:layout_weight="1" >
 
             <LinearLayout
+                android:id="@+id/topLayout"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -59,7 +60,7 @@
                     android:id="@+id/inputbuffer"
                     android:textSize="80sp" />
 
-                <ImageView
+<!--                <ImageView
                     android:id="@+id/foto"
                     android:background="@color/colorPrimary"
                     android:visibility="visible"
@@ -67,11 +68,22 @@
                     android:scaleType="fitCenter"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-                </ImageView>
+                </ImageView>-->
+
+                <!--<com.github.chrisbanes.photoview.PhotoView
+                    android:id="@+id/foto"
+                    android:background="@color/colorPrimary"
+                    android:visibility="visible"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                </com.github.chrisbanes.photoview.PhotoView>-->
             </LinearLayout>
         </ScrollView>
 
         <LinearLayout
+            android:id="@+id/keyboard_layout"
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -121,8 +133,9 @@
                     style="@style/tecla"
                     android:background="@android:drawable/ic_menu_camera"
                     android:text="_"
-                    android:layout_width="50dp"
-                    android:layout_height="44dp"
+                    android:layout_gravity="center"
+                    android:layout_width="55dp"
+                    android:layout_height="55dp"
                     android:textColor="@android:color/black" />
 
                 <Space

@@ -10,6 +10,7 @@ buildscript {
             url 'https://maven.google.com/'
             name 'Google'
         }
+        maven { url "https://www.jitpack.io" }
         google()
     }
     dependencies {
@@ -26,6 +27,7 @@ allprojects {
         mavenCentral()
         mavenLocal()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        maven { url "https://www.jitpack.io" }
         google()
     }
 }
