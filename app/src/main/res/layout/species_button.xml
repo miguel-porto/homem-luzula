@@ -61,6 +61,14 @@
                     android:paddingEnd="10dp"
                     android:text="?" />
 
+<!--
+                <ImageButton
+                    android:id="@+id/take_photo_species"
+                    style="@style/phenostate"
+                    android:layout_width="40dp"
+                    android:src="@android:drawable/ic_menu_camera" />
+-->
+
                 <LinearLayout
                     android:id="@+id/but_veget"
                     style="@style/phenostate" >

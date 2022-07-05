@@ -1,4 +1,4 @@
-package pt.flora_on.homemluzula;
+package pt.flora_on.homemluzula.activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,12 +10,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import pt.flora_on.homemluzula.Divider;
+import pt.flora_on.homemluzula.R;
 import pt.flora_on.homemluzula.adapters.ObservationAdapterPhenology;
 import pt.flora_on.homemluzula.adapters.SelectSpeciesListener;
 import pt.flora_on.observation_data.TaxonObservation;
 
+/**
+ * The list of species corresponding to the acronym typed in the main keyboard
+ */
 public class SpeciesChooser extends AppCompatActivity {
     static public final int GET_OBSERVATION = 34;
+    public String uuid;
+    public boolean hasPhoto = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +43,7 @@ public class SpeciesChooser extends AppCompatActivity {
 
         Intent intent = getIntent();
         String[] taxa = intent.getStringArrayExtra("taxa");
+        uuid = intent.getStringExtra("uuid");
 
         SelectSpeciesListener btnClick = new SelectSpeciesListener() {
             @Override
@@ -79,12 +87,15 @@ public class SpeciesChooser extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) return;
-        switch(requestCode) {
+        switch (requestCode) {
             case GET_OBSERVATION:
                 TaxonObservation tObs = data.getParcelableExtra("observation");
+                boolean hasPhoto = data.getBooleanExtra("hasPhoto", false);
                 Intent dataout = new Intent();
                 dataout.putExtra("observation", tObs);
+                dataout.putExtra("hasPhoto", hasPhoto);
                 setResult(Activity.RESULT_OK, dataout);
                 finish();
                 break;

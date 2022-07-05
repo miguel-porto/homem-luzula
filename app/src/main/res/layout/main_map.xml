@@ -46,7 +46,7 @@
         android:background="@android:color/transparent"
         android:orientation="vertical"
         android:id="@+id/main_map_interface"
-        tools:context="pt.flora_on.homemluzula.MainMap">
+        tools:context="pt.flora_on.homemluzula.activities.MainMap">
 
         <FrameLayout
             android:layout_width="match_parent"

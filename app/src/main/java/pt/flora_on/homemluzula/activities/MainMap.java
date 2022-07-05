@@ -1,4 +1,4 @@
-package pt.flora_on.homemluzula;
+package pt.flora_on.homemluzula.activities;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -95,6 +95,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import pt.flora_on.homemluzula.Checklist;
+import pt.flora_on.homemluzula.DataManager;
+import pt.flora_on.homemluzula.EditTextBackEvent;
+import pt.flora_on.homemluzula.HomemLuzulaApp;
+import pt.flora_on.homemluzula.LocationFixedCallback;
+import pt.flora_on.homemluzula.R;
 import pt.flora_on.homemluzula.geo.FastPointMark;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
 import pt.flora_on.homemluzula.geo.Layer;

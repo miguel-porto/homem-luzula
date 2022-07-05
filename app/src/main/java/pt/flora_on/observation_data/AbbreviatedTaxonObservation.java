@@ -5,7 +5,7 @@ import android.os.Parcelable;
 import java.security.InvalidParameterException;
 
 import pt.flora_on.homemluzula.Checklist;
-import pt.flora_on.homemluzula.MainMap;
+import pt.flora_on.homemluzula.activities.MainMap;
 
 /**
  * The same as TaxonObservation except that it sorts based on abbreviations, not full names

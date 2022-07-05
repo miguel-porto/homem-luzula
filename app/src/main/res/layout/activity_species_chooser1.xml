@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="pt.flora_on.homemluzula.SpeciesChooser"
+    tools:context="pt.flora_on.homemluzula.activities.SpeciesChooser"
     android:orientation="vertical">
 
     <androidx.recyclerview.widget.RecyclerView

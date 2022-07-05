@@ -1,4 +1,4 @@
-package pt.flora_on.homemluzula;
+package pt.flora_on.homemluzula.activities;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -20,7 +19,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,15 +43,12 @@ import org.osmdroid.views.overlay.FolderOverlay;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,6 +58,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import pt.flora_on.homemluzula.DataManager;
+import pt.flora_on.homemluzula.HomemLuzulaApp;
+import pt.flora_on.homemluzula.InventoryShow;
+import pt.flora_on.homemluzula.R;
+import pt.flora_on.homemluzula.SettingsActivity;
 import pt.flora_on.homemluzula.geo.GeoTimePoint;
 import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.LineLayer;
@@ -71,9 +71,9 @@ import pt.flora_on.homemluzula.geo.Tracklog;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;
 
-import static pt.flora_on.homemluzula.MainMap.CLEAR_ALLLAYERS;
-import static pt.flora_on.homemluzula.MainMap.CLEAR_TRACKLOG;
-import static pt.flora_on.homemluzula.MainMap.mainActivity;
+import static pt.flora_on.homemluzula.activities.MainMap.CLEAR_ALLLAYERS;
+import static pt.flora_on.homemluzula.activities.MainMap.CLEAR_TRACKLOG;
+import static pt.flora_on.homemluzula.activities.MainMap.mainActivity;
 
 /**
  * Created by miguel on 22-04-2018.
@@ -221,6 +221,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
             case R.id.clear_pinned_species:
                 SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(HomemLuzulaApp.getAppContext());
                 preferences.edit().putStringSet("pinnedTaxa", new HashSet<>()).apply();
+                Toast.makeText(this, "Removed species shortcuts from map", Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.removelayers:

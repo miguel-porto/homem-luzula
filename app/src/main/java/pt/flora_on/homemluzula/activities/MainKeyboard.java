@@ -1,4 +1,4 @@
-package pt.flora_on.homemluzula;
+package pt.flora_on.homemluzula.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,7 +18,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import androidx.exifinterface.media.ExifInterface;
 
-import android.media.MediaCodec;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -35,6 +34,7 @@ import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -69,6 +69,12 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import pt.flora_on.homemluzula.Checklist;
+import pt.flora_on.homemluzula.DataManager;
+import pt.flora_on.homemluzula.EditTextBackEvent;
+import pt.flora_on.homemluzula.HomemLuzulaApp;
+import pt.flora_on.homemluzula.InventoryProperties;
+import pt.flora_on.homemluzula.R;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.Taxon;
 import pt.flora_on.observation_data.TaxonObservation;
@@ -87,6 +93,7 @@ public class MainKeyboard extends AppCompatActivity {
     private boolean selectSpecies = false, changed = false, recordTaxonCoordinates;
     private SharedPreferences preferences;
     private Uri imageUri;
+    private static final Pattern imageName = Pattern.compile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(-[\\w-]+)?-([0-9]{2})\\.jpg", Pattern.CASE_INSENSITIVE);
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -163,6 +170,8 @@ public class MainKeyboard extends AppCompatActivity {
         if(selectSpecies) {
             MenuItem item = menu.findItem(R.id.refreshgps);
             item.setVisible(false);
+            item = menu.findItem(R.id.take_photo);
+            item.setVisible(false);
         }
         return true;
     }
@@ -182,7 +191,19 @@ public class MainKeyboard extends AppCompatActivity {
                     locationManager.removeUpdates(locationListener);
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListener);
                 }
+                return true;
 
+            case R.id.take_photo:
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.TITLE, "New Picture");
+                values.put(MediaStore.Images.Media.DESCRIPTION, "From your Camera");
+                imageUri = getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivityForResult(takePictureIntent, TAKE_PHOTO);
+                }
                 return true;
 
             default:
@@ -313,7 +334,7 @@ public class MainKeyboard extends AppCompatActivity {
             findViewById(R.id.save_inventario).setVisibility(View.GONE);
             findViewById(R.id.showspecies).setVisibility(View.GONE);
             findViewById(R.id.coordinates).setVisibility(View.GONE);
-            findViewById(R.id.take_photo).setVisibility(View.GONE);
+//            findViewById(R.id.take_photo).setVisibility(View.GONE);
             ((EditTextBackEvent) findViewById(R.id.freedescriptionedit)).setHint("pesquise por texto livre");
             ((RadioButton) findViewById(R.id.inputmode_doubt)).setText("TEXTO LIVRE");
             selectSpecies = true;
@@ -336,30 +357,11 @@ public class MainKeyboard extends AppCompatActivity {
 
         speciesList.setHasTaxonCoordinates(recordTaxonCoordinates);
 
+
         if(!selectSpecies && speciesList.getUuid() != null) {
-            File extStoreDir = Environment.getExternalStorageDirectory();
-            File imgDir = new File(extStoreDir, "homemluzula/photos");
-            File[] imgs = imgDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File file, String s) {
-                    return s.startsWith(speciesList.getUuid().toString());
-                }
-            });
-            if(imgs != null) {
-                Arrays.sort(imgs);
-                for(File img : imgs) {
-                    Bitmap bmp = BitmapFactory.decodeFile(img.getAbsolutePath());
-                    addImage(bmp);
-                }
-            }
-/*
-            File chk = new File(imgDir, speciesList.getUuid() + ".jpg");
-            if(chk.exists() && chk.canRead()) {
-                Bitmap bmp = BitmapFactory.decodeFile(chk.getAbsolutePath());
-                ((ImageView) findViewById(R.id.foto)).setImageBitmap(bmp);
-            }
-*/
+            refreshPhotos();
         }
+        
         if(!selectSpecies) {
             toolbar.setOnClickListener(view -> {    // change inventory code
                 Intent inv_prop = new Intent(this, InventoryProperties.class);
@@ -430,6 +432,7 @@ public class MainKeyboard extends AppCompatActivity {
             });
         }
 
+/*
         findViewById(R.id.take_photo).setOnClickListener(view -> {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.TITLE, "New Picture");
@@ -442,6 +445,7 @@ public class MainKeyboard extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, TAKE_PHOTO);
             }
         });
+*/
 
         /**
          * Delete current inventory
@@ -647,6 +651,31 @@ public class MainKeyboard extends AppCompatActivity {
         });
     }
 
+    private void refreshPhotos() {
+//        Toast.makeText(this, "REFRESH", Toast.LENGTH_SHORT).show();
+        ((LinearLayout) findViewById(R.id.photo_holder)).removeAllViews();
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        File imgDir = new File(extStoreDir, "homemluzula/photos");
+        File[] imgs = imgDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File file, String s) {
+                return s.startsWith(speciesList.getUuid().toString());
+            }
+        });
+        if(imgs != null) {
+            Arrays.sort(imgs);
+            for(File img : imgs) {
+                Bitmap bmp = BitmapFactory.decodeFile(img.getAbsolutePath());
+                Matcher m = imageName.matcher(img.getName());
+                if(m.find()) {
+                    String gr1 = m.group(1);
+                    addImage(bmp, gr1 != null ? gr1.substring(1) : null);
+                } else
+                    addImage(bmp, null);
+            }
+        }
+    }
+    
     private void setTitle() {
         if(speciesList.getSerialNumber() == null && "".equals(speciesList.getGpsCode()))
             MainKeyboard.this.setTitle(String.format(Locale.getDefault(), "%d/%d/%d"
@@ -695,6 +724,7 @@ public class MainKeyboard extends AppCompatActivity {
                 String[] taxa = Checklist.getTaxonNameFromTaxonList(possibleTaxa);
                 Intent intent = new Intent(MainKeyboard.this, SpeciesChooser.class);
                 intent.putExtra("taxa", taxa);
+                intent.putExtra("uuid", speciesList.getUuid().toString());
                 // this avoids the flickering
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -733,9 +763,9 @@ public class MainKeyboard extends AppCompatActivity {
                 sb.append(taxa[i]).append("\n");
             }
 */
-
                 Intent intent = new Intent(MainKeyboard.this, SpeciesChooser.class);
                 intent.putExtra("taxa", taxa);
+                intent.putExtra("uuid", speciesList.getUuid().toString());
                 // this avoids the flickering
                 getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
                 getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -820,6 +850,8 @@ public class MainKeyboard extends AppCompatActivity {
                 //tv.setText(speciesList.getNumberOfSpecies()+" espécies");
                 tv.setText(speciesList.concatSpecies(true, 2000), TextView.BufferType.SPANNABLE);
                 tv.setVisibility(View.VISIBLE);
+                if(data.getBooleanExtra("hasPhoto", false))
+                    refreshPhotos();
 //                Toast.makeText(MainKeyboard.this, tObs.getTaxon()+": "+tObs.getPhenoState().toString()+ " " + tObs.getComment(), Toast.LENGTH_SHORT).show();
                 break;
 
@@ -840,81 +872,7 @@ public class MainKeyboard extends AppCompatActivity {
                 break;
 
             case TAKE_PHOTO:
-                Bitmap thumbnail = null;
-                ExifInterface ei = null;
-                try {
-                    thumbnail = MediaStore.Images.Media.getBitmap(
-                            getContentResolver(), imageUri);
-                    ei = new ExifInterface(getRealPathFromURI(imageUri));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                        ExifInterface.ORIENTATION_UNDEFINED);
-
-                Bitmap rotatedBitmap = null;
-                switch(orientation) {
-
-                    case ExifInterface.ORIENTATION_ROTATE_90:
-                        rotatedBitmap = rotateImage(thumbnail, 90);
-                        break;
-
-                    case ExifInterface.ORIENTATION_ROTATE_180:
-                        rotatedBitmap = rotateImage(thumbnail, 180);
-                        break;
-
-                    case ExifInterface.ORIENTATION_ROTATE_270:
-                        rotatedBitmap = rotateImage(thumbnail, 270);
-                        break;
-
-                    case ExifInterface.ORIENTATION_NORMAL:
-                    default:
-                        rotatedBitmap = thumbnail;
-                }
-
-//                ((ImageView) findViewById(R.id.foto)).setImageBitmap(rotatedBitmap);
-                addImage(rotatedBitmap);
-//                Toast.makeText(this, getRealPathFromURI(imageUri), Toast.LENGTH_SHORT).show();
-                File extStoreDir = Environment.getExternalStorageDirectory();
-                File invDir = new File(extStoreDir, "homemluzula");
-                if(!invDir.exists()) invDir.mkdir();
-                File imgDir = new File(invDir, "photos");
-                if(!imgDir.exists()) imgDir.mkdir();
-
-                int imageNumber = 0;
-                File[] imgs = imgDir.listFiles(new FilenameFilter() {
-                    @Override
-                    public boolean accept(File file, String s) {
-                        return s.startsWith(speciesList.getUuid().toString());
-                    }
-                });
-                if(imgs != null) {
-                    Pattern p = Pattern.compile("[\\w]-([0-9]{2})\\.jpg", Pattern.CASE_INSENSITIVE);
-                    for(File img : imgs) {
-                        Matcher m = p.matcher(img.getName());
-                        if(m.find()) {
-                            String gr;
-                            if((gr = m.group(1)) != null) {
-                                if (Integer.parseInt(gr) > imageNumber)
-                                    imageNumber = Integer.parseInt(gr);
-                            }
-                        }
-                    }
-                }
-
-                File dest = new File(imgDir, speciesList.getUuid() + "-" +
-                        String.format(Locale.getDefault(), "%02d", imageNumber + 1) + ".jpg");
-
-                try (FileOutputStream out = new FileOutputStream(dest)) {
-                    rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                File from = new File(getRealPathFromURI(imageUri));
-                from.delete();
-
+                addImage(savePhoto(imageUri, this, speciesList.getUuid().toString(), null), null);
 //                from.renameTo(chk);
 /*
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
@@ -925,7 +883,93 @@ public class MainKeyboard extends AppCompatActivity {
                     e.printStackTrace();
                 }*/
                 break;
+
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    public static Bitmap savePhoto(Uri imageUri, Context context, final String filenamePrefix, final String imageTitle) {
+        Bitmap thumbnail = null;
+        ExifInterface ei = null;
+        Bitmap rotatedBitmap;
+
+        try {
+            thumbnail = MediaStore.Images.Media.getBitmap(
+                    context.getContentResolver(), imageUri);
+            ei = new ExifInterface(getRealPathFromURI(imageUri, context));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(ei != null) {
+            int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED);
+            switch (orientation) {
+
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotatedBitmap = rotateImage(thumbnail, 90);
+                    break;
+
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotatedBitmap = rotateImage(thumbnail, 180);
+                    break;
+
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotatedBitmap = rotateImage(thumbnail, 270);
+                    break;
+
+                case ExifInterface.ORIENTATION_NORMAL:
+                default:
+                    rotatedBitmap = thumbnail;
+            }
+        } else rotatedBitmap = thumbnail;
+//                ((ImageView) findViewById(R.id.foto)).setImageBitmap(rotatedBitmap);
+//                Toast.makeText(this, getRealPathFromURI(imageUri), Toast.LENGTH_SHORT).show();
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        File invDir = new File(extStoreDir, "homemluzula");
+        if(!invDir.exists()) invDir.mkdir();
+        File imgDir = new File(invDir, "photos");
+        if(!imgDir.exists()) imgDir.mkdir();
+
+        int imageNumber = 0;
+        File[] imgs = imgDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File file, String s) {
+                return s.startsWith(filenamePrefix);
+            }
+        });
+        if(imgs != null) {
+            for(File img : imgs) {
+                Matcher m = imageName.matcher(img.getName());
+                if(m.find()) {
+                    String gr, name;
+                    if((gr = m.group(2)) != null) {
+                        if (Integer.parseInt(gr) > imageNumber) {
+                            name = m.group(1);
+                            imageNumber = Integer.parseInt(gr);
+                        }
+                    }
+                }
+            }
+        }
+        String filename;
+        if(imageTitle != null)
+            filename = filenamePrefix + "-" + imageTitle.replaceAll("[\\W]", "-");
+        else
+            filename = filenamePrefix;
+
+        File dest = new File(imgDir, filename + "-" +
+                String.format(Locale.getDefault(), "%02d", imageNumber + 1) + ".jpg");
+
+        try (FileOutputStream out = new FileOutputStream(dest)) {
+            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File from = new File(getRealPathFromURI(imageUri, context));
+        from.delete();
+        return rotatedBitmap;
     }
 
     public static void setMargins (View v, int l, int t, int r, int b) {
@@ -935,27 +979,44 @@ public class MainKeyboard extends AppCompatActivity {
             v.requestLayout();
         }
     }
-    private void addImage(Bitmap bmp) {
-        PhotoView pv = new PhotoView(this);
-//        ImageView pv = new ImageView(this);
-        pv.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        pv.setAdjustViewBounds(true);
-        setMargins(pv, 0, 30, 0, 30);
-        pv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+    private void addImage(Bitmap bmp, String title) {
+        ViewGroup v = (ViewGroup) LayoutInflater.from(this)
+                .inflate(R.layout.photo_thumbnail, null);
+        View v1 = null;
+        for(int i=0; i<v.getChildCount(); i++) {
+            v1 = v.getChildAt(i);
+            if(v1 instanceof PhotoView) break;
+        }
+        if (!(v1 instanceof PhotoView)) return;
+        PhotoView pv = (PhotoView) v1;
+
+        if(title != null)
+            ((TextView) v.findViewById(R.id.photo_label)).setText(title);
+        else
+            v.findViewById(R.id.photo_label).setVisibility(View.GONE);
+/*
+    PhotoView pv = new PhotoView(this);
+    pv.setLayoutParams(new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+    pv.setAdjustViewBounds(true);
+    setMargins(pv, 0, 30, 0, 30);
+    pv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+*/
         pv.setImageBitmap(getResizedBitmap(bmp, 1000));
         pv.setMaximumScale(10);
         pv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 View v = findViewById(R.id.keyboard_layout);
-                if(v.getVisibility() == View.GONE)
+                if (v.getVisibility() == View.GONE)
                     findViewById(R.id.keyboard_layout).setVisibility(View.VISIBLE);
                 else
                     findViewById(R.id.keyboard_layout).setVisibility(View.GONE);
             }
         });
-        ((LinearLayout) findViewById(R.id.topLayout)).addView(pv);
+
+        ((LinearLayout) findViewById(R.id.photo_holder)).addView(v);
     }
 
     static public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
@@ -973,10 +1034,10 @@ public class MainKeyboard extends AppCompatActivity {
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
-    public String getRealPathFromURI(Uri contentUri) {
+    public static String getRealPathFromURI(Uri contentUri, Context context) {
         String res = null;
         String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
+        Cursor cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
         if(cursor.moveToFirst()){;
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             res = cursor.getString(column_index);

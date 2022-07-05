@@ -1,4 +1,4 @@
-package pt.flora_on.homemluzula;
+package pt.flora_on.homemluzula.activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -12,12 +12,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.Toast;
 
 import java.util.Locale;
 
+import pt.flora_on.homemluzula.R;
 import pt.flora_on.homemluzula.adapters.ObservationAdapterAbundance;
-import pt.flora_on.homemluzula.adapters.ObservationAdapterPhenology;
 import pt.flora_on.homemluzula.adapters.SelectSpeciesListener;
 import pt.flora_on.observation_data.SpeciesList;
 import pt.flora_on.observation_data.TaxonObservation;

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="pt.flora_on.homemluzula.MainKeyboard"
+    tools:context="pt.flora_on.homemluzula.activities.MainKeyboard"
     android:fitsSystemWindows="true"
     android:id="@+id/keyboard_page">
 
@@ -59,26 +59,13 @@
                     android:textAlignment="center"
                     android:id="@+id/inputbuffer"
                     android:textSize="80sp" />
-
-<!--                <ImageView
-                    android:id="@+id/foto"
-                    android:background="@color/colorPrimary"
-                    android:visibility="visible"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
+                <LinearLayout
+                    android:id="@+id/photo_holder"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                </ImageView>-->
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                </LinearLayout>
 
-                <!--<com.github.chrisbanes.photoview.PhotoView
-                    android:id="@+id/foto"
-                    android:background="@color/colorPrimary"
-                    android:visibility="visible"
-                    android:adjustViewBounds="true"
-                    android:scaleType="fitCenter"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                </com.github.chrisbanes.photoview.PhotoView>-->
             </LinearLayout>
         </ScrollView>
 
@@ -128,6 +115,7 @@
                         android:textSize="16sp" />
                 </RadioGroup>
 
+<!--
                 <TextView
                     android:id="@+id/take_photo"
                     style="@style/tecla"
@@ -137,6 +125,7 @@
                     android:layout_width="55dp"
                     android:layout_height="55dp"
                     android:textColor="@android:color/black" />
+-->
 
                 <Space
                     android:layout_width="match_parent"

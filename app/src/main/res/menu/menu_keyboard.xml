@@ -18,4 +18,9 @@
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_refresh_gps1" />
 
+    <item
+        android:id="@+id/take_photo"
+        android:title="Tirar foto"
+        app:showAsAction="always"
+        android:icon="@android:drawable/ic_menu_camera" />
 </menu>

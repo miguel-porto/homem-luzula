@@ -4,26 +4,20 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 
-import org.metalev.multitouch.controller.MultiTouchController;
-import org.osmdroid.api.IGeoPoint;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.Projection;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlayOptions;
 
-import java.util.List;
-
-import pt.flora_on.homemluzula.MainMap;
+import pt.flora_on.homemluzula.activities.MainMap;
 
 /**
  * Created by Miguel Porto on 12-10-2016.

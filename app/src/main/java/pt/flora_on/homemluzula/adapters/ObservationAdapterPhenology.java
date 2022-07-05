@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import androidx.appcompat.widget.TintTypedArray;
 import androidx.recyclerview.widget.RecyclerView;
 
-import pt.flora_on.homemluzula.ObservationDetails;
+import pt.flora_on.homemluzula.activities.ObservationDetails;
 import pt.flora_on.homemluzula.R;
-import pt.flora_on.homemluzula.SpeciesChooser;
+import pt.flora_on.homemluzula.activities.SpeciesChooser;
 import pt.flora_on.observation_data.Constants;
 import pt.flora_on.observation_data.TaxonObservation;
 
@@ -84,7 +86,7 @@ public class ObservationAdapterPhenology extends RecyclerView.Adapter<AddSpecies
                 Intent intent = new Intent(v.getContext(), ObservationDetails.class);
                 TaxonObservation to = (TaxonObservation) v.getTag();
                 intent.putExtra("taxon", to);
-
+                intent.putExtra("uuid", ((SpeciesChooser) mParentActivity).uuid);
                 mParentActivity.startActivityForResult(intent, SpeciesChooser.GET_OBSERVATION);
             }
         });

@@ -1,7 +1,5 @@
 package pt.flora_on.observation_data;
 
-import android.app.Application;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -9,23 +7,16 @@ import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.UnderlineSpan;
 
 import java.io.PrintWriter;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import pt.flora_on.homemluzula.Checklist;
-import pt.flora_on.homemluzula.DataManager;
-import pt.flora_on.homemluzula.HomemLuzulaApp;
-import pt.flora_on.homemluzula.MainMap;
-import pt.flora_on.homemluzula.R;
+import pt.flora_on.homemluzula.activities.MainMap;
 
 /**
  * Created by miguel on 04-10-2016.

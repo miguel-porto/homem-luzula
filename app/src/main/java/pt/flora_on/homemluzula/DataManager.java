@@ -34,6 +34,7 @@ import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
+import pt.flora_on.homemluzula.activities.MainMap;
 import pt.flora_on.homemluzula.geo.Layer;
 import pt.flora_on.homemluzula.geo.SimplePointTheme;
 import pt.flora_on.homemluzula.geo.Tracklog;
@@ -63,7 +64,7 @@ public class DataManager extends AppCompatActivity {
 
     }
 
-    protected static int saveTrackLog(File invdir, StringBuilder errors) {
+    public static int saveTrackLog(File invdir, StringBuilder errors) {
         if(tracklog == null) return 0;
         if(invdir == null) {
             File extStoreDir = Environment.getExternalStorageDirectory();

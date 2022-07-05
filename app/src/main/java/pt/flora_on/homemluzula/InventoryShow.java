@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import pt.flora_on.homemluzula.activities.MainKeyboard;
+import pt.flora_on.homemluzula.activities.ShowObservations;
 import pt.flora_on.homemluzula.adapters.InventoryAdapter;
 import pt.flora_on.observation_data.Inventories;
 import pt.flora_on.observation_data.SpeciesList;

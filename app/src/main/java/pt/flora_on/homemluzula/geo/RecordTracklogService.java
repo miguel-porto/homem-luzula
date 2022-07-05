@@ -27,7 +27,7 @@ import org.osmdroid.util.GeoPoint;
 import java.util.Locale;
 
 import pt.flora_on.homemluzula.DataManager;
-import pt.flora_on.homemluzula.MainMap;
+import pt.flora_on.homemluzula.activities.MainMap;
 import pt.flora_on.homemluzula.R;
 
 public class RecordTracklogService extends Service {
