@@ -127,7 +127,8 @@ public class MainKeyboard extends AppCompatActivity {
                     | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            );
         }
     };
     private final Runnable mShowPart2Runnable = new Runnable() {
@@ -455,8 +456,9 @@ public class MainKeyboard extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(replace == null) return;
+                File[] imgs = getPhotosOfInventory(speciesList.getUuid().toString());
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainKeyboard.this);
-                builder.setMessage("Tem a certeza que quer apagar este inventário?")
+                builder.setMessage("Tem a certeza que quer apagar este inventário?" + ((imgs.length > 0) ? " Todas as fotos associadas ao inventário e às espécies serão apagadas!" : ""))
                         .setCancelable(true)
                         .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -469,6 +471,9 @@ public class MainKeyboard extends AppCompatActivity {
                                             locationManager.removeUpdates(ll);
                                     }
                                 }
+
+                                for(File f : imgs)
+                                    f.delete();
 
                                 data.putExtra("delete", true);
                                 data.putExtra("index", replace);
@@ -507,6 +512,11 @@ public class MainKeyboard extends AppCompatActivity {
                                                 locationManager.removeUpdates(ll);
                                         }
                                     }
+
+                                    File[] imgs = getPhotosOfInventory(speciesList.getUuid().toString());
+                                    for(File f : imgs)
+                                        f.delete();
+
                                     finish();
                                 }
                             })
@@ -651,17 +661,28 @@ public class MainKeyboard extends AppCompatActivity {
         });
     }
 
+    static private File[] getPhotosOfInventory(String uuid) {
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        File imgDir = new File(extStoreDir, "homemluzula/photos");
+        if(!imgDir.exists()) {
+            File invDir = new File(extStoreDir, "homemluzula");
+            if(!invDir.exists()) invDir.mkdir();
+            imgDir = new File(invDir, "photos");
+            if(!imgDir.exists()) imgDir.mkdir();
+        }
+        return imgDir.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File file, String s) {
+                return s.startsWith(uuid);
+            }
+        });
+    }
+
     private void refreshPhotos() {
 //        Toast.makeText(this, "REFRESH", Toast.LENGTH_SHORT).show();
         ((LinearLayout) findViewById(R.id.photo_holder)).removeAllViews();
-        File extStoreDir = Environment.getExternalStorageDirectory();
-        File imgDir = new File(extStoreDir, "homemluzula/photos");
-        File[] imgs = imgDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String s) {
-                return s.startsWith(speciesList.getUuid().toString());
-            }
-        });
+        File[] imgs = getPhotosOfInventory(speciesList.getUuid().toString());
+
         if(imgs != null) {
             Arrays.sort(imgs);
             for(File img : imgs) {
@@ -925,19 +946,9 @@ public class MainKeyboard extends AppCompatActivity {
         } else rotatedBitmap = thumbnail;
 //                ((ImageView) findViewById(R.id.foto)).setImageBitmap(rotatedBitmap);
 //                Toast.makeText(this, getRealPathFromURI(imageUri), Toast.LENGTH_SHORT).show();
-        File extStoreDir = Environment.getExternalStorageDirectory();
-        File invDir = new File(extStoreDir, "homemluzula");
-        if(!invDir.exists()) invDir.mkdir();
-        File imgDir = new File(invDir, "photos");
-        if(!imgDir.exists()) imgDir.mkdir();
+        File[] imgs = getPhotosOfInventory(filenamePrefix);
 
         int imageNumber = 0;
-        File[] imgs = imgDir.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File file, String s) {
-                return s.startsWith(filenamePrefix);
-            }
-        });
         if(imgs != null) {
             for(File img : imgs) {
                 Matcher m = imageName.matcher(img.getName());
@@ -958,6 +969,7 @@ public class MainKeyboard extends AppCompatActivity {
         else
             filename = filenamePrefix;
 
+        File imgDir = new File(Environment.getExternalStorageDirectory(), "homemluzula/photos");
         File dest = new File(imgDir, filename + "-" +
                 String.format(Locale.getDefault(), "%02d", imageNumber + 1) + ".jpg");
 

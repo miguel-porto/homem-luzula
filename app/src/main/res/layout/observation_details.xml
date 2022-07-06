@@ -47,6 +47,7 @@
                     android:id="@+id/take_photo_species"
                     style="@style/tecla"
                     android:background="@android:drawable/ic_menu_camera"
+                    android:backgroundTintMode="multiply"
                     android:text="_"
                     android:layout_gravity="center"
                     android:layout_width="45dp"

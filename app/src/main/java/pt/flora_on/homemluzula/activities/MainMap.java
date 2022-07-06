@@ -308,6 +308,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         }
     };
 
+/*
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -318,6 +319,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         }
     };
+*/
     private final Runnable mHideRunnable = new Runnable() {
         @Override
         public void run() {
@@ -1577,11 +1579,17 @@ try {
     @Override
     public void onResume() {
         super.onResume();
-        hide();
+        mHideToolbars.run();
         createQuickAccessButtons();
         if(!recordTracklog && isGPSOn) {
             switchOnLocationUpdates(getTracklogInterval());
         }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        mHideToolbars.run();
     }
 
     @Override
@@ -1646,8 +1654,9 @@ try {
             actionBar.hide();
         }
         // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowPart2Runnable);
-        mHideHandler.postDelayed(mHideToolbars, UI_ANIMATION_DELAY);
+//        mHideHandler.removeCallbacks(mShowPart2Runnable);
+        mHideToolbars.run();
+//        mHideHandler.postDelayed(mHideToolbars, UI_ANIMATION_DELAY);
     }
 
     /**

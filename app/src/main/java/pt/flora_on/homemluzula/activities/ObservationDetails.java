@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
@@ -115,6 +117,7 @@ public class ObservationDetails extends AppCompatActivity implements View.OnClic
 
             case MainKeyboard.TAKE_PHOTO:
                 this.hasPhoto = true;
+                findViewById(R.id.take_photo_species).setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BFFF00")));
                 break;
 
             default:
