@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.preference.PreferenceManager;
@@ -40,23 +41,25 @@ public class ObservationDetails extends AppCompatActivity implements View.OnClic
     private boolean hasPhoto = false;
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean("hasPhoto", hasPhoto);
+        outState.putParcelable("uri", imageUri);
+        super.onSaveInstanceState(outState);
+    }
+    @Override
     @SuppressWarnings("unchecked")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.observation_details);
         setSupportActionBar((Toolbar) findViewById(R.id.details_toolbar));
 
-//        View mContentView = findViewById(R.id.activity_observation_details);
-//        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-//                | View.SYSTEM_UI_FLAG_FULLSCREEN
-//                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-//                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-//                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-//                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-//
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.obs_details_toolbar);
-//        setSupportActionBar(toolbar);
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (savedInstanceState != null) {
+            hasPhoto = savedInstanceState.getBoolean("hasPhoto");
+            imageUri = savedInstanceState.getParcelable("uri");
+        }
+
+        if(hasPhoto)
+            findViewById(R.id.take_photo_species).setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BFFF00")));
 
         ((ClickToSelectEditText<Constants.NaturalizationState>) findViewById(R.id.spi_naturstate)).setItems(Constants.NaturalizationState.getLabels());
         ((ClickToSelectEditText<Constants.AbundanceType>) findViewById(R.id.spi_abundancetype)).setItems(Constants.AbundanceType.getLabels());
@@ -105,6 +108,7 @@ public class ObservationDetails extends AppCompatActivity implements View.OnClic
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) return;
         switch(requestCode) {
             case MainKeyboard.UPDATE_OBSERVATIONS:
@@ -116,12 +120,9 @@ public class ObservationDetails extends AppCompatActivity implements View.OnClic
                 break;
 
             case MainKeyboard.TAKE_PHOTO:
-                this.hasPhoto = true;
+                hasPhoto = true;
                 findViewById(R.id.take_photo_species).setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BFFF00")));
                 break;
-
-            default:
-                super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
