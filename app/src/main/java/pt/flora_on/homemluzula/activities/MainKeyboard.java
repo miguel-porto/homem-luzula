@@ -922,12 +922,10 @@ public class MainKeyboard extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("AAAAAAA"+ getRealPathFromURI(imageUri, context));
 
         if(ei != null) {
             int orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                     ExifInterface.ORIENTATION_UNDEFINED);
-            System.out.println("AAAAAAA"+ orientation);
             switch (orientation) {
                 case ExifInterface.ORIENTATION_ROTATE_90:
                     rotatedBitmap = rotateImage(thumbnail, 90);
