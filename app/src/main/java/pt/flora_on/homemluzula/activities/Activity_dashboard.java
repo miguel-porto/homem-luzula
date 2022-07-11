@@ -548,27 +548,53 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             switch(f.geometry().type().getValue().toUpperCase()) {
                                 case "POINT":
                                     SinglePosition sp = (SinglePosition) f.geometry().positions();
-                                    newLayer.add(new GeoTimePoint(sp.lat(), sp.lon(), 0), false);
+                                    if(sp.lat() < -85 || sp.lat() > 85) {
+                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                            ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
+                                        Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
+                                    } else
+                                        newLayer.add(new GeoTimePoint(sp.lat(), sp.lon(), 0), false);
                                     break;
 
                                 case "MULTIPOLYGON":
-                                    for(AreaPositions ap : ((MultiDimensionalPositions) f.geometry().positions()).children()) {
-                                        for(LinearPositions lp : ap.children()) {
-                                            addLineStringToTracklog(lp, newLayer, st, et);
+                                    try {
+                                        for (AreaPositions ap : ((MultiDimensionalPositions) f.geometry().positions()).children()) {
+                                            for (LinearPositions lp : ap.children()) {
+                                                addLineStringToTracklog(lp, newLayer, st, et);
+                                            }
                                         }
+                                    } catch(IllegalArgumentException e) {
+                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                            ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
+                                        Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
+                                        return;
                                     }
                                     break;
 
                                 case "POLYGON":
                                 case "MULTILINESTRING":
-                                    for(LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
-                                        addLineStringToTracklog(lp, newLayer, st, et);
+                                    try  {
+                                        for(LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
+                                            addLineStringToTracklog(lp, newLayer, st, et);
+                                        }
+                                    } catch(IllegalArgumentException e) {
+                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                            ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
+                                        Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
+                                        return;
                                     }
                                     break;
 
                                 case "LINESTRING":
-                                    addLineStringToTracklog((LinearPositions) f.geometry().positions(),
-                                            newLayer, st, et);
+                                    try {
+                                        addLineStringToTracklog((LinearPositions) f.geometry().positions(),
+                                                newLayer, st, et);
+                                    } catch(IllegalArgumentException e) {
+                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                            ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
+                                        Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
+                                        return;
+                                    }
                                     break;
                             }
                             counter++;
@@ -582,10 +608,11 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         }
     }
 
-    private void addLineStringToTracklog(LinearPositions lps, Layer tracklog, Date startTime, Date endTime) {
+    private void addLineStringToTracklog(LinearPositions lps, Layer tracklog, Date startTime, Date endTime) throws IllegalArgumentException {
         List<SinglePosition> sps = lps.children();
         for (int i = 0; i < sps.size(); i++) {
             SinglePosition sp = sps.get(i);
+            if(sp.lat() < -85 || sp.lat() > 85) throw new IllegalArgumentException("Latitude out of bounds");
             tracklog.add(new GeoTimePoint(sp.lat(), sp.lon()
                     , (i == 0 && startTime != null) ? startTime.getTime()
                     : ((i == sps.size() - 1 && endTime != null) ? endTime.getTime() : 0)), i == 0);

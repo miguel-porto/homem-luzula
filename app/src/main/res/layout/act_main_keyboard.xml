@@ -66,6 +66,42 @@
                     android:orientation="vertical">
                 </LinearLayout>
 
+<!--                <androidx.gridlayout.widget.GridLayout
+                    android:id="@+id/photo_holder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:alignmentMode="alignBounds"
+                    app:columnCount="4">
+                    <TextView android:layout_width="0dp"
+                        android:text="-1"
+                        app:layout_columnWeight="1"
+                        app:layout_gravity="fill" />
+                    <TextView android:layout_width="0dp"
+                        android:text="-1"
+                        app:layout_columnWeight="1"
+                        app:layout_rowWeight="1"
+                        app:layout_gravity="fill" />
+                    <TextView android:layout_width="0dp"
+                        android:text="-1"
+                        app:layout_columnWeight="1"
+                        app:layout_rowWeight="1"
+                        app:layout_gravity="fill" />
+                    <TextView android:layout_width="0dp"
+                        android:text="-1"
+                        app:layout_columnWeight="1"
+                        app:layout_rowWeight="1"
+                        app:layout_gravity="fill" />
+                    <TextView android:layout_width="0dp"
+                        android:text="-1"
+                        app:layout_columnWeight="1"
+                        app:layout_rowWeight="1"
+                        app:layout_gravity="fill" />
+                    <TextView android:layout_width="0dp"
+                        android:text="-1"
+                        app:layout_columnWeight="1"
+                        app:layout_rowWeight="1"
+                        app:layout_gravity="fill" />
+                </androidx.gridlayout.widget.GridLayout>-->
             </LinearLayout>
         </ScrollView>
 

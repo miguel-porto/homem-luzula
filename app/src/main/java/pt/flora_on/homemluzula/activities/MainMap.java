@@ -1850,14 +1850,18 @@ try {
 
                     try {
                         data = new FileReader(inv);
-                        DataManager.allData.addSpeciesList(sltmp = gs.fromJson(data, SpeciesList.class));
+                        sltmp = gs.fromJson(data, SpeciesList.class);
+                        if(sltmp == null) {
+                            Log.e("HZ", "Inventory error: " + inv.getName());
+                        } else {
+                            DataManager.allData.addSpeciesList(sltmp);
+                            for(TaxonObservation to : sltmp.getTaxa()) {
+                                if(to.hasObservationCoordinates())
+                                    observationTheme.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
+                            }
+                        }
                         data.close();
                         counter++;
-                        for(TaxonObservation to : sltmp.getTaxa()) {
-                            if(to.hasObservationCoordinates())
-                                observationTheme.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
-                        }
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
