@@ -397,13 +397,14 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
+        super.onActivityResult(requestCode, resultCode, resultData);
         Uri uri;
         // The ACTION_OPEN_DOCUMENT intent was sent with the request code
         // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
         // response to some other intent, and the code below shouldn't run at all.
 
         if (resultCode == Activity.RESULT_OK) {
-            switch(requestCode) {
+            switch (requestCode) {
                 case OPEN_CHECKLIST:
                     if (resultData != null) {
                         File extStoreDir = Environment.getExternalStorageDirectory();
@@ -425,15 +426,15 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 case OPEN_POINTLIST:
                     if (resultData != null) {
                         uri = resultData.getData();
-                        if(uri == null) return;
+                        if (uri == null) return;
                         InputStream inputStream = null;
                         try {
                             inputStream = getContentResolver().openInputStream(uri);
-                        } catch(FileNotFoundException e) {
+                        } catch (FileNotFoundException e) {
                             Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
                             return;
                         }
-                        if(inputStream == null) return;
+                        if (inputStream == null) return;
 
                         InputStreamReader chk = new InputStreamReader(inputStream);
                         CSVParser ir;
@@ -445,14 +446,14 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                             return;
                         }
                         int counter = 0;
-                        for(CSVRecord rec : ir) {
-                            if(rec.size() != 3) continue;
+                        for (CSVRecord rec : ir) {
+                            if (rec.size() != 3) continue;
                             SpeciesList sl = new SpeciesList();
                             sl.setGpsCode(rec.get(0));
                             sl.setLocation(Float.parseFloat(rec.get(1)), Float.parseFloat(rec.get(2)));
                             DataManager.allData.addSpeciesList(sl);
-                            if(Inventories.saveInventoryToDisk(sl, sl.getUuid().toString()))
-                                counter ++;
+                            if (Inventories.saveInventoryToDisk(sl, sl.getUuid().toString()))
+                                counter++;
                         }
                         Toast.makeText(this, String.format("Added %d inventories.", counter), Toast.LENGTH_SHORT).show();
                     }
@@ -465,15 +466,15 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                     Layer newLayer;
 
                     uri = resultData.getData();
-                    if(uri == null) return;
+                    if (uri == null) return;
                     InputStream inputStream = null;
                     try {
                         inputStream = getContentResolver().openInputStream(uri);
-                    } catch(FileNotFoundException e) {
+                    } catch (FileNotFoundException e) {
                         Toast.makeText(this, "File not found.", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    if(inputStream == null) return;
+                    if (inputStream == null) return;
                     InputStreamReader geoJsonFile = new InputStreamReader(inputStream);
 
                     DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
@@ -490,12 +491,12 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                         return;
                     }
 
-                    if(requestCode == OPEN_GEOJSONASLAYER) {
+                    if (requestCode == OPEN_GEOJSONASLAYER) {
                         FolderOverlay fo = new FolderOverlay();
                         ((MainMap) mainActivity).getLayersOverlay().add(fo);
                         String layerType = fc.features().get(0).geometry().type().getValue().toUpperCase();
                         Layer tmp = null;
-                        switch(layerType) {
+                        switch (layerType) {
                             case "MULTIPOLYGON":
                             case "POLYGON":
                             case "MULTILINESTRING":
@@ -517,7 +518,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                 break;
                         }
 
-                        if(tmp == null)
+                        if (tmp == null)
                             break;
 
                         DataManager.layers.add(tmp);
@@ -545,11 +546,11 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                 e.printStackTrace();
                             }
 
-                            switch(f.geometry().type().getValue().toUpperCase()) {
+                            switch (f.geometry().type().getValue().toUpperCase()) {
                                 case "POINT":
                                     SinglePosition sp = (SinglePosition) f.geometry().positions();
-                                    if(sp.lat() < -85 || sp.lat() > 85) {
-                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                    if (sp.lat() < -85 || sp.lat() > 85) {
+                                        if (requestCode == OPEN_GEOJSONASLAYER)
                                             ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
                                         Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
                                     } else
@@ -563,8 +564,8 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                                 addLineStringToTracklog(lp, newLayer, st, et);
                                             }
                                         }
-                                    } catch(IllegalArgumentException e) {
-                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                    } catch (IllegalArgumentException e) {
+                                        if (requestCode == OPEN_GEOJSONASLAYER)
                                             ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
                                         Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
                                         return;
@@ -573,12 +574,12 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
                                 case "POLYGON":
                                 case "MULTILINESTRING":
-                                    try  {
-                                        for(LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
+                                    try {
+                                        for (LinearPositions lp : ((AreaPositions) f.geometry().positions()).children()) {
                                             addLineStringToTracklog(lp, newLayer, st, et);
                                         }
-                                    } catch(IllegalArgumentException e) {
-                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                    } catch (IllegalArgumentException e) {
+                                        if (requestCode == OPEN_GEOJSONASLAYER)
                                             ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
                                         Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
                                         return;
@@ -589,8 +590,8 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                                     try {
                                         addLineStringToTracklog((LinearPositions) f.geometry().positions(),
                                                 newLayer, st, et);
-                                    } catch(IllegalArgumentException e) {
-                                        if(requestCode == OPEN_GEOJSONASLAYER)
+                                    } catch (IllegalArgumentException e) {
+                                        if (requestCode == OPEN_GEOJSONASLAYER)
                                             ((MainMap) mainActivity).getLayersOverlay().remove(newLayer.getOverlay());
                                         Toast.makeText(this, "Error importing this file. Is it in Lat-Long WGS84?", Toast.LENGTH_LONG).show();
                                         return;
