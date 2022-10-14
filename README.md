@@ -43,5 +43,5 @@ This app is for serious field work at high speed.
 * Very easy handling of vector layers
 
 ## Screenshots
-![App screenshots](https://flora-on.pt/homem-luzula-guide.jpg)
+![App screenshots](https://flora-on.pt/images/homem-luzula-guide.jpg)
 
