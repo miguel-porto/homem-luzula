@@ -1,4 +1,5 @@
 # homem-luzula - field data collecting app, for species inventories
+[Download installation APK here](https://flora-on.pt/app-release.apk)
 
 ## Who is this app for?
 
