@@ -1965,7 +1965,7 @@ try {
 
     /**
      * if true, start the job
-     * if false, just update the dialog box
+     * if false, just update the dialog boxpoi.txt
      */
     private void updateEstimate(boolean startJob) {
         CacheManager mgr = new CacheManager(theMap);
