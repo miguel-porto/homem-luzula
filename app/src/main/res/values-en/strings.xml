@@ -28,9 +28,9 @@
     <string name="t_tulo_do_ponto">Point name</string>
     <string name="POIs">POIs</string>
     <string name="base_points">base points</string>
-    <string name="inventories">inventories</string>
-    <string name="layers">layers</string>
-    <string name="tracklog">tracklog</string>
+    <string name="inventories">load inventories...</string>
+    <string name="layers">load layers...</string>
+    <string name="tracklog">load tracklogs...</string>
     <string name="layers1">Layers</string>
     <string name="user_interface">User interface</string>
     <string name="limpar_pinned_species">Remove pinned species</string>

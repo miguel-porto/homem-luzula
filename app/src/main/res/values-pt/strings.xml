@@ -27,12 +27,12 @@
     <string name="n_inventoryies">%d inventários</string>
     <string name="t_tulo_do_ponto">Título do ponto</string>
     <string name="POIs">POIs</string>
-    <string name="tracklog">tracklog</string>
+    <string name="tracklog">carregando tracklogs...</string>
     <string name="importar">Importar</string>
     <string name="layers1">Layers</string>
     <string name="limpar_pinned_species">Limpar pinned species</string>
-    <string name="layers">camadas</string>
-    <string name="inventories">inventários</string>
+    <string name="layers">carregando camadas...</string>
+    <string name="inventories">carregando inventários...</string>
     <string name="base_points">pontos base</string>
     <string name="user_interface">Interface</string>
     <string name="delete_this_layer">Quer apagar esta layer?</string>

@@ -68,12 +68,30 @@
                 android:visibility="gone"
                 android:layerType="software" /> -->
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom|start"
-                android:id="@+id/zoomlevel"
-                android:layout_weight="0" />
+                android:gravity="center"
+                android:id="@+id/loading_status"
+                android:orientation="horizontal">
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/progressBar2"
+                    android:indeterminate="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/zoomlevel"
+                    android:layout_weight="0" />
+
+            </LinearLayout>
 
             <TextView
                 android:text="esta app precisa das permissões pedidas para funcionar"

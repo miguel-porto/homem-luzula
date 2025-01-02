@@ -15,18 +15,24 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     signingConfigs {
+        debug {
+            storeFile file(myValue)
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
         config {
 			keyAlias keystoreProperties['keyAlias']
             keyPassword keystoreProperties['keyPassword']
-            storeFile file(keystoreProperties['storeFile'])
+            storeFile file(myValue)
             storePassword keystoreProperties['storePassword']
         }
     }
-    compileSdkVersion 31
+    compileSdk 32
     defaultConfig {
         applicationId "pt.flora_on.homemluzula"
         minSdkVersion 21
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -40,10 +46,12 @@ android {
         }
         debug {
             minifyEnabled false
+            signingConfig signingConfigs.config
         }
     }
     productFlavors {
     }
+    namespace 'pt.flora_on.homemluzula'
 }
 
 dependencies {

@@ -65,7 +65,7 @@ public class DataManager extends AppCompatActivity {
     }
 
     public static int saveTrackLog(File invdir, StringBuilder errors) {
-        if(tracklog == null) return 0;
+        if(tracklog == null || !MainMap.tracklogsLoaded) return 0;
         if(invdir == null) {
             File extStoreDir = Environment.getExternalStorageDirectory();
             invdir = new File(extStoreDir, "homemluzula");
@@ -165,7 +165,8 @@ public class DataManager extends AppCompatActivity {
             nErrors += saveTrackLog(invdir, sb);
         }
 
-        if(layers != null && layers.size() > 0) {
+        // Save layers
+        if(layers != null && !layers.isEmpty() && MainMap.layersLoaded) {
             File file = new File(invdir, "layers.bin");
             if (file.exists()) file.delete();
             try {

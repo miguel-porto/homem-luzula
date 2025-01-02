@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -90,10 +91,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import pt.flora_on.homemluzula.Checklist;
 import pt.flora_on.homemluzula.DataManager;
@@ -151,6 +155,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     static public boolean lockOnCurrentLocation = true;
     static public boolean recordTracklog = false;
     static public boolean breakTrackAtNextFix = false;
+    static public boolean layersLoaded = false, tracklogsLoaded = false, inventoriesLoaded = false;
     private boolean isGPSOn = false;
     private boolean showCutTrackButton = false;
     static public AppCompatActivity mainActivity;
@@ -556,9 +561,11 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
      * Count the frequency of each species in the data
      */
     public void refreshFrequencies() {
+        if(!inventoriesLoaded) return;
         int count;
         String tName;
         frequencies.clear();
+
         for(SpeciesList sl : DataManager.allData.getSpeciesLists()) {
             for(TaxonObservation t : sl.getTaxa()) {
                 tName = t.getTaxon().toLowerCase();
@@ -605,6 +612,176 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
     @SuppressLint("ClickableViewAccessibility")
     private void initializeApp() {
+        DataManager.allData = new Inventories();
+        observationTheme = new SimplePointTheme();
+        File extStoreDir = Environment.getExternalStorageDirectory();
+        File invDir = new File(extStoreDir, "homemluzula");
+        Gson gs = new Gson();
+
+        ((TextView) findViewById(R.id.zoomlevel)).setText(R.string.tracklog);
+        // READ ALL DATA ASYNC
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                // Read tracklog
+                FileInputStream fin;
+                File file = new File(invDir, "tracklog.bin");
+                if(!file.exists())
+                    DataManager.tracklog = new Tracklog(trackLogOverlay);
+                else {
+                    try {
+                        fin = new FileInputStream(file);
+                        ObjectInputStream ois = new ObjectInputStream(fin);
+                        DataManager.tracklog = (Tracklog) ois.readObject();
+                        fin.close();
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    if(DataManager.tracklog == null) DataManager.tracklog = new Tracklog(trackLogOverlay);
+                    DataManager.tracklog.setOverlay(trackLogOverlay);
+                    DataManager.tracklog.refresh();
+
+                    DataManager.tracklog.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            POIPointLayer.setSelectedPoint(null);
+                            inventoryLayer.setSelectedPoint(null);
+                            DataManager.setSelectedLayer(null);
+                            theMap.invalidate();
+                            ((EditText) findViewById(R.id.POILabel)).setText(
+                                    DataManager.tracklog.getLabel(DataManager.tracklog.getSelectedTrack())
+                            );
+                            DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
+                            long t = DataManager.tracklog.getSelectedSegment().get(0).getTime();
+                            ((TextView) findViewById(R.id.tr_start)).setText(t == 0 ? "-" : df.format(t));
+                            t = DataManager.tracklog.getSelectedSegment().get(DataManager.tracklog.getSelectedSegment().size() - 1).getTime();
+                            ((TextView) findViewById(R.id.tr_end)).setText(t == 0 ? "-" : df.format(t));
+                            ((TextView) findViewById(R.id.tracklog_length)).setText(formatDistance(
+                                    DataManager.tracklog.getLength(DataManager.tracklog.getSelectedTrack())));
+                            showTrackEditBox();
+                        }
+                    });
+                }
+                tracklogsLoaded = true;
+                theMap.invalidate();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(getApplicationContext(), "Loaded tracklogs.", Toast.LENGTH_SHORT).show();
+                        ((TextView) findViewById(R.id.zoomlevel)).setText(R.string.inventories);
+                    }
+                });
+
+                // READ ALL INVENTORIES async
+                // Read from directory
+                int counter = 0;
+                FileReader data;
+                SpeciesList sltmp;
+                if(invDir.exists()) {
+                    for (File inv : Objects.requireNonNull(invDir.listFiles(new FilenameFilter() {
+                        @Override
+                        public boolean accept(File file, String s) {
+                            return s.endsWith(".json");
+                        }
+                    }))) {
+
+                        try {
+                            data = new FileReader(inv);
+                            sltmp = gs.fromJson(data, SpeciesList.class);
+                            if(sltmp == null) {
+                                Log.e("HZ", "Inventory error: " + inv.getName());
+                            } else {
+                                DataManager.allData.addSpeciesList(sltmp);
+                                for(TaxonObservation to : sltmp.getTaxa()) {
+                                    if(to.hasObservationCoordinates()) {
+                                        observationTheme.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
+
+                                    }
+                                }
+                            }
+                            data.close();
+                            counter++;
+                            if(counter % 500 == 0)
+                                theMap.invalidate();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    inventoriesLoaded = true;
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+//                            Toast.makeText(getApplicationContext(), "Loaded all inventories.", Toast.LENGTH_SHORT).show();
+                            ((TextView) findViewById(R.id.zoomlevel)).setText(R.string.layers);
+                        }
+                    });
+                }
+                theMap.invalidate();
+
+                // Read layers
+                file = new File(invDir, "layers.bin");
+                if(!file.exists())
+                    DataManager.layers = new ArrayList<>();
+                else {
+                    try {
+                        fin = new FileInputStream(file);
+                        ObjectInputStream ois = new ObjectInputStream(fin);
+                        DataManager.layers = (ArrayList<Layer>) ois.readObject();
+                        fin.close();
+                    } catch (IOException | ClassNotFoundException e) {
+                        Log.e("LOADLAYERS", e.getMessage());
+                        e.printStackTrace();
+                    }
+
+                    if(DataManager.layers == null) {
+                        DataManager.layers = new ArrayList<>();
+                    }
+
+//                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
+                    for(Layer tl : DataManager.layers) {
+                        FolderOverlay fo = new FolderOverlay();
+                        layersOverlay.add(fo);
+
+                        tl.setOverlay(fo);
+                        tl.refresh();
+
+                        tl.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+//                            Toast.makeText(MainMap.this, "layers", Toast.LENGTH_SHORT).show();
+                                POIPointLayer.setSelectedPoint(null);
+                                inventoryLayer.setSelectedPoint(null);
+                                DataManager.tracklog.setSelectedTrack(null);
+                                DataManager.setSelectedLayer(DataManager.layers.indexOf(tl));
+                                theMap.invalidate();
+                                ((EditText) findViewById(R.id.POILabel)).setText(
+                                        DataManager.layers.get(DataManager.getSelectedLayer()).getLayerName()
+                                );
+                                ((SeekBar) findViewById(R.id.trackWidth)).setProgress((int) (DataManager.layers.get(DataManager.getSelectedLayer()).getWidth() * 10));
+                                showLayerEditBox();
+                            }
+                        });
+
+                    }
+                    theMap.invalidate();
+                    layersLoaded = true;
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Loaded all data.", Toast.LENGTH_SHORT).show();
+                            findViewById(R.id.loading_status).setVisibility(View.GONE);
+                            ((TextView) findViewById(R.id.zoomlevel)).setText("");
+                        }
+                    });
+
+                }
+
+            }
+        });
+
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         GPSIntent = new Intent(this, RecordTracklogService.class);
         mainActivity = MainMap.this;
@@ -789,7 +966,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
             }
         });
 
-        if(MainMap.checklist.getErrors().size() > 0) {
+        if(!MainMap.checklist.getErrors().isEmpty()) {
             new AlertDialog.Builder(MainMap.this)
                     .setCancelable(false)
                     .setTitle("Errors reading the checklist:")
@@ -912,7 +1089,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 GeoPoint center = updateDistanceToCenter();
                 ((TextView) findViewById(R.id.view_latitude)).setText(String.format(Locale.getDefault(), "%.5f", center.getLatitude()));
                 ((TextView) findViewById(R.id.view_longitude)).setText(String.format(Locale.getDefault(), "%.5f", center.getLongitude()));
-                ((TextView) findViewById(R.id.zoomlevel)).setText(String.format(Locale.getDefault(), "%.1f", theMap.getZoomLevelDouble()));
+//                ((TextView) findViewById(R.id.zoomlevel)).setText(String.format(Locale.getDefault(), "%.1f", theMap.getZoomLevelDouble()));
                 findViewById(R.id.edit_label_box).setVisibility(View.GONE);
             }
 
@@ -951,7 +1128,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
         tmp1 = new Paint();
         tmp1.setStyle(Paint.Style.FILL);
-        tmp1.setColor(Color.argb(255,0, 255, 0));
+        tmp1.setColor(Color.argb(255,255, 0, 255));
         opt = SimpleFastPointOverlayOptions.getDefaultStyle()
                 .setPointStyle(tmp1)
                 .setRadius(3f)
@@ -1390,6 +1567,7 @@ try {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == 8937) {
             checkAllPermissions();
             return;
@@ -1727,113 +1905,13 @@ try {
 
             File extStoreDir = Environment.getExternalStorageDirectory();
             File invDir = new File(extStoreDir, "homemluzula");
-            // Read tracklog
-            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.tracklog);
-            FileInputStream fin;
-            File file = new File(invDir, "tracklog.bin");
-            if(!file.exists())
-                DataManager.tracklog = new Tracklog(trackLogOverlay);
-            else {
-                try {
-                    fin = new FileInputStream(file);
-                    ObjectInputStream ois = new ObjectInputStream(fin);
-                    DataManager.tracklog = (Tracklog) ois.readObject();
-                    fin.close();
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-                if(DataManager.tracklog == null) DataManager.tracklog = new Tracklog(trackLogOverlay);
-                DataManager.tracklog.setOverlay(trackLogOverlay);
-                DataManager.tracklog.refresh();
 
-                DataManager.tracklog.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        POIPointLayer.setSelectedPoint(null);
-                        inventoryLayer.setSelectedPoint(null);
-                        DataManager.setSelectedLayer(null);
-                        theMap.invalidate();
-                        ((EditText) findViewById(R.id.POILabel)).setText(
-                                DataManager.tracklog.getLabel(DataManager.tracklog.getSelectedTrack())
-                        );
-                        DateFormat df = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US);
-                        long t = DataManager.tracklog.getSelectedSegment().get(0).getTime();
-                        ((TextView) findViewById(R.id.tr_start)).setText(t == 0 ? "-" : df.format(t));
-                        t = DataManager.tracklog.getSelectedSegment().get(DataManager.tracklog.getSelectedSegment().size() - 1).getTime();
-                        ((TextView) findViewById(R.id.tr_end)).setText(t == 0 ? "-" : df.format(t));
-                        ((TextView) findViewById(R.id.tracklog_length)).setText(formatDistance(
-                                DataManager.tracklog.getLength(DataManager.tracklog.getSelectedTrack())));
-                        showTrackEditBox();
-                    }
-                });
-            }
-
-            // Read layers
-            ((TextView) findViewById(R.id.loadstatus)).setText(R.string.layers);
-            file = new File(invDir, "layers.bin");
-            if(!file.exists())
-                DataManager.layers = new ArrayList<>();
-            else {
-                try {
-                    fin = new FileInputStream(file);
-                    ObjectInputStream ois = new ObjectInputStream(fin);
-                    DataManager.layers = (ArrayList<Layer>) ois.readObject();
-                    fin.close();
-                } catch (IOException | ClassNotFoundException e) {
-                    Log.e("LOADLAYERS", e.getMessage());
-                    e.printStackTrace();
-                }
-
-                if(DataManager.layers == null) {
-                    DataManager.layers = new ArrayList<>();
-                }
-
-//                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
-                for(Layer tl : DataManager.layers) {
-                    FolderOverlay fo = new FolderOverlay();
-                    layersOverlay.add(fo);
-
-                    tl.setOverlay(fo);
-                    tl.refresh();
-
-                    tl.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-//                            Toast.makeText(MainMap.this, "layers", Toast.LENGTH_SHORT).show();
-                            POIPointLayer.setSelectedPoint(null);
-                            inventoryLayer.setSelectedPoint(null);
-                            DataManager.tracklog.setSelectedTrack(null);
-                            DataManager.setSelectedLayer(DataManager.layers.indexOf(tl));
-                            theMap.invalidate();
-                            ((EditText) findViewById(R.id.POILabel)).setText(
-                                    DataManager.layers.get(DataManager.getSelectedLayer()).getLayerName()
-                            );
-                            ((SeekBar) findViewById(R.id.trackWidth)).setProgress((int) (DataManager.layers.get(DataManager.getSelectedLayer()).getWidth() * 10));
-                            showLayerEditBox();
-                        }
-                    });
-
-                }
-            }
-
+/*
             // Read all inventory data
             Gson gs = new Gson();
             FileReader data;
 
-/*
-            try {
-                File tmp = new File(extStore + "/flora-on.json");
-                if(tmp.exists()) {
-                    data = new FileReader(tmp);
-                    DataSaver.allData = gs.fromJson(data, Inventories.class);
-                    data.close();
-                }
-            } catch (IOException e) {
-                DataSaver.allData = new Inventories();
-            }
-            if(DataSaver.allData == null) DataSaver.allData = new Inventories();
-*/
-
+            // LOAD INVENTORIES
             // Read from directory
             ((TextView) findViewById(R.id.loadstatus)).setText(R.string.inventories);
             DataManager.allData = new Inventories();
@@ -1869,61 +1947,10 @@ try {
                         publishProgress(counter);
                 }
             }
+*/
 
             // this is just to build an array of GeoPoints in order to make rendering faster
 //            DataSaver.allData.syncronizeSpeciesListsAndPoints();
-
-            /**
-             * Whenever data is changed, issue a notification for unsaved changes
-             */
-            DataManager.allData.setOnChangedListener(new Inventories.OnChangedListener() {
-                @Override
-                public void onChange() {
-/*                    SharedPreferences prefs = getSharedPreferences("datastate", MODE_PRIVATE);
-                    SharedPreferences.Editor edit = prefs.edit();
-                    edit.putBoolean("changed", true);
-                    edit.commit();*/
-
-/*
-                    Intent deleteIntent = new Intent(MainMap.this, DismissUnsavedNotification.class);
-                    deleteIntent.putParcelableArrayListExtra("specieslists", allData.getSpeciesLists());
-                    PendingIntent pendingDeleteIntent = PendingIntent.getBroadcast(MainMap.this.getApplicationContext(), UNSAVED_NOTIFICATION, deleteIntent, PendingIntent.FLAG_ONE_SHOT);
-*/
-
-/*
-                    NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(MainMap.this.getApplicationContext(), "Flora")
-                            .setSmallIcon(R.drawable.ic_folha)
-                            .setContentTitle("Tem dados não gravados no Homem Luzula!")
-                            .setContentText(String.format(Locale.getDefault(), "Toque aqui para gravar %d inventários", DataSaver.allData.getSpeciesLists().size()));
-
-
-
-                    autoSaveHandler.removeCallbacksAndMessages(null);
-                    autoSaveHandler.postDelayed(autoSave, AUTOSAVE_DELAY);
-*/
-/*
-                    Intent resultIntent = new Intent(MainMap.this.getApplicationContext(), DataSaver.class);
-//                    resultIntent.putParcelableArrayListExtra("specieslists", allData.getSpeciesLists());
-//                    resultIntent.putParcelableArrayListExtra("POIs", MainMap.POIPointTheme.getPointsList());
-//                    resultIntent.putExtra("tracklog", (Parcelable) tracklog);
-                    resultIntent.setAction("save");
-                    resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-                    Intent deleteIntent = new Intent(MainMap.this, DataSaver.class);
-//                    deleteIntent.putParcelableArrayListExtra("specieslists", allData.getSpeciesLists());
-//                    deleteIntent.putParcelableArrayListExtra("POIs", MainMap.POIPointTheme.getPointsList());
-//                    deleteIntent.putExtra("tracklog", (Parcelable) tracklog);
-                    deleteIntent.setAction("ask");
-                    deleteIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-                    mBuilder.setContentIntent(PendingIntent.getActivity(MainMap.this.getApplicationContext(), UNSAVED_NOTIFICATION, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-                    mBuilder.setDeleteIntent(PendingIntent.getActivity(MainMap.this.getApplicationContext(), UNSAVED_NOTIFICATION, deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT));
-                    //mBuilder.setDeleteIntent(pendingDeleteIntent);
-                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                    if(mNotificationManager != null)
-                        mNotificationManager.notify(UNSAVED_NOTIFICATION, mBuilder.build());*/
-                }
-            });
 
             // Read base point theme
             ((TextView) findViewById(R.id.loadstatus)).setText(R.string.base_points);
