@@ -16,12 +16,11 @@
         <LinearLayout
             android:orientation="vertical" android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
             <TextView
                 android:focusable="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Checklist"
+                android:text="Exportar dados"
                 style="@style/textSeparator" />
 
             <LinearLayout
@@ -31,25 +30,27 @@
                 android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/importchecklist"
+                    android:id="@+id/exportData"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Importar" />
+                    android:text="@string/exportar" />
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:id="@+id/progressBar3"
+                    android:visibility="gone"
+                    android:indeterminate="true" />
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="2"
-                    android:text="Importa ficheiro de texto com os nomes dos taxa todos numa coluna" />
-
+                    android:text="Exporta inventários num ficheiro de texto 'dados-lvf.txt' pronto a carregar no Flora-On" />
             </LinearLayout>
-
-            <Button
-                android:id="@+id/clear_checklist"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Limpar checklist" />
 
             <TextView
                 android:focusable="true"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="carregando_dados">Carregando dados...</string>
-    <string name="app_name">Homem Luzula</string>
+    <string name="app_name">Luzula</string>
     <string name="title_activity_species_chooser">Escolha uma espécie</string>
     <string name="novo_ponto">Novo ponto</string>
     <string name="cortar_ntrack">Cortar\ntrack</string>
@@ -32,7 +32,7 @@
     <string name="layers1">Layers</string>
     <string name="limpar_pinned_species">Limpar pinned species</string>
     <string name="layers">carregando camadas...</string>
-    <string name="inventories">carregando inventários...</string>
+    <string name="inventories">carregar inventários</string>
     <string name="base_points">pontos base</string>
     <string name="user_interface">Interface</string>
     <string name="delete_this_layer">Quer apagar esta layer?</string>
@@ -43,4 +43,10 @@
     <string name="permission_location_text">De forma a gravar o percurso, a app precisa de permissão para aceder a sua localização mesmo com o ecran desligado.\nA seguir, por favor seleccione \"All the time\", para o permitir.</string>
     <string name="permission_storage">Aceder ao storage</string>
     <string name="permission_storage_text">De forma a poder gravar e exportar os dados, a app precisa de permissão para aceder livremente à internal storage. No ecran seguinte, por favor permita-o.</string>
+    <string name="share_text">Dados descarregados da app Luzula. Prontos para inserir em https://lvf.flora-on.pt/</string>
+    <string name="but_rapid">RÁPIDO</string>
+    <string name="but_genus">GÉNERO</string>
+    <string name="but_doubt">DÚVIDA</string>
+    <string name="wait_until_data_is_fully_loaded">Espere até os dados serem carregados completamente</string>
+    <string name="inventories_counter">carregando inventários... %d%%</string>
 </resources>

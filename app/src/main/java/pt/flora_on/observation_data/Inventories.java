@@ -29,6 +29,7 @@ public class Inventories implements SimpleFastPointOverlay.PointAdapter {
     transient boolean changed = false;
     protected ArrayList<SpeciesList> speciesLists = new ArrayList<SpeciesList>();
     protected transient final List<IGeoPoint> points = new ArrayList<IGeoPoint>();
+    protected transient final List<IGeoPoint> pointsBuffer = new ArrayList<IGeoPoint>();
     private transient OnChangedListener changedListener;
     private transient int maxInventorySerial = 0;
 
@@ -66,6 +67,27 @@ public class Inventories implements SimpleFastPointOverlay.PointAdapter {
 //            points.add(new GeoPoint(sl.getLatitude(), sl.getLongitude()));
             points.add(new LabelledGeoPoint(sl.getLatitude(), sl.getLongitude(), "".equals(sl.getGpsCode()) ? null : sl.getGpsCode()));
         }
+        if(changedListener != null) changedListener.onChange();
+    }
+
+    public void addSpeciesListAsync(SpeciesList sl) {
+        speciesLists.add(sl);
+        if(sl.getSerialNumber() != null) {
+            if(sl.getSerialNumber() > maxInventorySerial)
+                maxInventorySerial = sl.getSerialNumber();
+        }
+        if (sl.getLatitude() == null || sl.getLongitude() == null)
+            pointsBuffer.add(null);
+        else {
+//            points.add(new GeoPoint(sl.getLatitude(), sl.getLongitude()));
+            pointsBuffer.add(new LabelledGeoPoint(sl.getLatitude(), sl.getLongitude(), "".equals(sl.getGpsCode()) ? null : sl.getGpsCode()));
+        }
+    }
+
+    public void flush() {
+        changed = true;
+        points.addAll(pointsBuffer);
+        pointsBuffer.clear();
         if(changedListener != null) changedListener.onChange();
     }
 
@@ -143,7 +165,7 @@ public class Inventories implements SimpleFastPointOverlay.PointAdapter {
 
     @Override
     public IGeoPoint get(int i) {
-        return points.get(i);
+        return points.size() > 0 ? points.get(i) : null;
     }
 
     @Override

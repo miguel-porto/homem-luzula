@@ -96,8 +96,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 
 import pt.flora_on.homemluzula.Checklist;
 import pt.flora_on.homemluzula.DataManager;
@@ -134,6 +138,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     private final Handler mHideGPSHandler = new Handler();
     private final Handler mRecordingTracklog = new Handler();
     private final Handler saveTracklogTimer = new Handler();
+    private Timer waitLayersLoadedTimer;
     private Integer tracklogMinDist, precisionFilter;
     private Boolean tracklogPrecisionFilter;
     private View mContentView;
@@ -156,6 +161,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
     static public boolean recordTracklog = false;
     static public boolean breakTrackAtNextFix = false;
     static public boolean layersLoaded = false, tracklogsLoaded = false, inventoriesLoaded = false;
+    private ExecutorService executor;
+    private Future<?> loadDataTask;
     private boolean isGPSOn = false;
     private boolean showCutTrackButton = false;
     static public AppCompatActivity mainActivity;
@@ -271,6 +278,9 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
             case 1:
                 toneGen1.startTone(ToneGenerator.TONE_SUP_RINGTONE,100);
+                break;
+            case 2:
+                toneGen1.startTone(ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK,100);
                 break;
         }
     }
@@ -610,6 +620,34 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
         return super.onKeyDown(keyCode, event);
     }
 
+    private void displayLayers() {
+        for(Layer tl : DataManager.layers) {
+            FolderOverlay fo = new FolderOverlay();
+            layersOverlay.add(fo);
+
+            tl.setOverlay(fo);
+            tl.refresh();
+
+            tl.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                            Toast.makeText(MainMap.this, "layers", Toast.LENGTH_SHORT).show();
+                    POIPointLayer.setSelectedPoint(null);
+                    inventoryLayer.setSelectedPoint(null);
+                    DataManager.tracklog.setSelectedTrack(null);
+                    DataManager.setSelectedLayer(DataManager.layers.indexOf(tl));
+                    theMap.invalidate();
+                    ((EditText) findViewById(R.id.POILabel)).setText(
+                            DataManager.layers.get(DataManager.getSelectedLayer()).getLayerName()
+                    );
+                    ((SeekBar) findViewById(R.id.trackWidth)).setProgress((int) (DataManager.layers.get(DataManager.getSelectedLayer()).getWidth() * 10));
+                    showLayerEditBox();
+                }
+            });
+
+        }
+        theMap.invalidate();
+    }
     @SuppressLint("ClickableViewAccessibility")
     private void initializeApp() {
         DataManager.allData = new Inventories();
@@ -620,10 +658,18 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
         ((TextView) findViewById(R.id.zoomlevel)).setText(R.string.tracklog);
         // READ ALL DATA ASYNC
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        class DaemonThreadFactory implements ThreadFactory {
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setDaemon(true);
+                return t;
+            }
+        }
+        executor = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+//        executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
-        executor.execute(new Runnable() {
+        loadDataTask = executor.submit(new Runnable() {
             @Override
             public void run() {
                 // Read tracklog
@@ -632,6 +678,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if(!file.exists())
                     DataManager.tracklog = new Tracklog(trackLogOverlay);
                 else {
+                    tracklogsLoaded = false;
                     try {
                         fin = new FileInputStream(file);
                         ObjectInputStream ois = new ObjectInputStream(fin);
@@ -640,6 +687,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     } catch (IOException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
+                    if(Thread.currentThread().isInterrupted()) return;
+
                     if(DataManager.tracklog == null) DataManager.tracklog = new Tracklog(trackLogOverlay);
                     DataManager.tracklog.setOverlay(trackLogOverlay);
                     DataManager.tracklog.refresh();
@@ -666,12 +715,12 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     });
                 }
                 tracklogsLoaded = true;
-                theMap.invalidate();
+                if(Thread.currentThread().isInterrupted()) return;
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
 //                        Toast.makeText(getApplicationContext(), "Loaded tracklogs.", Toast.LENGTH_SHORT).show();
-                        ((TextView) findViewById(R.id.zoomlevel)).setText(R.string.inventories);
+                        ((TextView) findViewById(R.id.zoomlevel)).setText(String.format(getString(R.string.inventories_counter), 0));
                     }
                 });
 
@@ -680,21 +729,24 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 int counter = 0;
                 FileReader data;
                 SpeciesList sltmp;
+                final int numberOfFiles = invDir.list().length;
                 if(invDir.exists()) {
+                    inventoriesLoaded = false;
+                    DataManager.allData.setSpeciesLists(new ArrayList<SpeciesList>());
                     for (File inv : Objects.requireNonNull(invDir.listFiles(new FilenameFilter() {
                         @Override
                         public boolean accept(File file, String s) {
                             return s.endsWith(".json");
                         }
                     }))) {
-
+                        if(Thread.currentThread().isInterrupted()) return;
                         try {
                             data = new FileReader(inv);
                             sltmp = gs.fromJson(data, SpeciesList.class);
                             if(sltmp == null) {
                                 Log.e("HZ", "Inventory error: " + inv.getName());
                             } else {
-                                DataManager.allData.addSpeciesList(sltmp);
+                                DataManager.allData.addSpeciesListAsync(sltmp);
                                 for(TaxonObservation to : sltmp.getTaxa()) {
                                     if(to.hasObservationCoordinates()) {
                                         observationTheme.add(new StyledLabelledGeoPoint(to.getObservationLatitude(), to.getObservationLongitude()));
@@ -704,12 +756,20 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                             }
                             data.close();
                             counter++;
-                            if(counter % 500 == 0)
-                                theMap.invalidate();
+                            if(counter % 100 == 0) {
+                                int finalCounter = counter;
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ((TextView) findViewById(R.id.zoomlevel)).setText(String.format(getString(R.string.inventories_counter), (int)((float) finalCounter / numberOfFiles * 100)));
+                                    }
+                                });
+                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
+                    DataManager.allData.flush();
                     inventoriesLoaded = true;
                     handler.post(new Runnable() {
                         @Override
@@ -719,6 +779,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                         }
                     });
                 }
+                if(Thread.currentThread().isInterrupted()) return;
                 theMap.invalidate();
 
                 // Read layers
@@ -726,6 +787,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 if(!file.exists())
                     DataManager.layers = new ArrayList<>();
                 else {
+                    layersLoaded = false;
                     try {
                         fin = new FileInputStream(file);
                         ObjectInputStream ois = new ObjectInputStream(fin);
@@ -735,38 +797,13 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                         Log.e("LOADLAYERS", e.getMessage());
                         e.printStackTrace();
                     }
+                    if(Thread.currentThread().isInterrupted()) return;
 
                     if(DataManager.layers == null) {
                         DataManager.layers = new ArrayList<>();
                     }
 
 //                Toast.makeText(MainMap.this, DataSaver.layers.size() + " layers", Toast.LENGTH_SHORT).show();
-                    for(Layer tl : DataManager.layers) {
-                        FolderOverlay fo = new FolderOverlay();
-                        layersOverlay.add(fo);
-
-                        tl.setOverlay(fo);
-                        tl.refresh();
-
-                        tl.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-//                            Toast.makeText(MainMap.this, "layers", Toast.LENGTH_SHORT).show();
-                                POIPointLayer.setSelectedPoint(null);
-                                inventoryLayer.setSelectedPoint(null);
-                                DataManager.tracklog.setSelectedTrack(null);
-                                DataManager.setSelectedLayer(DataManager.layers.indexOf(tl));
-                                theMap.invalidate();
-                                ((EditText) findViewById(R.id.POILabel)).setText(
-                                        DataManager.layers.get(DataManager.getSelectedLayer()).getLayerName()
-                                );
-                                ((SeekBar) findViewById(R.id.trackWidth)).setProgress((int) (DataManager.layers.get(DataManager.getSelectedLayer()).getWidth() * 10));
-                                showLayerEditBox();
-                            }
-                        });
-
-                    }
-                    theMap.invalidate();
                     layersLoaded = true;
                     handler.post(new Runnable() {
                         @Override
@@ -778,9 +815,10 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     });
 
                 }
-
+                MainMap.beep(2);
             }
         });
+
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         GPSIntent = new Intent(this, RecordTracklogService.class);
@@ -842,6 +880,7 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                 IGeoPoint center = theMap.getProjection().fromPixels(theMap.getWidth() / 2, theMap.getHeight() / 2);
                 DataManager.POIPointTheme.add(new StyledLabelledGeoPoint(center.getLatitude(), center.getLongitude(), null));
                 DataManager.POIPointTheme.setChanged(true);
+                DataManager.savePOIs();
                 POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
                 inventoryLayer.setSelectedPoint(null);
                 DataManager.tracklog.setSelectedTrack(null);
@@ -931,6 +970,8 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
                     if(POIPointLayer.getSelectedPoint() != null) {
                         ((LabelledGeoPoint) DataManager.POIPointTheme.get(POIPointLayer.getSelectedPoint()))
                                 .setLabel(label);
+                        DataManager.POIPointTheme.setChanged(true);
+                        DataManager.savePOIs();
                     } else if(DataManager.tracklog.getSelectedTrack() != null) {
                         DataManager.tracklog.setLabel(DataManager.tracklog.getSelectedTrack(), label);
                     } else if(DataManager.getSelectedLayer() != null && DataManager.layers.get(DataManager.getSelectedLayer()) != null) {
@@ -1116,6 +1157,20 @@ public class MainMap extends AppCompatActivity implements View.OnClickListener, 
 
         theMap.getOverlays().add(trackLogOverlay);
         theMap.getOverlays().add(layersOverlay);
+        // Now we can wait until all layers are loaded
+        waitLayersLoadedTimer = new Timer(false);
+        waitLayersLoadedTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(layersLoaded) {
+                    waitLayersLoadedTimer.cancel();
+                    displayLayers();
+                } else {
+//                    beep(1);
+                }
+
+            }
+        }, 1000, 1000);
 
         SimpleFastPointOverlayOptions opt;
         opt = SimpleFastPointOverlayOptions.getDefaultStyle()
@@ -1777,14 +1832,7 @@ try {
         // this is just an internal activity change, don't do anything.
         if(internalNavigation) {
             internalNavigation = false;
-            return;
         }
-
-        if(checkGPSPermission()) {
-//            locationManager.removeUpdates(tracklogListener);
-//            locationManager.removeUpdates(fastWaypointListener);
-        }
-
     }
 
     @Override
@@ -1799,12 +1847,18 @@ try {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        loadDataTask.cancel(true);
         lockOnCurrentLocation = true;
         recordTracklog = false;
         breakTrackAtNextFix = false;
+        layersLoaded = false;
+        inventoriesLoaded = false;
+        tracklogsLoaded = false;
         mRecordingTracklog.removeCallbacks(mToggleTracklogIcon);
         stopService(GPSIntent);
         saveTracklogTimer.removeCallbacks(saveTracklogRunnable);
+        waitLayersLoadedTimer.cancel();
+        executor.shutdownNow();
 /*
         try {
             unregisterReceiver(screenOnReceiver);
@@ -2258,6 +2312,7 @@ try {
                     if(!noPOISel) {
                         DataManager.POIPointTheme.remove(POIPointLayer.getSelectedPoint());
                         DataManager.POIPointTheme.setChanged(true);
+                        DataManager.savePOIs();
                         POIPointLayer.setSelectedPoint(DataManager.POIPointTheme.size() > 0 ? DataManager.POIPointTheme.size() - 1 : null);
                         findViewById(R.id.edit_label_box).setVisibility(View.GONE);
                         theMap.invalidate();

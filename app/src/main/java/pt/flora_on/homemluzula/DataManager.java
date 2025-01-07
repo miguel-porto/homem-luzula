@@ -14,7 +14,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.FileUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,6 +28,8 @@ import org.osmdroid.views.overlay.simplefastpoint.SimpleFastPointOverlay;
 import org.osmdroid.views.overlay.simplefastpoint.StyledLabelledGeoPoint;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -83,7 +87,12 @@ public class DataManager extends AppCompatActivity {
 
         File file = new File(invdir, "tracklog.bin");
         Log.i("PATH", file.getAbsolutePath());
-        if (file.exists()) file.delete();
+        if (file.exists()) {
+            File renameTo = new File(invdir, "tracklog.bak");
+            if(renameTo.exists()) renameTo.delete();
+            file.renameTo(renameTo);
+            file.delete();
+        }
         try {
             file.createNewFile();
             FileOutputStream fout = new FileOutputStream(file);
@@ -123,7 +132,6 @@ public class DataManager extends AppCompatActivity {
             allData.setChanged(getIntent().getBooleanExtra("changed", true));
         }
 
-//        Toast.makeText(this, "Tracklog desactivado." + (allData==null) +","+(POItheme==null), Toast.LENGTH_SHORT).show();
         if(allData != null || POIPointTheme != null || tracklog != null) {
             new SaveAndExport(DataManager.this).execute();
         } else
@@ -131,39 +139,40 @@ public class DataManager extends AppCompatActivity {
 //            finishAffinity();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public void saveEverythingSilently() {
-        StringBuilder sb = new StringBuilder();
+    public static int savePOIs() {
+        File extStoreDir = Environment.getExternalStorageDirectory();
         int nErrors = 0;
-        final Gson gs = new GsonBuilder().setPrettyPrinting().create();
-        boolean setUnchanged = false;
         // export POI
         if(POIPointTheme != null && POIPointTheme.isChanged()) {
             try {
-                final File tmp = new File(System.getenv("EXTERNAL_STORAGE") + "/POI.txt");
+//                final File tmp = new File(System.getenv("EXTERNAL_STORAGE") + "/POI.txt");
+                final File tmp = new File(extStoreDir, "POI.txt");
                 CSVPrinter csvp = new CSVPrinter(new FileWriter(tmp, false), CSVFormat.DEFAULT);
 
                 for(StyledLabelledGeoPoint gp : POIPointTheme.getPointsList()) {
                     csvp.printRecord(gp.getLatitude(), gp.getLongitude()
-                    , gp.getLabel() == null ? "" : gp.getLabel()
-                    , gp.getPointStyle() == null ? "" : gp.getPointStyle().getColor());
+                            , gp.getLabel() == null ? "" : gp.getLabel()
+                            , gp.getPointStyle() == null ? "" : gp.getPointStyle().getColor());
                 }
                 csvp.close();
             } catch (IOException e) {
-                sb.append("POI.json: ").append(e.getMessage()).append("\n");
                 nErrors++;
             }
             POIPointTheme.setChanged(false);
             //Toast.makeText(getApplicationContext(), "Saved POI", Toast.LENGTH_SHORT).show();
         }
+        return nErrors;
+    }
 
-//        String extStore = System.getenv("EXTERNAL_STORAGE");
+    public static File saveEverythingSilently() {
+        StringBuilder sb = new StringBuilder();
+        File chk = null;
+        int nErrors = 0;
+//        final Gson gs = new GsonBuilder().setPrettyPrinting().create();
         File extStoreDir = Environment.getExternalStorageDirectory();
+//        String extStore = System.getenv("EXTERNAL_STORAGE");
+
         File invdir = new File(extStoreDir, "homemluzula");
-        // save tracklog
-        if(tracklog != null) {
-            nErrors += saveTrackLog(invdir, sb);
-        }
 
         // Save layers
         if(layers != null && !layers.isEmpty() && MainMap.layersLoaded) {
@@ -181,51 +190,31 @@ public class DataManager extends AppCompatActivity {
             }
         }
 
-        // export LVF text file
-        File chk = new File(extStoreDir, "/dados-lvf.txt");
-        PrintWriter bw;
-        try {
-            bw = new PrintWriter(new FileWriter(chk, false));
-            bw.println("code\tlatitude\tlongitude\tdate\thabitat\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcover\tcomment\tobservationLatitude\tobservationLongitude");
-            for(SpeciesList sList : allData.getSpeciesLists()) {
-                sList.toCSV(bw, "lvf");
+        if(MainMap.inventoriesLoaded) {
+            // export LVF text file
+            chk = new File(extStoreDir, "/dados-lvf.txt");
+            PrintWriter bw;
+            try {
+                bw = new PrintWriter(new FileWriter(chk, false));
+                bw.println("code\tlatitude\tlongitude\tdate\thabitat\ttaxa\tphenostate\tconfidence\tabundance\ttypeofestimate\tcover\tcomment\tobservationLatitude\tobservationLongitude");
+                for (SpeciesList sList : allData.getSpeciesLists()) {
+                    sList.toCSV(bw, "lvf");
+                }
+                bw.close();
+            } catch (IOException e) {
+                sb.append("dados.txt: ").append(e.getMessage()).append("\n");
+                nErrors++;
             }
-            bw.close();
-        } catch (IOException e) {
-            sb.append("dados.txt: ").append(e.getMessage()).append("\n");
-            nErrors++;
         }
-
-//        tit = "Dados gravados com sucesso";
-//        msg = "Ficheiros gravados:\n" + System.getenv("EXTERNAL_STORAGE") + "/flora-on.json\n" + System.getenv("EXTERNAL_STORAGE") + "/dados.txt";
-
-        String tit, msg;
-        if(nErrors > 0) {
-            tit = "Erro ao gravar dados";
-            msg = sb.toString();
-
-            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
-                    .setSmallIcon(R.drawable.ic_folha)
-                    .setContentTitle(tit)
-                    .setContentText(msg).setAutoCancel(true);
-            Intent resultIntent = new Intent(this, MainMap.class);
-
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-            stackBuilder.addParentStack(MainMap.class);
-            stackBuilder.addNextIntent(resultIntent);
-            PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            mBuilder.setContentIntent(resultPendingIntent);
-            NotificationManager mNotificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.notify(0, mBuilder.build());
-        }
-
+        // save tracklog
+        nErrors += saveTrackLog(invdir, sb);
+        return chk;
     }
 
     /**
      * Save everything and quit, with UI waiting
      */
-    private class SaveAndExport extends AsyncTask<Void, Void, Void> {
+    public class SaveAndExport extends AsyncTask<Void, Void, Void> {
         private ProgressDialog dialog;
         private WeakReference<DataManager> dataSaverWeakReference;
 

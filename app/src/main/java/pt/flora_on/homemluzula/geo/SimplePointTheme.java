@@ -2,6 +2,7 @@ package pt.flora_on.homemluzula.geo;
 
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.provider.ContactsContract;
 
 import com.google.gson.Gson;
 
@@ -19,6 +20,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import pt.flora_on.homemluzula.DataManager;
 
 /**
  * Created by miguel on 21-10-2016.

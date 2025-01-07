@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Homem Luzula</string>
+    <string name="app_name">Luzula</string>
     <string name="empty_string" translatable="false"></string>
 
     <!-- Strings related to Settings -->
@@ -109,7 +109,7 @@
     <string name="t_tulo_do_ponto">Título do ponto</string>
     <string name="POIs">POIs</string>
     <string name="base_points">base points</string>
-    <string name="inventories">load inventories...</string>
+    <string name="inventories">load inventories</string>
     <string name="layers">load layers...</string>
     <string name="tracklog">load tracklogs...</string>
     <string name="importar">Importar</string>
@@ -124,5 +124,11 @@
     <string name="permission_location_text">In order to record tracklogs, the app needs permission to access your location while the screen is off.\nIn the next screen, please select \"All the time\" to allow it.</string>
     <string name="permission_storage">Permission to access storage</string>
     <string name="permission_storage_text">The app needs full access to the internal storage, in order to save and export data. In the next screen, please allow that permission.</string>
+    <string name="share_text">Dados descarregados da app Luzula. Prontos para inserir em https://lvf.flora-on.pt/</string>
+    <string name="but_rapid">RÁPIDO</string>
+    <string name="but_genus">GÉNERO</string>
+    <string name="but_doubt">DÚVIDA</string>
+    <string name="wait_until_data_is_fully_loaded">Wait until data is fully loaded</string>
+    <string name="inventories_counter">load inventories... %d%%</string>
 
 </resources>

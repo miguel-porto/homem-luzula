@@ -129,7 +129,7 @@
                         android:checked="true"
                         android:paddingBottom="16dp"
                         android:paddingTop="16dp"
-                        android:text="RÁPIDO"
+                        android:text="@string/but_rapid"
                         android:textSize="16sp" />
 
                     <RadioButton
@@ -138,7 +138,7 @@
                         android:layout_height="wrap_content"
                         android:paddingBottom="16dp"
                         android:paddingTop="16dp"
-                        android:text="GÉNERO"
+                        android:text="@string/but_genus"
                         android:textSize="16sp" />
 
                     <RadioButton
@@ -147,7 +147,7 @@
                         android:layout_height="wrap_content"
                         android:paddingBottom="16dp"
                         android:paddingTop="16dp"
-                        android:text="DÚVIDA"
+                        android:text="@string/but_doubt"
                         android:textSize="16sp" />
                 </RadioGroup>
 

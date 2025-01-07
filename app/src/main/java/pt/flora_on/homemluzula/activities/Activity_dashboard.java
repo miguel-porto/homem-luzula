@@ -9,9 +9,13 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -57,6 +61,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import pt.flora_on.homemluzula.DataManager;
 import pt.flora_on.homemluzula.HomemLuzulaApp;
@@ -101,11 +107,10 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
         int zp = prefs.getInt("inventory_zeropad", 3);
 */
 
+        findViewById(R.id.exportData).setOnClickListener(this);
         findViewById(R.id.exporttracks).setOnClickListener(this);
         findViewById(R.id.deletetracks).setOnClickListener(this);
         findViewById(R.id.importtracks).setOnClickListener(this);
-        findViewById(R.id.importchecklist).setOnClickListener(this);
-        findViewById(R.id.clear_checklist).setOnClickListener(this);
         findViewById(R.id.importinventories).setOnClickListener(this);
         findViewById(R.id.importlayer).setOnClickListener(this);
         findViewById(R.id.removelayers).setOnClickListener(this);
@@ -132,6 +137,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
     }
 
     private void refreshLayerList() {
+        if(DataManager.layers == null) return;
         LinearLayout layerManager = ((LinearLayout) findViewById(R.id.layer_manager));
         layerManager.removeAllViews();
         for(Layer ll : DataManager.layers) {
@@ -178,8 +184,46 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
     @Override
     public void onClick(View view) {
+        File extStoreDir, chk;
         Intent intent;
+
         switch(view.getId()) {
+            case R.id.exportData:
+                if(!MainMap.inventoriesLoaded || !MainMap.tracklogsLoaded || !MainMap.layersLoaded)
+                    Toast.makeText(this, R.string.wait_until_data_is_fully_loaded, Toast.LENGTH_SHORT).show();
+                else {
+                    findViewById(R.id.progressBar3).setVisibility(View.VISIBLE);
+                    findViewById(R.id.exportData).setVisibility(View.GONE);
+                    ExecutorService executor = Executors.newSingleThreadExecutor();
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    executor.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            File out = DataManager.saveEverythingSilently();
+                            if(out != null) {
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+//                                    Toast.makeText(getApplicationContext(), "Exported all inventories to file " + chk.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                                        findViewById(R.id.progressBar3).setVisibility(View.GONE);
+                                        findViewById(R.id.exportData).setVisibility(View.VISIBLE);
+
+                                        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+                                        Uri fileUri = FileProvider.getUriForFile(Activity_dashboard.this, Activity_dashboard.this.getApplicationContext().getPackageName() + ".provider", out);
+                                        sharingIntent.setType("text/plain");
+                                        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, "Dados Luzula");
+                                        sharingIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+                                        sharingIntent.putExtra(Intent.EXTRA_TEXT, getString(R.string.share_text));
+                                        startActivity(Intent.createChooser(sharingIntent, "Share file using"));
+                                    }
+                                });
+                            }
+                        }
+                    });
+
+                }
+                break;
+
             case R.id.importinventories:
                 intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -199,23 +243,6 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("*/*");
                 startActivityForResult(intent, OPEN_GEOJSONASLAYER);
-                break;
-
-            case R.id.importchecklist:
-                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                startActivityForResult(intent, OPEN_CHECKLIST);
-                break;
-
-            case R.id.clear_checklist:
-                File extStoreDir = Environment.getExternalStorageDirectory();
-                File invdir = new File(extStoreDir, "homemluzula");
-                File chk1 = new File(invdir, "checklist.txt");
-                if(chk1.exists())
-                    chk1.delete();
-                ((MainMap) mainActivity).readChecklist();
-                finish();
                 break;
 
             case R.id.clear_pinned_species:
@@ -253,7 +280,7 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
             case R.id.exporttracks:
                 String extStore = System.getenv("EXTERNAL_STORAGE");
-                File chk = new File(extStore + "/tracklogs.geojson");
+                chk = new File(extStore + "/tracklogs.geojson");
 
                 Gson gson = new GsonBuilder()
                         .registerTypeAdapterFactory(new GeometryAdapterFactory())
@@ -405,24 +432,6 @@ public class Activity_dashboard extends AppCompatActivity implements Button.OnCl
 
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
-                case OPEN_CHECKLIST:
-                    if (resultData != null) {
-                        File extStoreDir = Environment.getExternalStorageDirectory();
-                        File invdir = new File(extStoreDir, "homemluzula");
-                        uri = resultData.getData();
-                        if (uri == null) return;
-                        File chk = new File(invdir, "checklist.txt");
-                        try {
-                            chk.createNewFile();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        savefile(uri, chk);
-                    }
-                    ((MainMap) mainActivity).readChecklist();
-                    finish();
-                    break;
-
                 case OPEN_POINTLIST:
                     if (resultData != null) {
                         uri = resultData.getData();
