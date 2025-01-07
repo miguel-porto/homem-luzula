@@ -93,7 +93,7 @@
             android:defaultValue="true"
             android:key="pref_markSpeciesCoords"
             android:disableDependentsState="false"
-            android:title="Registar coordenadas de cada espécie individualmente"/>
+            android:title="@string/record_indiv_coords"/>
 
         <ListPreference
             android:defaultValue="4"

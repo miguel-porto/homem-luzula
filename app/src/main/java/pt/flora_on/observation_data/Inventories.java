@@ -165,7 +165,7 @@ public class Inventories implements SimpleFastPointOverlay.PointAdapter {
 
     @Override
     public IGeoPoint get(int i) {
-        return points.size() > 0 ? points.get(i) : null;
+        return !points.isEmpty() ? points.get(i) : null;
     }
 
     @Override

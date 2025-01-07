@@ -49,4 +49,6 @@
     <string name="but_doubt">TEXT</string>
     <string name="wait_until_data_is_fully_loaded">Wait until data is fully loaded</string>
     <string name="inventories_counter">load inventories... %d%%</string>
+    <string name="export_inventories">Export and share inventories in a text file ready to upload in Flora-On</string>
+    <string name="record_indiv_coords">Record individual coordinates of each species in the inventory</string>
 </resources>

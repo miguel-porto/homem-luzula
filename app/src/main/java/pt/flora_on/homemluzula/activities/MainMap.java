@@ -1617,7 +1617,8 @@ try {
     }
 
     private int getTracklogInterval() {
-        return Integer.parseInt(findViewById( ((RadioGroup) findViewById(R.id.gps_seconds_group)).getCheckedRadioButtonId()).getTag().toString());
+        return 1;
+//        return Integer.parseInt(findViewById( ((RadioGroup) findViewById(R.id.gps_seconds_group)).getCheckedRadioButtonId()).getTag().toString());
     }
 
     @Override
@@ -2165,21 +2166,39 @@ try {
 
             if((boolean) tb.getTag()) {     // if it was off, switch on
                 setGPSEnabled(true);
+                lockOnCurrentLocation = true;
             } else {        // if it was on, just center
-                tb.setTag(true);
-                if(lastLocation != null) {
-                    theMap.getController().animateTo(new GeoPoint(lastLocation));
-                    findViewById(R.id.mira).setVisibility(View.GONE);
+                if(lockOnCurrentLocation) {
+                    if(checkGPSPermission()) {
+                        if(recordTracklog)
+                            setRecordTracklog(false);
+
+                        setGPSEnabled(false);
+                        if (currentLocationLayer != null)
+                            currentLocationLayer.setCurrentLocation((Location) null);
+                        theMap.invalidate();
+//                        final ImageButton tb = (ImageButton) findViewById(R.id.toggleGPS);
+                    }
+                    lockOnCurrentLocation = false;
+                } else {
+                    tb.setTag(true);
+                    if (lastLocation != null) {
+                        theMap.getController().animateTo(new GeoPoint(lastLocation));
+                        findViewById(R.id.mira).setVisibility(View.GONE);
 //                        findViewById(R.id.add_location).setVisibility(View.GONE);
-                    findViewById(R.id.view_distance).setVisibility(View.GONE);
+                        findViewById(R.id.view_distance).setVisibility(View.GONE);
+                    }
+                    lockOnCurrentLocation = true;
                 }
             }
 
             // show interval buttons
+/*
             mHideGPSHandler.removeCallbacks(mHideGPSRunnable);
             mHideGPSHandler.postDelayed(mHideGPSRunnable, 2500);
             setGPSVisibility(true);
-            lockOnCurrentLocation = true;
+ */
+
         }
 
         if(v.getId() == R.id.show_veclayers) {

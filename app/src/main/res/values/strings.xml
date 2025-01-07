@@ -130,5 +130,7 @@
     <string name="but_doubt">DÚVIDA</string>
     <string name="wait_until_data_is_fully_loaded">Wait until data is fully loaded</string>
     <string name="inventories_counter">load inventories... %d%%</string>
+    <string name="export_inventories">Exporta inventários num ficheiro de texto \'dados-lvf.txt\' pronto a carregar no Flora-On</string>
+    <string name="record_indiv_coords">Registar coordenadas de cada espécie individualmente</string>
 
 </resources>
